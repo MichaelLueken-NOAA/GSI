@@ -38,7 +38,7 @@ module gsi_unformatted
                                 !  -- look up class in a fileinfo table, for a convert definition
   public :: fileinfo_reset      ! ([fileinfo])
                                 !  -- deallocate(fileinfo_xx) or set an alternate fileinfo filename.
-  public :: FILEINFO_LEN        ! the internal lenth of fields class and convert.
+  public :: fileinfo_len        ! the internal lenth of fields class and convert.
 
   interface unformatted_open; module procedure   open_; end interface
   interface fileinfo_lookup ; module procedure lookup_; end interface
@@ -53,18 +53,18 @@ module gsi_unformatted
 !!! Usage:
 !!!
 !!!   ! lookup convert value for a user defined class '.bufr.'
-!!!     use gsi_unformatted, only: fileinfo_lookup, FILEINFO_LEN
-!!!     character(len=FILEINFO_LEN):: convert
+!!!     use gsi_unformatted, only: fileinfo_lookup, fileinfo_len
+!!!     character(len=fileinfo_len):: convert
 !!!     convert='native'
 !!!     call fileinfo_lookup('.bufr.',convert)
 !!! or
 !!!   ! lookup convert value for a given filename
-!!!     use gsi_unformatted, only: fileinfo_lookup, FILEINFO_LEN
-!!!     character(len=FILEINFO_LEN):: convert
+!!!     use gsi_unformatted, only: fileinfo_lookup, fileinfo_len
+!!!     character(len=fileinfo_len):: convert
 !!!     convert=''
 !!!     call fileinfo_lookup(filename,convert)
 !!! or
-!!!   ! open an existed BUFR file for input
+!!!   ! open an existed bufr file for input
 !!!     use gsi_unformatted, only: unformatted_open
 !!!     call unformatted_open(unit,file,class='.bufr.',status='old',iostat=ier)
 !!!
@@ -81,13 +81,13 @@ module gsi_unformatted
 !!#
 !!# Note: Reserved values in this implementation of this module.
 !!#     class   == ".default."          -- for all files
-!!#     convert == "_NOT_SUPPORTED_"    -- flag compilers not supporting "convert"
-!!#     convert == "_NOT_FOUND_"        -- flag a failed lookup() call.
+!!#     convert == "_not_supported_"    -- flag compilers not supporting "convert"
+!!#     convert == "_not_found_"        -- flag a failed lookup() call.
 !!#
 !!#     class/file      convert
 !!#--------------------------------------
 !!      .default.       ""              # a class name reserved for all files
-!!      .bufr.          little_endian   # for all BUFR files
+!!      .bufr.          little_endian   # for all bufr files
 !!      prepbufr        native          # an exception from .bufr.
 !!      .berror.        native          # for files grouped under .berror.
 !!      berror_stats    big_endian      # an exception from .berror.
@@ -97,29 +97,29 @@ module gsi_unformatted
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   character(len=*),parameter :: myname='gsi_unformatted'
 
-  integer(i_kind),parameter:: FILEINFO_LEN=64
-  integer(i_kind),parameter:: FILEINFO_INC=32
+  integer(i_kind),parameter:: fileinfo_len=64
+  integer(i_kind),parameter:: fileinfo_inc=32
 
-  integer(i_kind),parameter:: FILEINFO_REC=256
-  integer(i_kind),parameter:: FILEINFO_FNL=512  ! in case it has a very long pathname
+  integer(i_kind),parameter:: fileinfo_rec=256
+  integer(i_kind),parameter:: fileinfo_fnl=512  ! in case it has a very long pathname
 
 #ifdef _DO_NOT_SUPPORT_OPEN_WITH_CONVERT_
-  logical,parameter:: CONVERT_SUPPORTED_ = .false.
+  logical,parameter:: convert_supported_ = .false.
 #else
-  logical,parameter:: CONVERT_SUPPORTED_ = .true.
+  logical,parameter:: convert_supported_ = .true.
 #endif
 
 ! Declare a "_fileinfo_" data structure, defining a class-vs-convert table.
 
-  character(len=*),parameter:: DEFAULT_FILEINFO_NAME ='unformatted_fileinfo'
+  character(len=*),parameter:: default_fileinfo_name ='unformatted_fileinfo'
 
   logical,save:: fileinfo_initialized_ = .false.
 
-  character(len=FILEINFO_FNL),save:: fileinfo_name_=DEFAULT_FILEINFO_NAME
-  integer(i_kind),save:: fileinfo_msize_=FILEINFO_INC   ! allocated size
+  character(len=fileinfo_fnl),save:: fileinfo_name_=default_fileinfo_name
+  integer(i_kind),save:: fileinfo_msize_=fileinfo_inc   ! allocated size
   integer(i_kind),save:: fileinfo_lsize_=-1             ! actual size
-  character(len=FILEINFO_LEN),dimension(:),pointer,save:: fileinfo_class_
-  character(len=FILEINFO_LEN),dimension(:),pointer,save:: fileinfo_cnvrt_
+  character(len=fileinfo_len),dimension(:),pointer,save:: fileinfo_class_
+  character(len=fileinfo_len),dimension(:),pointer,save:: fileinfo_cnvrt_
   integer(i_kind)            ,dimension(:),pointer,save:: fileinfo_index_
 
 ! name/class    convert
@@ -139,11 +139,11 @@ subroutine open_(unit,file,class,newunit,action,position,status,iostat,silent)
 
   integer(i_kind):: iostat_
   logical        :: newunit_
-  character(len=FILEINFO_LEN):: class_
-  character(len=FILEINFO_LEN):: action_
-  character(len=FILEINFO_LEN):: position_
-  character(len=FILEINFO_LEN):: status_
-  character(len=FILEINFO_LEN):: convert_
+  character(len=fileinfo_len):: class_
+  character(len=fileinfo_len):: action_
+  character(len=fileinfo_len):: position_
+  character(len=fileinfo_len):: status_
+  character(len=fileinfo_len):: convert_
   character(len=*),parameter:: myname_=myname//'::open_'
 
   class_   ='.default.'; if(present(class   )) class_   =class
@@ -155,7 +155,7 @@ subroutine open_(unit,file,class,newunit,action,position,status,iostat,silent)
   if(present(iostat)) iostat=0
 
 #ifdef _DO_NOT_SUPPORT_OPEN_WITH_CONVERT_
-  convert_="_NOT_SUPPORTED_"    ! open(file with the compiler default convert
+  convert_="_not_supported_"    ! open(file with the compiler default convert
   if(newunit_) then
      open(newunit=unit,file=file,access='sequential',form='unformatted', &
         action=action_,position=position_,status=status_,iostat=iostat_)
@@ -165,30 +165,30 @@ subroutine open_(unit,file,class,newunit,action,position,status,iostat,silent)
   endif
 
 #else
-  convert_="_NOT_FOUND_"        ! set a difault value
+  convert_="_not_found_"        ! set a difault value
   call lookup_(class_,convert_,silent=silent) ! may override convert value, if an entry of class_ is found.
   call lookup_(file  ,convert_,silent=silent) ! may override convert value, if an entry of file is found.
 
   select case(convert_)
-  case("","_NOT_FOUND_")        ! open(file) with the compiler default convert
-     if(newunit_) then
-        open(newunit=unit,file=file,access='sequential',form='unformatted', &
-           action=action_,position=position_,status=status_,iostat=iostat_)
-     else
-        open(   unit=unit,file=file,access='sequential',form='unformatted', &
-           action=action_,position=position_,status=status_,iostat=iostat_)
-     endif
+     case("","_not_found_")        ! open(file) with the compiler default convert
+        if(newunit_) then
+           open(newunit=unit,file=file,access='sequential',form='unformatted', &
+              action=action_,position=position_,status=status_,iostat=iostat_)
+        else
+           open(   unit=unit,file=file,access='sequential',form='unformatted', &
+              action=action_,position=position_,status=status_,iostat=iostat_)
+        endif
 
-  case default                  ! open(file) with user specified convert
-     if(newunit_) then
-        open(newunit=unit,file=file,access='sequential',form='unformatted', &
-           action=action_,position=position_,status=status_,iostat=iostat_, &
-           convert=convert_)
-     else
-        open(   unit=unit,file=file,access='sequential',form='unformatted', &
-           action=action_,position=position_,status=status_,iostat=iostat_, &
-           convert=convert_)
-     endif
+     case default                  ! open(file) with user specified convert
+        if(newunit_) then
+           open(newunit=unit,file=file,access='sequential',form='unformatted', &
+              action=action_,position=position_,status=status_,iostat=iostat_, &
+              convert=convert_)
+        else
+           open(   unit=unit,file=file,access='sequential',form='unformatted', &
+              action=action_,position=position_,status=status_,iostat=iostat_, &
+              convert=convert_)
+        endif
   end select
 #endif
 
@@ -237,7 +237,7 @@ subroutine reset_(fileinfo)
 
         ! Reset fileinfo_name_, even if the fileinfo part has not been not
         ! initialized_.  So one can lookup() from a different fileinfo.
-  fileinfo_name_= DEFAULT_FILEINFO_NAME
+  fileinfo_name_= default_fileinfo_name
   if(present(fileinfo)) fileinfo_name_= fileinfo
 
         ! Initialization (init_()) is defered to the time an actual lookup().
@@ -245,7 +245,7 @@ subroutine reset_(fileinfo)
 
         ! Reset to the pre-init_() state, except fileinfo_name_
   fileinfo_initialized_ = .false.
-  fileinfo_msize_       = FILEINFO_INC
+  fileinfo_msize_       = fileinfo_inc
   fileinfo_lsize_       = -1
   deallocate( fileinfo_class_, &
               fileinfo_cnvrt_, &
@@ -258,35 +258,35 @@ subroutine init_(verbose)
 ! local variables
   integer(i_kind):: lu,ier,i,n
 
-  character(len=FILEINFO_LEN):: classi
-  character(len=FILEINFO_LEN):: cnvrti
-  character(len=FILEINFO_REC):: arec
+  character(len=fileinfo_len):: classi
+  character(len=fileinfo_len):: cnvrti
+  character(len=fileinfo_rec):: arec
 
-  character(len=FILEINFO_LEN),pointer,dimension(:):: p_class
-  character(len=FILEINFO_LEN),pointer,dimension(:):: p_cnvrt
+  character(len=fileinfo_len),pointer,dimension(:):: p_class
+  character(len=fileinfo_len),pointer,dimension(:):: p_cnvrt
   character(len=*),parameter:: myname_=myname//'::init_'
 
   fileinfo_initialized_=.true.
 
-  if(.not.CONVERT_SUPPORTED_.and.verbose) call warn(myname_,'Not supported, open(convert=..)')
+  if(.not.convert_supported_.and.verbose) call warn(myname_,'Not supported, open(convert=..)')
 
         ! read in the fileinfo table anyway
   lu=mpeu_luavail()
   open(lu,file=fileinfo_name_,status='old',form='formatted',iostat=ier)
-        if(ier/=0) then
+  if(ier/=0) then
 #ifndef _DO_NOT_SUPPORT_OPEN_WITH_CONVERT_
-           if(verbose) then
-             call warn(myname_,'Can not open, file =',trim(fileinfo_name_))
-             call warn(myname_,'Will use default convert values in code')
-           endif
+     if(verbose) then
+        call warn(myname_,'Can not open, file =',trim(fileinfo_name_))
+        call warn(myname_,'Will use default convert values in code')
+     endif
 #endif
 
-           fileinfo_lsize_=0
-           allocate( fileinfo_class_(0), &
-                     fileinfo_cnvrt_(0), &
-                     fileinfo_index_(0)  )
-           return
-        endif
+     fileinfo_lsize_=0
+     allocate( fileinfo_class_(0), &
+               fileinfo_cnvrt_(0), &
+               fileinfo_index_(0)  )
+     return
+  endif
 
   n=fileinfo_msize_
   allocate( fileinfo_class_(n), &
@@ -296,13 +296,13 @@ subroutine init_(verbose)
   call mpeu_getarec(lu,arec,ier,commchar='#!')
   do while(ier==0)
      read(arec,*,iostat=ier) classi,cnvrti
-                if(ier/=0) cnvrti=""
+     if(ier/=0) cnvrti=""
 
      i=i+1
      if(i>fileinfo_msize_) then  ! realloc()
         p_class => fileinfo_class_
         p_cnvrt => fileinfo_cnvrt_
-        n=fileinfo_msize_+FILEINFO_INC
+        n=fileinfo_msize_+fileinfo_inc
         allocate( fileinfo_class_(n), &
                   fileinfo_cnvrt_(n))
 
@@ -323,8 +323,8 @@ subroutine init_(verbose)
   close(lu)
 
   allocate(fileinfo_index_(fileinfo_lsize_))
-  call indexSet (fileinfo_index_(1:fileinfo_lsize_))
-  call indexSort(fileinfo_index_(1:fileinfo_lsize_), &
+  call indexset (fileinfo_index_(1:fileinfo_lsize_))
+  call indexsort(fileinfo_index_(1:fileinfo_lsize_), &
                  fileinfo_class_(1:fileinfo_lsize_), descend=.false.)
 
 end subroutine init_

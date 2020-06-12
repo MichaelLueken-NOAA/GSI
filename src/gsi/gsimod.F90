@@ -20,7 +20,7 @@
      blacklst,init_obsmod_vars,lobsdiagsave,lobskeep,lobserver,hilbert_curve,&
      lread_obs_save,lread_obs_skip,time_window_rad, &
      neutral_stability_windfact_2dvar,use_similarity_2dvar
-  use gsi_dbzOper, only: diag_radardbz
+  use gsi_dbzoper, only: diag_radardbz
 
   use obsmod, only: doradaroneob,oneoblat,oneoblon,oneobheight,oneobvalue,oneobddiff,oneobradid,&
      radar_no_thinning,ens_hx_dbz_cut,static_gsi_nopcp_dbz,rmesh_dbz,&
@@ -39,11 +39,10 @@
        
        ! The following variables are the coefficients that describe
        ! the linear regression fits that are used to define the
-       ! dynamic observation error (DOE) specifications for all
+       ! dynamic observation error (doe) specifications for all
        ! reconnissance observations collected within
        ! hurricanes/tropical cyclones; these apply only to the
-       ! regional forecast models (e.g., HWRF); Henry R. Winterbottom
-       ! (henry.winterbottom@noaa.gov).
+       ! regional forecast models (e.g., hwrf)
        
        q_doe_a_136,q_doe_a_137,q_doe_b_136,q_doe_b_137, &
        t_doe_a_136,t_doe_a_137,t_doe_b_136,t_doe_b_137, &
@@ -59,9 +58,9 @@
                        l4dvar,nhr_obsbin,nhr_subwin,nwrvecs,iorthomax,&
                        lbicg,lsqrtb,lcongrad,lbfgsmin,ltlint,ladtest,ladtest_obs, lgrtest,&
                        idmodel,clean_4dvar,iwrtinc,lanczosave,jsiga,ltcost,liauon, &
-		       l4densvar,ens_nstarthr,lnested_loops,lwrite4danl,nhr_anal,thin4d,tau_fcst,efsoi_order
-  use gsi_4dvar, only: mPEs_observer
-  use m_obsdiags, only: alwaysLocal => obsdiags_alwaysLocal
+                       l4densvar,ens_nstarthr,lnested_loops,lwrite4danl,nhr_anal,thin4d,tau_fcst,efsoi_order
+  use gsi_4dvar, only: mpes_observer
+  use m_obsdiags, only: alwayslocal => obsdiags_alwayslocal
   use obs_ferrscale, only: lferrscale
   use mpimod, only: npe,mpi_comm_world,ierror,mype
   use radinfo, only: retrieval,diag_rad,init_rad,init_rad_vars,adp_anglebc,angord,upd_pred,&
@@ -94,7 +93,7 @@
   use jfunc, only: iout_iter,iguess,miter,factqmin,factqmax, &
      factql,factqi,factqr,factqs,factqg, &  
      factv,factl,factp,factg,factw10m,facthowv,factcldch,niter,niter_no_qc,biascor,&
-     init_jfunc,qoption,cwoption,switch_on_derivatives,tendsflag,jiterstart,jiterend,R_option,&
+     init_jfunc,qoption,cwoption,switch_on_derivatives,tendsflag,jiterstart,jiterend,r_option,&
      bcoption,diurnalbc,print_diag_pcg,tsensible,lgschmidt,diag_precon,step_start,pseudo_q2,&
      clip_supersaturation,cnvw_option
   use state_vectors, only: init_anasv,final_anasv
@@ -134,7 +133,7 @@
      range_max,elev_angle_max,initialize_superob_radar,l2superob_only
   use m_berror_stats,only : berror_stats ! filename if other than "berror_stats"
   use lag_fields,only : infile_lag,lag_nmax_bal,&
-                        &lag_vorcore_stderr_a,lag_vorcore_stderr_b,lag_modini
+                         lag_vorcore_stderr_a,lag_vorcore_stderr_b,lag_modini
   use lag_interp,only : lag_accur
   use lag_traj,only   : lag_stepduration
   use hybrid_ensemble_parameters,only : l_hyb_ens,uv_hyb_ens,aniso_a_en,generate_ens,&
@@ -144,7 +143,7 @@
                          beta_s0,s_ens_h,s_ens_v,init_hybrid_ensemble_parameters,&
                          readin_localization,write_ens_sprd,eqspace_ensgrid,grid_ratio_ens,&
                          readin_beta,use_localization_grid,use_gfs_ens,q_hyb_ens,i_en_perts_io, &
-                         l_ens_in_diff_time,ensemble_path,ens_fast_read,sst_staticB
+                         l_ens_in_diff_time,ensemble_path,ens_fast_read,sst_staticb
   use rapidrefresh_cldsurf_mod, only: init_rapidrefresh_cldsurf, &
                             dfi_radar_latent_heat_time_period,metar_impact_radius,&
                             metar_impact_radius_lowcloud,l_gsd_terrain_match_surftobs, &
@@ -156,12 +155,12 @@
                             i_conserve_thetav_iternum,l_gsd_soiltq_nudge,l_cld_bld, cld_bld_hgt, &
                             build_cloud_frac_p, clear_cloud_frac_p,       &
                             l_hydrometeor_bkio,nesdis_npts_rad, & 
-                            iclean_hydro_withRef,iclean_hydro_withRef_allcol, &
+                            iclean_hydro_withref,iclean_hydro_withref_allcol, &
                             i_use_2mq4b,i_use_2mt4b,i_gsdcldanal_type,i_gsdsfc_uselist, &
                             i_lightpcp,i_sfct_gross,l_use_hydroretrieval_all,l_numconc,l_closeobs,&
                             i_coastline,i_gsdqc,qv_max_inc,ioption,l_precip_clear_only,l_fog_off,&
                             cld_bld_coverage,cld_clr_coverage,&
-                            i_cloud_q_innovation,i_ens_mean,DTsTmax
+                            i_cloud_q_innovation,i_ens_mean,dtstmax
   use gsi_metguess_mod, only: gsi_metguess_init,gsi_metguess_final
   use gsi_chemguess_mod, only: gsi_chemguess_init,gsi_chemguess_final
   use tcv_mod, only: init_tcps_errvals,tcp_refps,tcp_width,tcp_ermin,tcp_ermax
@@ -194,25 +193,25 @@
    public gsimain_finalize
 
 !
-! !DESCRIPTION: This module contains code originally in the GSI main program.
+! !DESCRIPTION: This module contains code originally in the gsi main program.
 ! The main
 !               program has been split in initialize/run/finalize segments, and
 !               subroutines
 !  created for these steps: gsimain_initialize(), gsimain_run() and
 !  gsimain_finalize().
-!  In non-ESMF mode (see below) a main program is assembled by calling these 3
+!  In non-esmf mode (see below) a main program is assembled by calling these 3
 !  routines in
 !  sequence.
                                                                                                                          
                     
-!  This file can be compiled in 2 different modes: an ESMF and a non-ESMF mode.
+!  This file can be compiled in 2 different modes: an esmf and a non-esmf mode.
 !  When HAVE_ESMF
-!  is defined (ESMF mode), a few I/O related statements are skipped during
+!  is defined (esmf mode), a few i/o related statements are skipped during
 !  initialize() and
-!  a main program is not provided. These is no dependency on the ESMF in this
+!  a main program is not provided. These is no dependency on the esmf in this
 !  file and in the
-!  routines called from here. The ESMF interface is implemented in
-!  GSI_GridCompMod which in
+!  routines called from here. The esmf interface is implemented in
+!  gsi_gridcompmod which in
 !  turn calls the initialize/run/finalize routines defined here.
 !
 ! !REVISION HISTORY:
@@ -222,13 +221,13 @@
 !  10Apr2007  Todling   Created from gsimain
 !  13Jan2007  Tremolet  Updated interface to setup_4dvar
 !  03Oct2007  Todling   Add lobserver
-!  03Oct2007  Tremolet  Add DFI and lanczos-save
+!  03Oct2007  Tremolet  Add dfi and lanczos-save
 !  04Jan2008  Tremolet  Add forecast sensitivity to observations options
-!  10Sep2008  Guo       Add CRTM files directory path
-!  02Dec2008  Todling   Remove reference to old TLM of analysis  
-!  20Nov2008  Todling   Add lferrscale to scale OMF w/ Rinv (actual fcst not guess)
+!  10Sep2008  Guo       Add crtm files directory path
+!  02Dec2008  Todling   Remove reference to old tlm of analysis  
+!  20Nov2008  Todling   Add lferrscale to scale omf w/ rinv (actual fcst not guess)
 !  08Dec2008  Todling   Placed switch_on_derivatives,tendsflag in jcopts namelist
-!  28Jan2009  Todling   Remove original GMAO interface
+!  28Jan2009  Todling   Remove original gmao interface
 !  06Mar2009  Meunier   Add initialisation for lagrangian data
 !  04-21-2009 Derber    Ensure that ithin is positive if neg. set to zero
 !  07-08-2009 Sato      Update for anisotropic mode (global/ensemble based)
@@ -243,15 +242,15 @@
 !                         ensemble compared to analysis for case when ensemble and analysis resolution are
 !                         the same.  used for preliminary testing of dual resolution hybrid ensemble option.
 !  02-25-2010 Zhu       Remove berror_nvars
-!  03-06-2010 Parrish   add flag use_gfs_ozone to namelist SETUP--allows read of gfs ozone for regional runs
-!  03-09-2010 Parrish   add flag check_gfs_ozone_date to namelist SETUP--if true, date check gfs ozone
-!  03-15-2010 Parrish   add flag regional_ozone to namelist SETUP--if true, then turn on ozone in 
+!  03-06-2010 Parrish   add flag use_gfs_ozone to namelist setup--allows read of gfs ozone for regional runs
+!  03-09-2010 Parrish   add flag check_gfs_ozone_date to namelist setup--if true, date check gfs ozone
+!  03-15-2010 Parrish   add flag regional_ozone to namelist setup--if true, then turn on ozone in 
 !                         regional analysis
 !  03-17-2010 todling   add knob for analysis error estimate (jsiga)
 !  03-17-2010 Zhu       Add nc3d and nvars in init_grid_vars interface
 !  03-29-2010 hu        add namelist variables for controling rapid refesh options
 !                                 including cloud analysis and surface enhancement
-!                       add and read namelist for RR
+!                       add and read namelist for rr
 !  03-31-2010 Treadon   replace init_spec, init_spec_vars, destroy_spec_vars with general_* routines
 !  04-07-2010 Treadon   write rapidrefresh_cldsurf settings to stdout
 !  04-10-2010 Parrish   add vlevs from gridmod, so can pass as argument to init_mpi_vars, which must
@@ -270,20 +269,20 @@
 !  08-10-2010 Wu        add nvege_type to gridopts namelist 
 !  08-24-2010 hcHuang   add diag_aero and init_aero for aerosol observations
 !  08-26-2010 Cucurull  add use_compress to setup namelist, add a call to gps_constants
-!  09-06-2010 Todling   add Errico-Ehrendorfer parameter for E-norm used in DFI
-!  09-03-2010 Todling   add opt to output true J-cost from within Lanczos (beware: expensive)
+!  09-06-2010 Todling   add errico-ehrendorfer parameter for e-norm used in dfi
+!  09-03-2010 Todling   add opt to output true j-cost from within lanczos (beware: expensive)
 !  10-05-2010 Todling   add lbicg option
 !  09-02-2010 Zhu       Add option use_edges for the usage of radiance data on scan edges
-!  10-18-2010 hcHuang   Add option use_gfs_nemsio to read global model NEMS/GFS first guess
+!  10-18-2010 hcHuang   Add option use_gfs_nemsio to read global model nems/gfs first guess
 !  11-17-2010 Pagowski  add chemical species and related namelist
 !  12-20-2010 Cucurull  add nsig_ext to setup namelist for the usage of gpsro bending angle
 !  01-05-2011 Cucurull  add gpstop to setup namelist for the usage of gpsro data assimilation
 !  04-08-2011 Li        (1) add integer variable nst_gsi and nstinfo for the use of oceanic first guess
-!                       (2) add integer variable fac_dtl & fac_tsl to control the use of NST model
-!                       (3) add integer variable tzr_qc to control the Tzr QC
-!                       (4) add integer tzr_bufrsave to control if save Tz retrieval or not
+!                       (2) add integer variable fac_dtl & fac_tsl to control the use of nst model
+!                       (3) add integer variable tzr_qc to control the tzr qc
+!                       (4) add integer tzr_bufrsave to control if save tz retrieval or not
 !  04-07-2011 todling   move newpc4pred to radinfo
-!  04-19-2011 El Akkraoui add iorthomax to control numb of vecs in orthogonalization for CG opts
+!  04-19-2011 El Akkraoui add iorthomax to control numb of vecs in orthogonalization for cg opts
 !  05-05-2011 mccarty   removed references to repe_dw
 !  05-21-2011 todling   add call to setservice
 !  06-01-2011 guo/zhang add liauon
@@ -296,23 +295,23 @@
 !  01-16-2012 m. tong   add parameter pseudo_hybens to turn on pseudo ensemble hybrid
 !  01-17-2012 wu        add switches: gefs_in_regional,full_ensemble,pwgtflg
 !  01-18-2012 parrish   add integer parameter regional_ensemble_option to select ensemble source.
-!                                 =1: use GEFS internally interpolated to ensemble grid.
-!                                 =2: ensembles are WRF NMM format.
-!                                 =3: ensembles are ARW netcdf format.
-!                                 =4: ensembles are NEMS NMMB format.
+!                                 =1: use gefs internally interpolated to ensemble grid.
+!                                 =2: ensembles are wrf nmm format.
+!                                 =3: ensembles are arw netcdf format.
+!                                 =4: ensembles are nems nmmb format.
 !  02-07-2012 tong      remove parameter gefs_in_regional and reduce regional_ensemble_option to
 !                       4 options
 !  02-08-2012 kleist    add parameters to control new 4d-ensemble-var features.
 !  02-17-2012 tong      add parameter merge_two_grid_ensperts to merge ensemble perturbations
 !                       from two forecast domains to analysis domain  
-!  05-25-2012 li/wang   add TDR fore/aft sweep separation for thinning,xuguang.wang@ou.edu
+!  05-25-2012 li/wang   add tdr fore/aft sweep separation for thinning
 !  06-12-2012 parrish   remove calls to subroutines init_mpi_vars, destroy_mpi_vars.
 !                       add calls to init_general_commvars, destroy_general_commvars.
 !  10-11-2012 eliu      add wrf_nmm_regional in determining logic for use_gfs_stratosphere                
 !  05-14-2012 wargan    add adjustozvar to adjust ozone in stratosphere
 !  05-14-2012 todling   defense to set nstinfo only when nst_gsi>0
 !  05-23-2012 todling   add lnested_loops option
-!  09-10-2012 Gu        add fut2ps to project unbalanced temp to surface pressure in static B modeling
+!  09-10-2012 Gu        add fut2ps to project unbalanced temp to surface pressure in static b modeling
 !  12-05-2012 el akkraoui  hybrid beta parameters now vertically varying
 !  07-10-2012 sienkiewicz  add ssmis_method control for noise reduction
 !  02-19-2013 sienkiewicz  add ssmis_precond for SSMIS bias coeff weighting
@@ -339,10 +338,10 @@
 !                              grid than mass background grid
 !  12-10-2013 zhu       add cwoption
 !  02-05-2014 todling   add parameter cwcoveqqcov (cw_cov=q_cov)
-!  02-24-2014 sienkiewicz added aircraft_t_bc_ext for GMAO external aircraft temperature bias correction
+!  02-24-2014 sienkiewicz added aircraft_t_bc_ext for gmao external aircraft temperature bias correction
 !  05-29-2014 Thomas    add lsingleradob logical for single radiance ob test
 !                       (originally of mccarty)
-!  06-19-2014 carley/zhu  add factl and R_option for twodvar_regional lcbas/ceiling analysis
+!  06-19-2014 carley/zhu  add factl and r_option for twodvar_regional lcbas/ceiling analysis
 !  08-05-2014 carley    add safeguard so that oneobtest disables hilbert_curve if user accidentally sets hilbert_curve=.true.
 !  10-04-2014 todling   revised meanning of parameter bcoption
 !  08-18-2014 tong      add jcap_gfs to allow spectral transform to a coarser resolution grid,
@@ -354,11 +353,11 @@
 !  01-15-2015 Hu        added options i_use_2mq4b,i_use_2mt4b, i_gsdcldanal_type
 !                              i_gsdsfc_uselist,i_lightpcp,i_sfct_gross under
 !                              rapidrefresh_cldsurf
-!  02-09-2015 Sienkiewicz id_drifter flag - modify KX values for drifting buoys if set
+!  02-09-2015 Sienkiewicz id_drifter flag - modify kx values for drifting buoys if set
 !  02-29-2015 S.Liu     added option l_use_hydroretrieval_all
-!  03-01-2015 Li        add zsea1 & zsea2 to namelist for vertical mean temperature based on NSST T-Profile
+!  03-01-2015 Li        add zsea1 & zsea2 to namelist for vertical mean temperature based on nsst t-Profile
 !  05-02-2015 Parrish   add option rtma_bkerr_sub2slab to allow dual resolution for application of
-!                       anisotropic recursive filter (RTMA application only for now).
+!                       anisotropic recursive filter (rtma application only for now).
 !  05-13-2015 wu        remove check to turn off regional 4densvar
 !  01-13-2015 Ladwig    added option l_numconc
 !  09-01-2015 Hu        added option l_closeobs
@@ -370,75 +369,75 @@
 !  03-10-2016 ejones    add control for gmi noise reduction
 !  03-25-2016 ejones    add control for amsr2 noise reduction
 !  04-18-2016 Yang      add closest_obs for selecting obs. from multi-report at a surface observation.
-!  06-24-2016 j. guo    added alwaysLocal => m_obsdiags::obsdiags_alwaysLocal to
-!                       namelist /SETUP/.
+!  06-24-2016 j. guo    added alwayslocal => m_obsdiags::obsdiags_alwayslocal to
+!                       namelist /setup/.
 !  08-12-2016 lippi     added namelist parameters for single radial wind
 !                       experiment (anaz_rw,anel_rw,range_rw,sstn,lsingleradar,
 !                       singleradar,learthrel_rw). added a radar station look-up
 !                       table.
-!  08-12-2016 Mahajan   NST stuff belongs in NST module, Adding a NST namelist
+!  08-12-2016 Mahajan   NST stuff belongs in nst module, Adding a nst namelist
 !                       option
 !  08-24-2016 lippi     added nml option lnobalance to zero out all balance correlation
 !                       matricies for univariate analysis.
 !  08-28-2016 li - tic591: add use_readin_anl_sfcmask for consistent sfcmask
 !                          between analysis grids and others
 !  11-29-2016 shlyaeva  add lobsdiag_forenkf option for writing out linearized
-!                       H(x) for EnKF
+!                       h(x) for enkf
 !  12-14-2016 lippi     added nml variable learthrel_rw for single radial
-!                       wind observation test, and nml option for VAD QC
+!                       wind observation test, and nml option for vad qc
 !                       vadwnd_l2rw_qc of level 2 winds.
 !  02-02-2017 Hu        added option i_coastline to turn on the observation
 !                              operator for surface observations along the coastline area
 !  04-01-2017 Hu        added option i_gsdqc to turn on special observation qc
-!                              from GSD (for RAP/HRRR application)
+!                              from gsd (for rap/hrrr application)
 !  02-15-2016 Y. Wang, Johnson, X. Wang - added additional options if_vterminal, if_model_dbz,
-!                                         for radar DA, POC: xuguang.wang@ou.edu
+!                                         for radar da
 !  08-31-2017 Li        add sfcnst_comb for option to read sfc & nst combined file 
-!  10-10-2017 Wu,W      added option fv3_regional and rid_ratio_fv3_regional, setup FV3, earthuv
+!  10-10-2017 Wu,W      added option fv3_regional and rid_ratio_fv3_regional, setup fv3, earthuv
 !  01-11-2018 Yang      add namelist variables required by the nonlinear transform to vis and cldch
-!                      (Jim Purser 2018). Add estvisoe and estcldchoe to replace the hardwired 
+!                      (jim purser 2018). Add estvisoe and estcldchoe to replace the hardwired 
 !                       prescribed vis/cldch obs. errort in read_prepbufr. (tentatively?)
 !  03-22-2018 Yang      remove "logical closest_obs", previously applied to the analysis of vis and cldch.
 !                       The option to use only the closest ob to the analysis time is now handled
 !                       by Ming Hu's "logical l_closeobs" for all variables.
-!  01-04-2018 Apodaca   add diag_light and lightinfo for GOES/GLM lightning
+!  01-04-2018 Apodaca   add diag_light and lightinfo for goes/glm lightning
 !                           data assimilation
-!  08-16-2018 akella    id_ship flag - modify KX values for ships if set
+!  08-16-2018 akella    id_ship flag - modify kx values for ships if set
 !  08-25-2018 Collard   Introduce bias_zero_start
-!  03-29-2019 lei       add integer parameter fv3sar_ensemble_opt to select the format of the FV3SAR ensembles 
+!  03-29-2019 lei       add integer parameter fv3sar_ensemble_opt to select the format of the fv3sar ensembles 
 !                                 =0;  restart files
-!                                 =1;  cold start IC files from CHGRES
+!                                 =1;  cold start ic files from chgres
 !  09-12-2018 Ladwig    added option l_precip_clear_only
 !  03-28-2019 Ladwig    merging additional options for cloud product assimilation
-!  03-11-2019 Collard   Introduce ec_amv_qc as temporary control of GOES-16/17 AMVS
+!  03-11-2019 Collard   Introduce ec_amv_qc as temporary control of goes-16/17 amvs
 !  03-14-2019 eliu      add logic to turn on using full set of hydrometeors in
 !                       obs operator and analysis
 !  03-14-2019 eliu      add precipitation component 
 !  05-09-2019 mtong     move initializing derivative vector here
 !  06-19-2019 Hu        Add option reset_bad_radbc for reseting radiance bias correction when it is bad
-!  06-25-2019 Hu        Add option print_obs_para to turn on OBS_PARA list
+!  06-25-2019 Hu        Add option print_obs_para to turn on obs_para list
 !  07-09-2019 Todling   Introduce cld_det_dec2bin and diag_version
-!  07-11-2019 Todling   move vars imp_physics,lupp from CV to init_nems
+!  07-11-2019 Todling   move vars imp_physics,lupp from cv to init_nems
 !  07-29-2019 pondeca   add logical variable "neutral_stability_windfact_2dvar" that provides option to use a simple,
 !                       similarity theory-based approach to compute the 10-m wind factor for
 !                       near-surface observations
-!  08-14-2019 W. Gu     add lupdqc to replace the obs errors from satinfo with diag of est(R)
-!  08-14-2019 W. Gu     add lqcoef to combine the inflation coefficients generated by qc with est(R)
+!  08-14-2019 W. Gu     add lupdqc to replace the obs errors from satinfo with diag of est(r)
+!  08-14-2019 W. Gu     add lqcoef to combine the inflation coefficients generated by qc with est(r)
 !  08-23-2019 pondeca   add logical variable "use_similarity_2dvar" that provides option to use
 !                       similarity theory from the mm5 sfc model to compute the 10-m wind factor for
 !                       near-surface observations
-!  09-04-2019 Martin    Add option write_fv3_incr to write netCDF increment rather than NEMSIO analysis
-!  09-13-2019 Martin    Add option incvars_to_zero(nvars) to zero out netCDF increment fields
-!  09-20-2019 Su        add new variational QC and hub norm option
-!  09-23-2019 Martin    Add option use_gfs_ncio to read in first-guess netCDF file
-!  10-15-2019 Wei/Martin   added option lread_ext_aerosol to read in aerfXX file for NEMS aerosols;
-!                          added option use_fv3_aero to choose between NGAC and FV3GFS-GSDChem 
+!  09-04-2019 Martin    Add option write_fv3_incr to write netcdf increment rather than nemsion analysis
+!  09-13-2019 Martin    Add option incvars_to_zero(nvars) to zero out netcdf increment fields
+!  09-20-2019 Su        add new variational qc and hub norm option
+!  09-23-2019 Martin    Add option use_gfs_ncio to read in first-guess netcdf file
+!  10-15-2019 Wei/Martin   added option lread_ext_aerosol to read in aerfxx file for nems aerosols;
+!                          added option use_fv3_aero to choose between ngac and fv3gfs-gsdchem 
 !  10-28-2019 Martin    Add option incvars_zero_strat(nvars) to zero out increments above tropopause
-!                          added option use_fv3_aero to choose between NGAC and FV3GFS-GSDChem
+!                          added option use_fv3_aero to choose between ngac and fv3gfs-gsdchem
 !  01-27-2020 Winterbottom Moved regression coeffcients for regional
-!                          model (e.g., HWRF) aircraft recon dynamic
-!                          observation error (DOE) specification to
-!                          GSI namelist level (beneath obsmod.F90).
+!                          model (e.g., hwrf) aircraft recon dynamic
+!                          observation error (doe) specification to
+!                          gsi namelist level (beneath obsmod.F90).
 !
 !EOP
 !-------------------------------------------------------------------------
@@ -453,7 +452,7 @@
 ! Namelists:  setup,gridopts,jcopts,bkgerr,anbkgerr,obsqc,obs_input,
 !             singleob_test,superob_radar,emissjac,chem,nst
 !
-! SETUP (general control namelist) :
+! setup (general control namelist) :
 !
 !     gencode  - source generation code
 !     factqmin - weighting factor for negative moisture constraint
@@ -467,24 +466,24 @@
 !     niter()  - number of inner interations for each outer iteration
 !     niter_no_qc() - number of inner interations without nonlinear qc for each outer iteration
 !     miter    - number of outer iterations
-!     qoption  - option of analysis variable; 1:q/qsatg-bkg 2:norm RH
+!     qoption  - option of analysis variable; 1:q/qsatg-bkg 2:norm rh
 !     pseudo_q2- breed between q1/q2 options, that is, (q1/sig(q))
 !     fstat    - logical to seperate f from balance projection
 !     nhr_assimilation - assimilation time interval (currently 6hrs for global, 3hrs for reg)
 !     min_offset       - time in minutes of analysis in assimilation window (default 3 hours)
-!     l4dvar           - turn 4D-Var on/off (default=off=3D-Var)
-!     liauon           - treat 4dvar CV as tendency perturbation (default=false)
+!     l4dvar           - turn 4d-var on/off (default=off=3d-var)
+!     liauon           - treat 4dvar cv as tendency perturbation (default=false)
 !     lnested_loops    - allow for nested resolution outer/inner loops
 !     jsiga            - calculate approximate analysis errors from lanczos for jiter=jsiga
-!     idmodel          - uses identity model when running 4D-Var (test purposes)
+!     idmodel          - uses identity model when running 4d-var (test purposes)
 !     iwrtinc          - when >0, writes out increments from iwrtinc-index slot
 !     nhr_obsbin       - length of observation bins
-!     nhr_subwin       - length of weak constraint 4d-Var sub-window intervals
+!     nhr_subwin       - length of weak constraint 4d-var sub-window intervals
 !     iout_iter- output file number for iteration information
 !     npredp   - number of predictors for precipitation bias correction
-!     retrieval- logical to turn off or on the SST physical retrieval
-!     tzr_qc  - indicator to control the Tzr_QC mode: 0 = no Tz retrieval;
-!                                                     1 = Do Tz retrieval and applied to QC
+!     retrieval- logical to turn off or on the sst physical retrieval
+!     tzr_qc  - indicator to control the tzr_qc mode: 0 = no tz retrieval;
+!                                                     1 = do tz retrieval and applied to qc
 !     tzr_bufrsave - logical to turn off or on the bufr Tz retrieval file true=on
 !     diag_rad - logical to turn off or on the diagnostic radiance file true=on
 !     diag_conv-logical to turn off or on the diagnostic conventional file (true=on)
@@ -496,21 +495,21 @@
 !     write_diag - logical to write out diagnostic files on outer iteration
 !     lobsdiagsave - write out additional observation diagnostics
 !     ltlint       - linearize inner loop
-!     lobskeep     - keep obs from first outer loop for subsequent OL
+!     lobskeep     - keep obs from first outer loop for subsequent ol
 !     lobsensfc    - compute forecast sensitivity to observations
-!     lobsensjb    - compute Jb sensitivity to observations
+!     lobsensjb    - compute jb sensitivity to observations
 !     lobsensincr  - compute increment sensitivity to observations
-!     lobsensadj   - use adjoint of approx. Hessian to compute obs sensitivity
-!     llancdone    - use to tell adjoint that Lanczos vecs have been pre-computed
+!     lobsensadj   - use adjoint of approx. hessian to compute obs sensitivity
+!     llancdone    - use to tell adjoint that lanczos vecs have been pre-computed
 !     lsensrecompute - does adjoint by recomputing forward solution
 !     lobsensmin   - use minimisation to compute obs sensitivity
-!     lbicg        - use B-precond w/ bi-conjugate gradient for minimization
+!     lbicg        - use b-precond w/ bi-conjugate gradient for minimization
 !     iobsconv     - compute convergence test in observation space
 !                     =1 at final point, =2 at every iteration
 !     lobserver    - when .t., calculate departure vectors only
 !     lanczosave   - save lanczos vectors for forecast sensitivity computation
 !     ltcost       - calculate true cost when using Lanczos (this is very expensive)
-!     lferrscale   - apply H^TR^{-1}H to a forecast error vector read on the fly
+!     lferrscale   - apply h^tr^{-1}h to a forecast error vector read on the fly
 !     iguess   - flag for guess solution (currently not working)
 !                iguess = -1  do not use guess file
 !                iguess =  0  write only guess file
@@ -524,9 +523,9 @@
 !     sfcmodel - if true, then use boundary layer forward model for surface temperature data.
 !     dtbduv_on - if true, use d(microwave brightness temperature)/d(uv wind) in inner loop
 !     ifact10 - flag for recomputing 10m wind factor
-!               ifact10 = 1 compute using GFS surface physics
-!               ifact10 = 2 compute using MM5 surface physics
-!               ifact10 = 0 or any other value - DO NOT recompute - use value from guess file
+!               ifact10 = 1 compute using gfs surface physics
+!               ifact10 = 2 compute using mm5 surface physics
+!               ifact10 = 0 or any other value - Do not recompute - use value from guess file
 !     offtime_data - if true, then allow use of obs files with ref time different
 !                        from analysis time.  default value = .false., in which case
 !                        analysis fails if obs file ref time is different from analysis time.
@@ -534,8 +533,8 @@
 !     perturb_obs - logical flag to perutrb observation (true=on)
 !     oberror_tune - logical flag to tune oberror table  (true=on)
 !     perturb_fact -  magnitude factor for observation perturbation
-!     crtm_coeffs_path - path of directory w/ CRTM coeffs files
-!     print_diag_pcg - logical turn on of printing of GMAO diagnostics in pcgsoi.f90
+!     crtm_coeffs_path - path of directory w/ crtm coeffs files
+!     print_diag_pcg - logical turn on of printing of gmao diagnostics in pcgsoi.f90
 !     preserve_restart_date - if true, then do not update regional restart file date.
 !     tsensible - option to use sensible temperature as the analysis variable. works
 !                 only for twodvar_regional=.true.
@@ -563,18 +562,18 @@
 !     reset_bad_radbc - option to turn on reseting bias correction coefficient when it is bad
 !     use_edges   - option to exclude radiance data on scan edges
 !     biaspredvar - set background error variance for radiance bias coeffs
-!     (default 0.1K)
+!     (default 0.1k)
 !     use_compress - option to turn on the use of compressibility factors in geopotential heights
 !     nsig_ext - number of layers above the model top which are necessary to compute the bending angle for gpsro
 !     gpstop - maximum height for gpsro data assimilation. Reject anything above this height. 
-!     use_gfs_nemsio  - option to use nemsio to read global model NEMS/GFS first guess
-!     use_gfs_ncio - option to use netCDF to read global model FV3-GFS first guess
-!     use_fv3_aero - option to use FV3-Chem vs NGAC for global aerosol analysis
-!     sfcnst_comb   - option to use nemsio sfc history file by regriding FV3 grid
+!     use_gfs_nemsio  - option to use nemsio to read global model nems/gfs first guess
+!     use_gfs_ncio - option to use netcdf to read global model fv3-gfs first guess
+!     use_fv3_aero - option to use fv3-chem vs ngac for global aerosol analysis
+!     sfcnst_comb   - option to use nemsio sfc history file by regriding fv3 grid
 !     use_readin_anl_sfcmask  - option to use readin surface mask
 !     use_prepb_satwnd - allow using satwnd''s from prepbufr (historical) file
-!     id_drifter  -  option to identify drifting buoy observations (modify KX from 180/280)
-!     id_ship     -  option to identify ship          observations (modify KX from 180)
+!     id_drifter  -  option to identify drifting buoy observations (modify kx from 180/280)
+!     id_ship     -  option to identify ship          observations (modify kx from 180)
 !     use_gfs_stratosphere - for now, can only be set to true if nems_nmmb_regional=true.  Later extend
 !                             to other regional models.  When true, a guess gfs valid at the same time
 !                             as the nems-nmmb guess is used to replace the upper levels with gfs values.
@@ -587,69 +586,69 @@
 !                             is to allow direct use of gdas derived sat radiance bias correction coefs,
 !                             since it has been determined that height of top level and stratosphere
 !                             resolution are key to successful assimilation of most channels.
-!                                   (NOTE: I have not actually verified this statement yet!)
+!                                   (Note: I have not actually verified this statement yet!)
 !     pblend0,pblend1 - see above comment for use_gfs_stratosphere
 !     l4densvar - logical to turn on ensemble 4dvar
 !     ens_nstarthr - start hour for ensemble perturbations (generally should match min_offset)
 !     lwrite4danl - logical to write out 4d analysis states if 4dvar or 4denvar mode
-!     nhr_anal - forecast hours to write out if lwrite4danal=T
+!     nhr_anal - forecast hours to write out if lwrite4danal=t
 !     ladtest -  if true, doing the adjoint test for the operator that maps
 !                    control_vector to the model state_vector
 !     ladtest_obs -  if true, doing the adjoint adjoint check for the
-!                     observation operators that are currently used in the NCEP GSI variational
+!                     observation operators that are currently used in the ncep gsi variational
 !                     analysis scheme
 !     lrun_subdirs - logical to toggle use of subdirectires at runtime for pe specific files
-!     mpes_observer - informs Solver number of PEs used to run Observer
+!     mpes_observer - informs solver number of pes used to run observer
 !     emiss_bc    - option to turn on emissivity bias predictor
 !     lsingleradob - logical for single radiance observation assimilation.
-!                   Uses existing bufr file and rejects all radiances that don''t fall within a tight threshold around
-!                   oblat/oblon (SINGLEOB_TEST)
+!                   Uses existing bufr file and rejects all radiances that don't fall within a tight threshold around
+!                   oblat/oblon (singleob_test)
 !
-!     ssmis_method - choose method for SSMIS noise reduction 0=no smoothing 1=default
-!     ssmis_precond - weighting factor for SSMIS preconditioning (if not using newpc4pred)
-!     gmi_method - choose method for GMI noise reduction. 0=no smoothing, 4=default
-!     amsr2_method - choose method for AMSR2 noise reduction. 0=no smoothing, 5=default
+!     ssmis_method - choose method for ssmis noise reduction 0=no smoothing 1=default
+!     ssmis_precond - weighting factor for ssmis preconditioning (if not using newpc4pred)
+!     gmi_method - choose method for gmi noise reduction. 0=no smoothing, 4=default
+!     amsr2_method - choose method for amsr2 noise reduction. 0=no smoothing, 5=default
 !     bias_zero_start - Initialise bias correction from zero (default=true,
 !                        false=mode start method)
-!     ec_amv_qc - If true use additional QC from ECMWF addressing issues with
-!                         upper level GOES-16/17 winds (default = true)
+!     ec_amv_qc - If true use additional qc from ecmwf addressing issues with
+!                         upper level goes-16/17 winds (default = true)
 !     R_option   - Option to use variable correlation length for lcbas based on data
-!                    density - follows Hayden and Purser (1995) (twodvar_regional only)
+!                    density - follows hayden and purser (1995) (twodvar_regional only)
 !     thin4d - if true, removes thinning of observations due to the location in
 !              the time window
-!     lobsdiag_forenkf - if true, save linearized H operator (jacobian) in
-!     diagnostic file on 1st outer iteration.  The Jacobian can then be used by
-!     the EnKF to compute ensemble perturbations in observation space.
-!     luse_obsdiag - use obsdiags (useful when running EnKF observers; e.g., echo Jo table) 
-!     imp_physics - type of GFS microphysics
-!     lupp - if T, UPP is used and extra variables are output
-!     lcalc_gfdl_cfrac - if T, calculate and use GFDL cloud fraction in observation operator 
-!     cao_check - if T, turn on cold-air-outbreak screening for quality control
+!     lobsdiag_forenkf - if true, save linearized h operator (jacobian) in
+!     diagnostic file on 1st outer iteration.  The jacobian can then be used by
+!     the enkf to compute ensemble perturbations in observation space.
+!     luse_obsdiag - use obsdiags (useful when running enkf observers; e.g., echo jo table) 
+!     imp_physics - type of gfs microphysics
+!     lupp - if t, upp is used and extra variables are output
+!     lcalc_gfdl_cfrac - if t, calculate and use gfdl cloud fraction in observation operator 
+!     cao_check - if t, turn on cold-air-outbreak screening for quality control
 !     binary_diag - trigger binary diag-file output (being phased out)
 !     netcdf_diag - trigger netcdf diag-file output
-!     write_fv3_incr - trigger writing out FV3 netCDF increment file
-!                      rather than NEMSIO analysis
-!     incvars_to_zero - list of strings of variable names in FV3 netCDF
+!     write_fv3_incr - trigger writing out fv3 netcdf increment file
+!                      rather than nemsio analysis
+!     incvars_to_zero - list of strings of variable names in fv3 netcdf
 !                       increment file that should be forced to be zero
-!     incvars_zero_strat - list of strings of variable names in FV3 netcdf
+!     incvars_zero_strat - list of strings of variable names in fv3 netcdf
 !                          increment file that will be reduced to zero
 !                          above the tropopause
 !     incvars_efold - scale factor x in which e^(-(k-ktrop)/x) for above fields 
 !
 !     diag_version - specifies desired version of diag files
 !     l_wcp_cwm - namelist logical whether to use swcp/lwcp operator that includes cwm
-!     aircraft_recon - namelist logical whether to apply DOE to aircraft data
-!     tau_fcst - controls EFSOI-like calculation
-!     efsoi_order - sets order of EFSOI-like calculation
-!     lupdqc - logical to replace the obs errors from satinfo with diag of est(R) in the case of correlated obs
-!     lqcoef - logical to combine the inflation coefficients generated by qc with est(R)
+!     aircraft_recon - namelist logical whether to apply doe to aircraft data
+!     tau_fcst - controls efsoi-like calculation
+!     efsoi_order - sets order of efsoi-like calculation
+!     lupdqc - logical to replace the obs errors from satinfo with diag of est(r) in the case of correlated obs
+!     lqcoef - logical to combine the inflation coefficients generated by qc with est(r)
 !
-!     NOTE:  for now, if in regional mode, then iguess=-1 is forced internally.
+!     Note:  for now, if in regional mode, then iguess=-1 is forced internally.
 !            add use of guess file later for regional mode.
 
   namelist/setup/gencode,factqmin,factqmax,clip_supersaturation, &
-       factql,factqi,factqr,factqs,factqg, &     
-       factv,factl,factp,factg,factw10m,facthowv,factcldch,R_option,deltim,dtphys,&
+       factql,factqi,factqr,factqs,factqg, &
+       factv,factl,factp,factg,factw10m,facthowv,factcldch,r_option,deltim,dtphys,&
        biascor,bcoption,diurnalbc,&
        neutral_stability_windfact_2dvar,use_similarity_2dvar,&
        niter,niter_no_qc,miter,qoption,cwoption,nhr_assimilation,&
@@ -666,8 +665,8 @@
        ssmis_method, ssmis_precond, gmi_method, amsr2_method, bias_zero_start, &
        ec_amv_qc, lobsdiagsave, lobsdiag_forenkf, &
        l4dvar,lbicg,lsqrtb,lcongrad,lbfgsmin,ltlint,nhr_obsbin,nhr_subwin,&
-       mPES_observer,&
-       alwaysLocal,&
+       mpes_observer,&
+       alwayslocal,&
        use_fv3_aero,&
        nwrvecs,iorthomax,ladtest,ladtest_obs, lgrtest,lobskeep,lsensrecompute,jsiga,ltcost, &
        lobsensfc,lobsensjb,lobsensincr,lobsensadj,lobsensmin,iobsconv, &
@@ -688,7 +687,7 @@
        write_fv3_incr,incvars_to_zero,incvars_zero_strat,incvars_efold,diag_version,&
        cao_check,lcalc_gfdl_cfrac,tau_fcst,efsoi_order,lupdqc,lqcoef,cnvw_option
 
-! GRIDOPTS (grid setup variables,including regional specific variables):
+! gridopts (grid setup variables,including regional specific variables):
 !     jcap     - spectral resolution
 !     nsig     - number of sigma levels
 !     nlat     - number of latitudes
@@ -701,21 +700,21 @@
 !                     regional analysis file (default = false)
 !     netcdf            - if true, then wrf files are in netcdf format,
 !                       -   otherwise wrf files are in binary format.
-!     regional          - logical for regional GSI run
-!     wrf_nmm_regional  - logical for input from WRF NMM
-!     fv3_regional      - logical for input from FV3 regional
-!     wrf_mass_regional - logical for input from WRF MASS-CORE
-!     cmaq_regional     - logical for input from CMAQ
-!     nems_nmmb_regional- logical for input from NEMS NMMB
-!     nmmb_reference_grid= 'H', then analysis grid covers H grid domain
-!                                = 'V', then analysis grid covers V grid domain
+!     regional          - logical for regional gsi run
+!     wrf_nmm_regional  - logical for input from wrf nmm
+!     fv3_regional      - logical for input from fv3 regional
+!     wrf_mass_regional - logical for input from wrf mass-core
+!     cmaq_regional     - logical for input from cmaq
+!     nems_nmmb_regional- logical for input from nems nmmb
+!     nmmb_reference_grid= 'h', then analysis grid covers h grid domain
+!                        = 'v', then analysis grid covers v grid domain
 !     grid_ratio_nmmb   - ratio of analysis grid to nmmb model grid in nmmb model grid units.
 !     grid_ratio_fv3_regional - ratio of analysis grid to fv3 grid in fv3 grid units.
 !     grid_ratio_wrfmass - ratio of analysis grid to wrf mass grid in wrf grid units.
 !     twodvar_regional  - logical for regional 2d-var analysis
-!     filled_grid       - logical to fill in puts on WRF-NMM E-grid
-!     half_grid         - logical to use every other row of WRF-NMM E-Grid
-!     nvege_type - number of types of vegetation; old=24, IGBP=20
+!     filled_grid       - logical to fill in puts on wrf-nmm e-grid
+!     half_grid         - logical to use every other row of wrf-nmm e-grid
+!     nvege_type - number of types of vegetation; old=24, igbp=20
 !     nlayers    - number of sub-layers to break indicated model layer into
 !                  prior to calling radiative transfer model
 !     jcap_gfs   - spectral truncation used to transform high wavenumber
@@ -723,7 +722,7 @@
 !                  when use_gfs_ozone = .true. or use_gfs_stratosphere = .true.   
 !     use_sp_eqspac     - if .true., then ensemble grid is equal spaced, staggered 1/2 grid unit off
 !                         poles.  if .false., then gaussian grid assumed for ensemble (global only)
-!     wrf_mass_hybridcord - logical for using WRF MASS CORE with hybrid vertical coordinate
+!     wrf_mass_hybridcord - logical for using wrf mass core with hybrid vertical coordinate
 
 
   namelist/gridopts/jcap,jcap_b,nsig,nlat,nlon,nlat_regional,nlon_regional,&
@@ -732,7 +731,7 @@
        nmmb_reference_grid,grid_ratio_nmmb,grid_ratio_fv3_regional,grid_ratio_wrfmass,jcap_gfs,jcap_cut,&
        wrf_mass_hybridcord
 
-! BKGERR (background error related variables):
+! bkgerr (background error related variables):
 !     vs       - scale factor for vertical correlation lengths for background error
 !     nhscrf   - number of horizontal scales for recursive filter
 !     hzscl(n) - scale factor for horizontal smoothing, n=1,number of scales (3 for now)
@@ -754,14 +753,14 @@
 !     bkgv_rewgtfct - factor used to perform flow dependent reweighting of error variances
 !     bkgv_write - flag to turn on=.true. /off=.false. generation of binary file with reweighted variances
 !     fpsproj  - controls full nsig projection to surface pressure
-!     fut2ps  - controls the projection from unbalance T to surface pressure
+!     fut2ps  - controls the projection from unbalance t to surface pressure
 !     adjustozvar - adjusts ozone variances in the stratosphere based on guess field
-!     cwcoveqqcov  - sets cw Bcov to be the same as B-cov(q) (presently glb default)
+!     cwcoveqqcov  - sets cw bcov to be the same as b-cov(q) (presently glb default)
 
   namelist/bkgerr/vs,nhscrf,hzscl,hswgt,norh,ndeg,noq,bw,norsp,fstat,pert_berr,pert_berr_fct, &
-	bkgv_flowdep,bkgv_rewgtfct,bkgv_write,fpsproj,adjustozvar,fut2ps,cwcoveqqcov
+        bkgv_flowdep,bkgv_rewgtfct,bkgv_write,fpsproj,adjustozvar,fut2ps,cwcoveqqcov
 
-! ANBKGERR (anisotropic background error related variables):
+! anbkgerr (anisotropic background error related variables):
 !     anisotropic - if true, then use anisotropic background error
 !     ancovmdl    - covariance model settings - 0: pt-based, 1: ensemble based
 !     triad4      - for 2d variables, if true, use blended triad algorithm
@@ -798,7 +797,7 @@
 !     nsmooth     -  number of 1-2-1 smoothing passes before and after background error application
 !     nsmooth_shapiro - number of 2nd moment preserving (shapiro) smoothing passes before and after
 !                       background error application.
-!                        NOTE:  default for nsmooth and nsmooth_shapiro is 0.
+!                        Note:  default for nsmooth and nsmooth_shapiro is 0.
 !                               if both are > 0, then nsmooth will be forced to zero.
 
   namelist/anbkgerr/anisotropic,ancovmdl,triad4,ifilt_ord,npass,normal,binom,&
@@ -807,21 +806,21 @@
        rtma_subdomain_option,rtma_bkerr_sub2slab,lreadnorm,nsmooth,nsmooth_shapiro, &
        afact0,covmap
 
-! JCOPTS (Jc term)
+! jcopts (jc term)
 !                 if .false., uses original formulation based on wind, temp, and ps tends
 !     ljcdfi      - when .t. uses digital filter initialization of increments (4dvar)
 !     alphajc     - parameter for digital filter
 !     ljpdry      - when .t. uses dry pressure constraint on increment
 !     bamp_jcpdry - parameter for pdry_jc
-!     eps_eer     - Errico-Ehrendofer parameter for q-term in energy norm
-!     ljc4tlevs    - when true and in 4D mode, apply any weak constraints over all time levels
+!     eps_eer     - errico-ehrendofer parameter for q-term in energy norm
+!     ljc4tlevs    - when true and in 4d mode, apply any weak constraints over all time levels
 !                   instead of just at a single time
 !
 
   namelist/jcopts/ljcdfi,alphajc,switch_on_derivatives,tendsflag,ljcpdry,bamp_jcpdry,eps_eer,&
       ljc4tlevs,ljclimqc 
 
-! STRONGOPTS (strong dynamic constraint)
+! strongopts (strong dynamic constraint)
 !     reg_tlnmc_type -  =1 for 1st version of regional strong constraint
 !                       =2 for 2nd version of regional strong constraint
 !     nstrong  - if > 0, then number of iterations of implicit normal mode initialization
@@ -836,18 +835,18 @@
 !     baldiag_full 
 !     baldiag_inc
 !     tlnmc_option : integer flag for strong constraint (various capabilities for hybrid)
-!                   =0: no TLNMC
-!                   =1: TLNMC for 3DVAR mode
-!                   =2: TLNMC on total increment for single time level only (for 3D EnVar)
-!                       or if 4D EnVar mode, TLNMC applied to increment in center of window
-!                   =3: TLNMC on total increment over all time levels (if in 4D EnVar mode)
-!                   =4: TLNMC on static contribution to increment ONLY for any EnVar mode
+!                   =0: no tlnmc
+!                   =1: tlnmc for 3dvar mode
+!                   =2: tlnmc on total increment for single time level only (for 3d envar)
+!                       or if 4d envar mode, tlnmc applied to increment in center of window
+!                   =3: tlnmc on total increment over all time levels (if in 4d envar mode)
+!                   =4: tlnmc on static contribution to increment only for any envar mode
 
   namelist/strongopts/reg_tlnmc_type,tlnmc_option, &
                       nstrong,period_max,period_width,nvmodes_keep, &
-		      baldiag_full,baldiag_inc
+                      baldiag_full,baldiag_inc
 
-! OBSQC (observation quality control variables):
+! obsqc (observation quality control variables):
 !
 !     Parameters used for gross error checks
 !        obserrx = max(ermin,min(ermax,obs error)
@@ -861,7 +860,7 @@
 !     tdrerr_inflate - logical for tdr obs error inflation
 !     oberrflg - logical for reading in new obs error table (if set to true)
 !     vadfile  - character(10) variable holding name of vadwnd bufr file
-!     noiqc    - logical flag to bypass OIQC (if set to true)
+!     noiqc    - logical flag to bypass oiqc (if set to true)
 !     c_varqc - constant number to control var. qc turnning on speed
 !     blacklst - logical for reading in raob blacklist (if set to true)
 !     use_poq7 - logical flag to accept (.true.) sbuv profile quality flag 7
@@ -869,22 +868,22 @@
 !     tcp_width  - parameter for tcps oberr inflation (width, mb)
 !     tcp_ermin  - parameter for tcps oberr inflation (minimum oberr, mb)
 !     tcp_ermax  - parameter for tcps oberr inflation (maximum oberr, mb)
-!     qc_noirjaco3 - controls whether to use O3 Jac from IR instruments
-!     qc_noirjaco3_pole - controls wheter to use O3 Jac from IR instruments near poles
+!     qc_noirjaco3 - controls whether to use o3 jac from ir instruments
+!     qc_noirjaco3_pole - controls wheter to use o3 jac from ir instruments near poles
 !     qc_satwnds - allow bypass sat-winds qc normally removing lots of mid-tropo obs
 !     aircraft_t_bc_pof  - logical for aircraft temperature bias correction, pof
 !                          is used for predictor
 !     aircraft_t_bc  - logical for aircraft temperature bias correction
 !     aircraft_t_bc_ext - logical for reading aircraft temperature bias correction from external file
 !     buddycheck_t - When true, run buddy check algorithm on temperature observations
-!     buddydiag_save - When true, output files containing buddy check QC info for all
+!     buddydiag_save - When true, output files containing buddy check qc info for all
 !                      obs run through the buddy check
-!     njqc  -  When true, use Purser''s non linear QC
-!     vqc   -  when true, use ECMWF's non linear QC
-!     nvqc   -  when true, use Dr. Purser's variational QC 
+!     njqc  -  When true, use purser's non linear qc
+!     vqc   -  when true, use ecmwf's non linear qc
+!     nvqc   -  when true, use purser's variational qc 
 !     hub_norm - when true,use huber norm format distribution 
 !     closest_obs- when true, choose the timely closest surface observation from
-!     multiple observations at a station.  Currently only applied to Ceiling
+!     multiple observations at a station.  Currently only applied to ceiling
 !     height and visibility.
 !     pvis   - power parameter in nonlinear transformation for vis 
 !     pcldch - power parameter in nonlinear transformation for cldch
@@ -897,18 +896,17 @@
 
 ! The following variables are the coefficients that describe the
 ! linear regression fits that are used to define the dynamic
-! observation error (DOE) specifications for all reconnissance
+! observation error (doe) specifications for all reconnissance
 ! observations collected within hurricanes/tropical cyclones; these
-! apply only to the regional forecast models (e.g., HWRF); Henry
-! R. Winterbottom (henry.winterbottom@noaa.gov).
+! apply only to the regional forecast models (e.g., hwrf)
 
 ! Observation types:
 
-! 1/236: HDOB (e.g., flight-level) observations.
+! 1/236: hdob (e.g., flight-level) observations.
        
-! 1/237: Dropsonde observations.
+! 1/237: dropsonde observations.
 
-! 292: SFMR observations.
+! 292: sfmr observations.
 
 ! The following correspond to the specific humidity (q) observations:
 
@@ -947,19 +945,19 @@
        pvis,pcldch,scale_cv,estvisoe,estcldchoe,vis_thres,cldch_thres,cld_det_dec2bin, &
        q_doe_a_136,q_doe_a_137,q_doe_b_136,q_doe_b_137, &
        t_doe_a_136,t_doe_a_137,t_doe_b_136,t_doe_b_137, &
-       uv_doe_a_236,uv_doe_a_237,uv_doe_a_292,uv_doe_b_236,uv_doe_b_237,uv_doe_b_292       
+       uv_doe_a_236,uv_doe_a_237,uv_doe_a_292,uv_doe_b_236,uv_doe_b_237,uv_doe_b_292
 
-! OBS_INPUT (controls input data):
+! obs_input (controls input data):
 !      dmesh(max(dthin))- thinning mesh for each group
 !      time_window_max  - upper limit on time window for all input data
 !      time_window_rad  - upper limit on time window for certain radiance input data
 !      ext_sonde        - logical for extended forward model on sonde data
-!      l_foreaft_thin -   separate TDR fore/aft scan for thinning
+!      l_foreaft_thin -   separate tdr fore/aft scan for thinning
 
   namelist/obs_input/dmesh,time_window_max,time_window_rad, &
        ext_sonde,l_foreaft_thin
 
-! SINGLEOB_TEST (one observation test case setup):
+! singleob_test (one observation test case setup):
 !      maginnov   - magnitude of innovation for one ob
 !      magoberr   - magnitude of observational error
 !      oneob_type - observation type (lsingleradob: platform type, i.e. 'airs')
@@ -977,12 +975,12 @@
        oblat,oblon,obpres,obdattim,obhourset,pctswitch,&
        obchan,anel_rw,anaz_rw,range_rw,sstn,learthrel_rw
 
-! SUPEROB_RADAR (level 2 bufr file to radar wind superobs):
+! superob_radar (level 2 bufr file to radar wind superobs):
 !      del_azimuth     - azimuth range for superob box  (default 5 degrees)
 !      del_elev        - elevation angle range for superob box  (default .05 degrees)
 !      del_range       - radial range for superob box  (default 5 km)
 !      del_time        - 1/2 time range for superob box  (default .5 hours)
-!      elev_angle_max  - max elevation angle (default of 5 deg recommended by S. Liu)
+!      elev_angle_max  - max elevation angle (default of 5 deg recommended by s. liu)
 !      minnum                  - minimum number of samples needed to make a superob
 !      range_max       - max radial range to use in constructing superobs  (default 100km)
 !      l2superob_only  - if true, then process level 2 data creating superobs, then quit.
@@ -992,7 +990,7 @@
   namelist/superob_radar/del_azimuth,del_elev,del_range,del_time,&
        elev_angle_max,minnum,range_max,l2superob_only
 
-! LAG_DATA (lagrangian data assimilation related variables):
+! lag_data (lagrangian data assimilation related variables):
 !     lag_accur - Accuracy used to decide whether or not a balloon is on the grid
 !     infile_lag- File containing the initial position of the balloon
 !     lag_stepduration- Duration of one time step for the propagation model
@@ -1002,13 +1000,13 @@
   namelist/lag_data/lag_accur,infile_lag,lag_stepduration,lag_nmax_bal,&
       lag_vorcore_stderr_a,lag_vorcore_stderr_b
 
-! HYBRID_ENSEMBLE (parameters for use with hybrid ensemble option)
+! hybrid_ensemble (parameters for use with hybrid ensemble option)
 !     l_hyb_ens     - if true, then turn on hybrid ensemble option
 !     uv_hyb_ens    - if true, then ensemble perturbation wind variables are u,v,
 !                       otherwise, ensemble perturbation wind variables are stream, pot. functions.
 !     q_hyb_ens     - if true, then use specific humidity ensemble perturbations,
 !                       otherwise, use relative humidity
-!     oz_univ_static- if true, decouple ozone from other variables and defaults to static B (ozone only)
+!     oz_univ_static- if true, decouple ozone from other variables and defaults to static b (ozone only)
 !     aniso_a_en - if true, then use anisotropic localization of hybrid ensemble control variable a_en.
 !     generate_ens - if true, then generate internal ensemble based on existing background error
 !     n_ens        - number of ensemble members.
@@ -1021,13 +1019,13 @@
 !                             =1, then ensemble information turned off
 !                             =0, then static background turned off
 !                            the weights are applied per vertical level such that : 
-!                                        beta_s(:) = beta_s0     , vertically varying weights given to static B ; 
+!                                        beta_s(:) = beta_s0     , vertically varying weights given to static b ; 
 !                                        beta_e(:) = 1 - beta_s0 , vertically varying weights given ensemble derived covariance.
 !                            If (readin_beta) then beta_s and beta_e are read from a file and beta_s0 is not used.
 !     s_ens_h             - homogeneous isotropic horizontal ensemble localization scale (km)
 !     s_ens_v             - vertical localization scale (grid units for now)
 !                              s_ens_h, s_ens_v, and beta_s0 are tunable parameters.
-!     use_gfs_ens  - controls use of global ensemble: .t. use GFS (default); .f. uses user-defined ens
+!     use_gfs_ens  - controls use of global ensemble: .t. use gfs (default); .f. uses user-defined ens
 !     readin_localization - flag to read (.true.)external localization information file
 !     readin_beta         - flag to read (.true.) the vertically varying beta parameters beta_s and beta_e
 !                              from a file.
@@ -1036,23 +1034,23 @@
 !                               for ensemble (global only)
 !     use_localization_grid - if true, then use extra lower res gaussian grid for horizontal localization
 !                                   (global runs only--allows possiblity for non-gaussian ensemble grid)
-!     pseudo_hybens    - if true, turn on pseudo ensemble hybrid for HWRF
+!     pseudo_hybens    - if true, turn on pseudo ensemble hybrid for hwrf
 !     merge_two_grid_ensperts  - if true, merge ensemble perturbations from two forecast domains
-!                                to analysis domain (one way to deal with hybrid DA for HWRF moving nest)
+!                                to analysis domain (one way to deal with hybrid da for hwrf moving nest)
 !     regional_ensemble_option - integer, used to select type of ensemble to read in for regional
 !                              application.  Currently takes values from 1 to 4.
-!                                 =1: use GEFS internally interpolated to ensemble grid.
-!                                 =2: ensembles are WRF NMM format
-!                                 =3: ensembles are ARW netcdf format.
-!                                 =4: ensembles are NEMS NMMB format.
+!                                 =1: use gefs internally interpolated to ensemble grid.
+!                                 =2: ensembles are wrf nmm format
+!                                 =3: ensembles are arw netcdf format.
+!                                 =4: ensembles are nems nmmb format.
 !     full_ensemble    - if true, first ensemble perturbation on first guess istead of on ens mean
-!     pwgtflg          - if true, use vertical integration function on ensemble contribution of Psfc
+!     pwgtflg          - if true, use vertical integration function on ensemble contribution of psfc
 !     grid_ratio_ens   - for regional runs, ratio of ensemble grid resolution to analysis grid resolution
 !                            default value = 1  (dual resolution off)
 !     i_en_perts_io - flag to read in ensemble perturbations in ensemble grid.
-!                         This is to speed up RAP/HRRR hybrid runs because the
+!                         This is to speed up rap/hrrr hybrid runs because the
 !                         same ensemble perturbations are used in 6 cycles    
-!                           =0:  No ensemble perturbations IO (default)
+!                           =0:  No ensemble perturbations io (default)
 !                           =2:  skip get_gefs_for_regional and read in ensemble
 !                                 perturbations from saved files.
 !     l_ens_in_diff_time  -  if use ensembles that are available at different time
@@ -1063,7 +1061,7 @@
 !                                      from analysis time in hybrid analysis
 !     ensemble_path - path to ensemble members; default './'
 !     ens_fast_read - read ensemble in parallel; default '.false.'
-!     sst_staticB - use only static background error covariance for SST statistic
+!     sst_staticb - use only static background error covariance for sst statistic
 !              
 !                         
   namelist/hybrid_ensemble/l_hyb_ens,uv_hyb_ens,q_hyb_ens,aniso_a_en,generate_ens,n_ens,nlon_ens,nlat_ens,jcap_ens,&
@@ -1071,69 +1069,69 @@
                 jcap_ens_test,beta_s0,s_ens_h,s_ens_v,readin_localization,eqspace_ensgrid,readin_beta,&
                 grid_ratio_ens, &
                 oz_univ_static,write_ens_sprd,use_localization_grid,use_gfs_ens, &
-                i_en_perts_io,l_ens_in_diff_time,ensemble_path,ens_fast_read,sst_staticB
+                i_en_perts_io,l_ens_in_diff_time,ensemble_path,ens_fast_read,sst_staticb
 
 ! rapidrefresh_cldsurf (options for cloud analysis and surface 
-!                             enhancement for RR appilcation  ):
-!      dfi_radar_latent_heat_time_period     -   DFI forward integration window in minutes
+!                             enhancement for rr appilcation  ):
+!      dfi_radar_latent_heat_time_period     -   dfi forward integration window in minutes
 !      metar_impact_radius  - metar low cloud observation impact radius in grid number
-!      l_gsd_terrain_match_surftobs - if .true., GSD terrain match for surface temperature observation
+!      l_gsd_terrain_match_surftobs - if .true., gsd terrain match for surface temperature observation
 !      l_sfcobserror_ramp_t  - namelist logical for adjusting surface temperature observation error
 !      l_sfcobserror_ramp_q  - namelist logical for adjusting surface moisture observation error
-!      l_pbl_pseudo_surfobst  - if .true. produce pseudo-obs in PBL layer based on surface obs T
-!      l_pbl_pseudo_surfobsq  - if .true. produce pseudo-obs in PBL layer based on surface obs Q
-!      l_pbl_pseudo_surfobsuv - if .true. produce pseudo-obs in PBL layer based on surface obs UV
-!      pblh_ration - percent of the PBL height within which to add pseudo-obs (default:0.75)
+!      l_pbl_pseudo_surfobst  - if .true. produce pseudo-obs in pbl layer based on surface obs t
+!      l_pbl_pseudo_surfobsq  - if .true. produce pseudo-obs in pbl layer based on surface obs q
+!      l_pbl_pseudo_surfobsuv - if .true. produce pseudo-obs in pbl layer based on surface obs uv
+!      pblh_ration - percent of the pbl height within which to add pseudo-obs (default:0.75)
 !      pps_press_incr - pressure increase for each additional pseudo-obs 
-!                       on top of previous level (default:30hPa)
-!      l_gsd_limit_ocean_q      - if .true. do GSD limitation of Q over ocean
-!      l_pw_hgt_adjust      - if .true. do GSD PW adjustment for model vs. obs station height
-!      l_limit_pw_innov     - if .true. do GSD limitation of PW obs
-!      max_innov_pct        - sets limit of PW ob to a percent of the background value (0-1)
-!      l_cleansnow_warmts   - if .true. do GSD limitation of using retrieved snow over warn area
-!                                               (Ts > r_cleansnow_warmts_threshold) 
+!                       on top of previous level (default:30hpa)
+!      l_gsd_limit_ocean_q      - if .true. do gsd limitation of q over ocean
+!      l_pw_hgt_adjust      - if .true. do gsd pw adjustment for model vs. obs station height
+!      l_limit_pw_innov     - if .true. do gsd limitation of pw obs
+!      max_innov_pct        - sets limit of pw ob to a percent of the background value (0-1)
+!      l_cleansnow_warmts   - if .true. do gsd limitation of using retrieved snow over warn area
+!                                               (ts > r_cleansnow_warmts_threshold) 
 !      r_cleansnow_warmts_threshold - threshold for using retrieved snow over warn area
-!      l_conserve_thetaV    - if .true. conserve thetaV during moisture adjustment in cloud analysis
-!      i_conserve_thetav_iternum    - iteration number for conserving thetaV during moisture adjustment
-!      l_gsd_soiltq_nudge   - if .true. do GSD soil T and Q nudging based on the lowest t analysis inc
-!      l_cld_bld            - if .true. do GSD GOES cloud building
-!      cld_bld_hgt          - sets limit below which GOES cloud building occurs (default:1200m)
+!      l_conserve_thetav    - if .true. conserve thetav during moisture adjustment in cloud analysis
+!      i_conserve_thetav_iternum    - iteration number for conserving thetav during moisture adjustment
+!      l_gsd_soiltq_nudge   - if .true. do gsd soil t and q nudging based on the lowest t analysis inc
+!      l_cld_bld            - if .true. do gsd goes cloud building
+!      cld_bld_hgt          - sets limit below which goes cloud building occurs (default:1200m)
 !      build_cloud_frac_p   - sets the threshold for building clouds from satellite
 !      clear_cloud_frac_p   - sets the threshold for clearing clouds from satellite
-!      nesdis_npts_rad  - NESDIS cloud product impact radiu (grid points)
-!      iclean_hydro_withRef - if =1, then clean hydrometeors if the grid point
+!      nesdis_npts_rad  - nesdis cloud product impact radiu (grid points)
+!      iclean_hydro_withref - if =1, then clean hydrometeors if the grid point
 !                               has no echo and maxref=0
-!      iclean_hydro_withRef_allcol - if =1, then clean whole column hydrometeors
+!      iclean_hydro_withref_allcol - if =1, then clean whole column hydrometeors
 !                      if the observed max ref =0 and satellite cloud shows
 !                      clean
 !      i_use_2mq4b    -  background used for calculate surface moisture observation
 !                               innovation
-!                         =0  Use Q from the 1st model level. (default) 
-!                         =1  use 2m Q as part of background
+!                         =0  Use q from the 1st model level. (default) 
+!                         =1  use 2m q as part of background
 !      i_use_2mt4b    -  background used for calculate surface temperature         
 !                             observation innovation
-!                         =0  Use T from the 1st model level. (default)
-!                         =1  use 2m T as part of background 
-!      i_gsdcldanal_type    - options for how GSD cloud analysis should be conducted         
+!                         =0  Use t from the 1st model level. (default)
+!                         =1  use 2m t as part of background 
+!      i_gsdcldanal_type    - options for how gsd cloud analysis should be conducted         
 !                         =0. no cloud analysis (default)
-!                         =1.  cloud analysis after var analysis for WRF_ARW
-!                         =2.  cloud analysis after var analysis for NMMB
+!                         =1.  cloud analysis after var analysis for wrf_arw
+!                         =2.  cloud analysis after var analysis for nmmb
 !                         =3.  cloud analysis only; var is skipped
-!                         =5.  skip cloud analysis and updating NETCDF result file at
+!                         =5.  skip cloud analysis and updating netcdf result file at
 !                                         the end of the analysis
-!                         =6.  skip NETCDF background read step and do cloud analysis only
-!                         =7   cloud analysis in observer with I/O
-!                         =30  cloud analysis for GFS
+!                         =6.  skip netcdf background read step and do cloud analysis only
+!                         =7   cloud analysis in observer with i/o
+!                         =30  cloud analysis for gfs
 !                         =99  only read hydrometer fields but no cloud analysis
 
 !      i_gsdsfc_uselist  - options for how to use surface observation use or
 !                          rejection list
-!                         =0 . EMC method (default)
-!                         =1 . GSD method
+!                         =0 . emc method (default)
+!                         =1 . gsd method
 !      i_lightpcp        - options for how to deal with light precipitation
 !                         =0 . don''t add light precipitation (default)
 !                         =1 . add light precipitation in warm section
-!      i_sfct_gross      - if use extended threshold for surface T gross check
+!      i_sfct_gross      - if use extended threshold for surface t gross check
 !                         =0 use threshold from convinfo (default)
 !                         =1 for cold surface, threshold for gross check is
 !                         enlarged to bring more large negative innovation into
@@ -1155,7 +1153,7 @@
 !                         =2.  for moisture surface observations
 !                         =3.  for temperature and moisture surface observations
 !      i_gsdqc            - option i_gsdqc to turn on special observation qc
-!                              from GSD (for RAP/HRRR application)
+!                              from gsd (for rap/hrrr application)
 !                         =0 turn off
 !                         =2 turn on
 !      qv_max_inc        - threshold to limit the maximum water vapor increment
@@ -1176,8 +1174,8 @@
 !                           0=single model run
 !                           1=ensemble mean
 !                           2=ensemble members
-!      DTsTmax       - maximum allowed difference between Tskin and the first
-!                           level T. This is to safety guard soil T adjustment.
+!      dtstmax       - maximum allowed difference between tskin and the first
+!                           level t. This is to safety guard soil t adjustment.
 !
   namelist/rapidrefresh_cldsurf/dfi_radar_latent_heat_time_period, &
                                 metar_impact_radius,metar_impact_radius_lowcloud, &
@@ -1186,39 +1184,39 @@
                                 l_pbl_pseudo_surfobst,l_pbl_pseudo_surfobsq,l_pbl_pseudo_surfobsuv, &
                                 pblh_ration,pps_press_incr,l_gsd_limit_ocean_q, &
                                 l_pw_hgt_adjust, l_limit_pw_innov, max_innov_pct, &
-                                l_cleansnow_warmts,l_conserve_thetaV,r_cleansnow_warmts_threshold,  &
+                                l_cleansnow_warmts,l_conserve_thetav,r_cleansnow_warmts_threshold,  &
                                 i_conserve_thetav_iternum,l_gsd_soiltq_nudge,l_cld_bld, cld_bld_hgt, &
                                 build_cloud_frac_p, clear_cloud_frac_p,   &
                                 nesdis_npts_rad, &
-                                iclean_hydro_withRef,iclean_hydro_withRef_allcol,&
+                                iclean_hydro_withref,iclean_hydro_withref_allcol,&
                                 i_use_2mq4b,i_use_2mt4b,i_gsdcldanal_type,i_gsdsfc_uselist, &
                                 i_lightpcp,i_sfct_gross,l_use_hydroretrieval_all,l_numconc,l_closeobs,&
                                 i_coastline,i_gsdqc,qv_max_inc,ioption,l_precip_clear_only,l_fog_off,&
                                 cld_bld_coverage,cld_clr_coverage,&
-                                i_cloud_q_innovation,i_ens_mean,DTsTmax
+                                i_cloud_q_innovation,i_ens_mean,dtstmax
 
 ! chem(options for gsi chem analysis) :
 !     berror_chem       - .true. when background  for chemical species that require
 !                          conversion to lower case and/or species names longer than 5 chars
 !     oneobtest_chem    - one-ob trigger for chem constituent analysis
-!     maginnov_chem     - O-B make-believe residual for one-ob chem test
+!     maginnov_chem     - o-b make-believe residual for one-ob chem test
 !     magoberr_chem     - make-believe obs error for one-ob chem test
 !     oneob_type_chem   - type of chem-ob for one-ob test
 !     oblat_chem        - latitude of make-believe chem obs
 !     oblon_chem        - longitude of make-believe chem obs
 !     obpres_chem       - pressure level of make-believe chem obs
-!     diag_incr         - increment for CMAQ
-!     elev_tolerance    - in meters when surface PM observation rejected due to elevation
+!     diag_incr         - increment for cmaq
+!     elev_tolerance    - in meters when surface pm observation rejected due to elevation
 !                         disparity in background and observation
-!     tunable_error     - a factor to calculate representativeness error for PM observations
-!     in_fname          - CMAQ input filename
-!     out_fname         - CMAQ output filename
-!     incr_fname        - CMAQ increment filename
-!     laeroana_gocart   - when true, do chem analysis with wrfchem (or NGAC)
+!     tunable_error     - a factor to calculate representativeness error for pm observations
+!     in_fname          - cmaq input filename
+!     out_fname         - cmaq output filename
+!     incr_fname        - cmaq increment filename
+!     laeroana_gocart   - when true, do chem analysis with wrfchem (or ngac)
 !     l_aoderr_table    - whethee to use aod error table or default error
-!     aod_qa_limit      - minimum acceptable value of error flag for total column AOD
-!     luse_deepblue     - whether to use MODIS AOD from the deepblue   algorithm
-!     lread_ext_aerosol - if true, reads aerfNN file for aerosol arrays rather than sigfNN (NGAC NEMS IO)
+!     aod_qa_limit      - minimum acceptable value of error flag for total column aod
+!     luse_deepblue     - whether to use modis aod from the deepblue   algorithm
+!     lread_ext_aerosol - if true, reads aerfnn file for aerosol arrays rather than sigfnn (ngac nems io)
 
   namelist/chem/berror_chem,oneobtest_chem,maginnov_chem,magoberr_chem,&
        oneob_type_chem,oblat_chem,oblon_chem,obpres_chem,&
@@ -1227,14 +1225,14 @@
        laeroana_gocart, l_aoderr_table, aod_qa_limit, luse_deepblue,&
        aero_ratios,wrf_pm2_5, lread_ext_aerosol
 
-! NST (NSST control namelist) :
-!     nst_gsi  - indicator to control the Tr Analysis mode: 0 = no nst info in gsi at all;
+! nst (nsst control namelist) :
+!     nst_gsi  - indicator to control the tr analysis mode: 0 = no nst info in gsi at all;
 !                                                           1 = input nst info, but used for monitoring only
-!                                                           2 = input nst info, and used in CRTM simulation, but no Tr analysis
-!                                                           3 = input nst info, and used in CRTM simulation and Tr analysis is on
+!                                                           2 = input nst info, and used in crtm simulation, but no tr analysis
+!                                                           3 = input nst info, and used in crtm simulation and tr analysis is on
 !     nstinfo  - number of nst variables
-!     zsea1    - upper depth (in mm) for vertical mean of T based on NSST T-Profile
-!     zsea2    - lower depth (in mm) for vertical mean of T based on NSST T-Profile
+!     zsea1    - upper depth (in mm) for vertical mean of t based on nsst t-profile
+!     zsea2    - lower depth (in mm) for vertical mean of t based on nsst t-profile
 !     fac_dtl  - index to apply diurnal thermocline layer  or not: 0 = no; 1 = yes.
 !     fac_tsl  - index to apply thermal skin layer or not: 0 = no; 1 = yes.
    namelist/nst/nst_gsi,nstinfo,zsea1,zsea2,fac_dtl,fac_tsl
@@ -1243,7 +1241,7 @@
 
 !---------------------------------------------------------------------------
 
-   CONTAINS
+   contains
 
 !-------------------------------------------------------------------------
 !  NASA/GSFC, Global Modeling and Assimilation Office, Code 610.3, GMAO  !
@@ -1259,7 +1257,7 @@
 !*************************************************************
 ! Begin gsi code
 !
-  use m_gpsStats, only: gpsStats_create ! was done within obsmod::create_obsmod_vars()
+  use m_gpsstats, only: gpsstats_create ! was done within obsmod::create_obsmod_vars()
   use m_prad    , only: prad_create     ! was obsmod::create_passive_obsmod_vars()
   use m_obsdiags, only: obsdiags_create ! was done within obsmod::create_obsmod_vars()
 
@@ -1268,7 +1266,7 @@
   use gsi_4dcouplermod, only: gsi_4dcoupler_setservices
   implicit none
   character(len=*),parameter :: myname_='gsimod.gsimain_initialize'
-  integer:: ier,ios
+  integer(i_kind):: ier,ios
   real(r_kind):: varqc_max,c_varqc_new
   type(regional_io_class) :: regional_io
 
@@ -1305,7 +1303,7 @@
   call init_jfunc
   call init_balmod
   call init_berror
-  call init_anberror  ! RTodling: alloc vectors should move to create
+  call init_anberror  ! alloc vectors should move to create
   call init_grid
   call init_turbl
   call init_compact_diffs
@@ -1324,12 +1322,12 @@
   call init_gfs_stratosphere
   call set_fgrid2agrid
   call gsi_nstcoupler_init_nml
- if(mype==0) write(6,*)' at 0 in gsimod, use_gfs_stratosphere,nems_nmmb_regional = ', &
+  if(mype==0) write(6,*)' at 0 in gsimod, use_gfs_stratosphere,nems_nmmb_regional = ', &
                        use_gfs_stratosphere,nems_nmmb_regional
 
 
 ! Read user input from namelists.  All processor elements 
-! read the namelist input.  SGI MPI FORTRAN does not allow
+! read the namelist input.  sgi mpi fortran does not allow
 ! all tasks to read from standard in (unit 5).  Hence, open
 ! namelist to different unit number and have each task read 
 ! namelist file.
@@ -1379,7 +1377,6 @@
   if(ios/=0) call die(myname_,'read(strongopts)',ios)
 
   read(11,obsqc,iostat=ios)
-
   if(ios/=0) call die(myname_,'read(obsqc)',ios)
 
   read(11,obs_input,iostat=ios)
@@ -1406,11 +1403,11 @@
   close(11)
 #endif
   if(jcap > jcap_cut)then
-    jcap_cut = jcap+1
-    if(mype == 0)then
-      write(6,*) ' jcap_cut increased to jcap+1 = ', jcap+1
-      write(6,*) ' jcap_cut < jcap+1 not allowed '
-    end if
+     jcap_cut = jcap+1
+     if(mype == 0)then
+        write(6,*) ' jcap_cut increased to jcap+1 = ', jcap+1
+        write(6,*) ' jcap_cut < jcap+1 not allowed '
+     end if
   end if
   if(vqc .and. niter_no_qc(1) < niter(1))then
      varqc_max=c_varqc*(niter(1)-niter_no_qc(1))
@@ -1425,19 +1422,19 @@
   end if
   if(ltlint) then
      if(vqc .or. njqc .or. nvqc)then
-       vqc = .false.
-       nvqc = .false.
-       njqc = .false.
-       if(mype == 0) write(6,*) ' ltlint = true, so vqc and njqc must be false'
+        vqc = .false.
+        nvqc = .false.
+        njqc = .false.
+        if(mype == 0) write(6,*) ' ltlint = true, so vqc and njqc must be false'
      end if
   end if
   if (anisotropic) then
-      call init_fgrid2agrid(pf2aP1)
-      call init_fgrid2agrid(pf2aP2)
-      call init_fgrid2agrid(pf2aP3)
+     call init_fgrid2agrid(pf2ap1)
+     call init_fgrid2agrid(pf2ap2)
+     call init_fgrid2agrid(pf2ap3)
   endif
 
-! 4D-Var setup
+! 4d-var setup
   call setup_4dvar(mype)
   if (l4dvar) then
      if(reduce_diag) &
@@ -1446,8 +1443,8 @@
 
 ! Diagonal preconditioning is necessary for new bias correction
   if(newpc4pred .and. .not. diag_precon)then
-    diag_precon=.true.
-    step_start=8.e-4_r_kind
+     diag_precon=.true.
+     step_start=8.e-4_r_kind
   end if
 
   if( (.not.l4dvar) .and. (.not.l4densvar) ) ljcdfi=.false.
@@ -1504,7 +1501,7 @@
      call stop2(329)
   end if
 
-!  reg_tlnmc_type=2 currently requires that 2*nvmodes_keep <= npe
+! reg_tlnmc_type=2 currently requires that 2*nvmodes_keep <= npe
   if(reg_tlnmc_type==2) then
      if(2*nvmodes_keep>npe) then
         if(mype==0) write(6,*)' reg_tlnmc_type=2 and nvmodes_keep > npe'
@@ -1516,9 +1513,9 @@
 
   if (tlnmc_option>=2 .and. tlnmc_option<=4) then
      if (.not.l_hyb_ens) then
-     if(mype==0) write(6,*)' GSIMOD: inconsistent set of options for Hybrid/EnVar & TLNMC = ',l_hyb_ens,tlnmc_option
-     if(mype==0) write(6,*)' GSIMOD: resetting tlnmc_option to 1 for 3DVAR mode'
-     tlnmc_option=1
+        if(mype==0) write(6,*)' GSIMOD: inconsistent set of options for Hybrid/EnVar & TLNMC = ',l_hyb_ens,tlnmc_option
+        if(mype==0) write(6,*)' GSIMOD: resetting tlnmc_option to 1 for 3DVAR mode'
+        tlnmc_option=1
      end if
   else if (tlnmc_option<0 .or. tlnmc_option>4) then
      if(mype==0) write(6,*)' GSIMOD: This option does not yet exist for tlnmc_option: ',tlnmc_option
@@ -1532,9 +1529,9 @@
 ! check consistency in q option
   if(pseudo_q2 .and. qoption==1)then
      if(mype==0)then
-       write(6,*)' pseudo-q2 = ', pseudo_q2, ' qoption = ', qoption
-       write(6,*)' pseudo-q2 must be used together w/ qoption=2 only, aborting.'
-       call stop2(999)
+        write(6,*)' pseudo-q2 = ', pseudo_q2, ' qoption = ', qoption
+        write(6,*)' pseudo-q2 must be used together w/ qoption=2 only, aborting.'
+        call stop2(999)
      endif
   endif
 
@@ -1569,7 +1566,7 @@
      if (mype==0) write(6,*)'GSIMOD:  ***WARNING*** reset perturb_obs=',perturb_obs
   endif
 
-! Force turn off cloud analysis and hydrometeor IO
+! Force turn off cloud analysis and hydrometeor io
   if (i_gsdcldanal_type==0) then
      l_hydrometeor_bkio = .false.
      if (mype==0) write(6,*)'GSIMOD:  ***WARNING*** set l_hydrometeor_bkio=false'
@@ -1622,16 +1619,16 @@
 
 ! If reflectivity is intended to be assimilated, beta_s0 should be zero.
   if ( beta_s0 > 0.0_r_kind )then
-    do i=1,ndat
-      if ( index(dtype(i), 'dbz') /= 0 )then
-        write(6,*)'beta_s0 needs to be set to zero in this GSI version, when reflectivity is directly assimilated. Static B extended for radar reflectivity assimilation will be included in future version.'
-        call stop2(8888)
-      end if
-    end do
+     do i=1,ndat
+        if ( index(dtype(i), 'dbz') /= 0 )then
+           write(6,*)'beta_s0 needs to be set to zero in this GSI version, when reflectivity is directly assimilated. Static B extended for radar reflectivity assimilation will be included in future version.'
+           call stop2(8888)
+        end if
+     end do
   end if
 
 ! Turn off uv option if hybrid/ensemble options is false for purposes 
-! of TLNMC 
+! of tlnmc 
   if (.not.l_hyb_ens) uv_hyb_ens=.false.
 
 ! Turn on derivatives if using dynamic constraint
@@ -1645,7 +1642,7 @@
   if (tendsflag) switch_on_derivatives=.true.
 
 
-! Turn off Jc-pdry weak constraint if regional application
+! Turn off jc-pdry weak constraint if regional application
   if (regional) ljcpdry=.false.
 
 ! Initialize lagrangian data assimilation - must be called after gsi_4dvar
@@ -1653,7 +1650,7 @@
 
 
 ! Ensure tendency flag is on if preciptation data listed as observation type.
-! NOTE: only applicable for global run when not using observer
+! Note: only applicable for global run when not using observer
   if (.not.tendsflag .and. .not.regional) then
      check_pcp: do i=1,ndat
         if ( .not.tendsflag .and. index(dtype(i),'pcp') /=0 ) then
@@ -1701,7 +1698,7 @@
 #else
      open(11,file='gsiparm.anl')
      read(11,singleob_test,iostat=ios)
-        if(ios/=0) call die(myname_,'read(singleob_test)',ios)
+     if(ios/=0) call die(myname_,'read(singleob_test)',ios)
      close(11)
 #endif
      dtype(1)=oneob_type
@@ -1793,7 +1790,7 @@
   if (switch_on_derivatives) call init_anadv  ! moved from derivsmod 
   call init_general_commvars
   call create_obsmod_vars
-  call gpsStats_create()                ! extracted from obsmod::create_obsmod_vars()
+  call gpsstats_create()                ! extracted from obsmod::create_obsmod_vars()
   call obsdiags_create()                ! extracted from obsmod::create_obsmod_vars()
   if (passive_bc) call prad_create()    ! replacing -- call obsmod::create_passive_obsmod_vars()
 
@@ -1861,7 +1858,7 @@
 
   implicit none
 ! Deallocate arrays
-! RTodling debug: PROG HANGS; needs ATTENTION
+! debug: Prog hangs; needs attention
   call mpi_comm_rank(mpi_comm_world,mype,ierror)
   if (anisotropic) then
      call final_fgrid2agrid(pf2aP3)
@@ -1876,7 +1873,7 @@
   call destroy_obsmod_vars
   call destroy_general_commvars
   call final_grid_vars
-!_TBDone  call final_reg_glob_ll ! gridmod
+!_tbdone  call final_reg_glob_ll ! gridmod
   call radiance_mode_destroy
   call final_anacv
   call final_anasv
@@ -1886,7 +1883,7 @@
   call clean_4dvar
   call destroy_qcvars
 
-! Done with GSI.
+! Done with gsi.
   if (mype==0)  call w3tage('GSI_ANL')
   
   call mpi_finalize(ierror)

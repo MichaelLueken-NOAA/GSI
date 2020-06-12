@@ -110,8 +110,8 @@ contains
     real(r_single),dimension(nlon,nlat):: grid4
 
     real(r_kind),dimension(lat2,lon2,nsig)::work3d
-    real(r_kind),pointer,dimension(:,:)  :: ptr2d=>NULL()
-    real(r_kind),pointer,dimension(:,:,:):: ptr3d=>NULL()
+    real(r_kind),pointer,dimension(:,:)  :: ptr2d=>null()
+    real(r_kind),pointer,dimension(:,:,:):: ptr3d=>null()
     
 !******************************************************************************  
 !   Initialize variables used below
@@ -252,7 +252,7 @@ contains
 ! !OUTPUT PARAMETERS:
 !
 
-! !DESCRIPTION: This routine gathers fields needed for the GSI analysis
+! !DESCRIPTION: This routine gathers fields needed for the gsi analysis
 !           file from subdomains and then transforms the fields from
 !           grid to spectral space.  The spectral coefficients are 
 !           then written to an atmospheric analysis file.
@@ -290,8 +290,8 @@ contains
     real(r_kind),dimension(lat1*lon1,nsig):: work3dm
     real(r_kind),dimension(max(iglobal,itotsub)):: work
     real(r_single),dimension(nlon,nlat):: grid4
-    real(r_kind),pointer,dimension(:,:)  :: ptr2d=>NULL()
-    real(r_kind),pointer,dimension(:,:,:):: ptr3d=>NULL()
+    real(r_kind),pointer,dimension(:,:)  :: ptr2d=>null()
+    real(r_kind),pointer,dimension(:,:,:):: ptr3d=>null()
     
     type(gsi_bundle) xbundle
 
@@ -375,14 +375,14 @@ contains
        istatus=istatus+iret
     endif
 
-     nymd = 10000*iadate(1)+iadate(2)*100+iadate(3)
-     nhms = 10000*iadate(4)
-     if(mype==0) write(6,'(2a,i8.8,2x,i6.6)')trim(myname_),': writing out bias on ',&
-             nymd, nhms
-     call gsi_bundlecreate(xbundle,bundle(1),'Bias Estimate',iret)
-     call bkg_bias_model(xbundle,iadate(4))
-     call gsi_4dcoupler_putpert (xbundle,nymd,nhms,'tlm','bbias')
-     call gsi_bundledestroy(xbundle,iret)
+    nymd = 10000*iadate(1)+iadate(2)*100+iadate(3)
+    nhms = 10000*iadate(4)
+    if(mype==0) write(6,'(2a,i8.8,2x,i6.6)')trim(myname_),': writing out bias on ',&
+            nymd, nhms
+    call gsi_bundlecreate(xbundle,bundle(1),'Bias Estimate',iret)
+    call bkg_bias_model(xbundle,iadate(4))
+    call gsi_4dcoupler_putpert (xbundle,nymd,nhms,'tlm','bbias')
+    call gsi_bundledestroy(xbundle,iret)
 !    
     return
   end subroutine write_bias

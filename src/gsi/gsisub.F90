@@ -34,7 +34,7 @@ subroutine gsisub(init_pass,last_pass)
 !   2005-03-07  dee     - support gmao model interface
 !   2005-04-18  treadon - remove destroy_sst_an
 !   2005-05-27  pondeca - bypass radinfo_ and pcpinfo_write when twodvar_regional=.t.!                         
-!   2005-05-25  guo     - added interfaces to handle GMAO first guess gridded fields
+!   2005-05-25  guo     - added interfaces to handle gmao first guess gridded fields
 !   2005-07-25  treadon - remove redundant call to gengrid_vars
 !   2005-09-08  derber - modify to use input group time window and simplify data set handling
 !   2005-10-18  treadon - remove obs_load and dload, move deter_subdomain before read_obs
@@ -44,7 +44,7 @@ subroutine gsisub(init_pass,last_pass)
 !   2006-01-10  treadon - consolidate query guess file code in gesinfo
 !   2006-04-20  kistler - moved conv_read from read_obs here to parallel other *info modules
 !   2006-04-21  parrish - changes for new processing of level 2 radar wind data
-!   2007-03-15  todling - merged in da Silva/Cruz ESMF changes
+!   2007-03-15  todling - merged in da silva/cruz esmf changes
 !   2007-10-03  todling - add observer call
 !   2009-01-28  todling - update observer calling procedure 
 !   2009-08-19  guo     - #ifdef out destroy_gesfinfo() call for multi-pass observer.
@@ -62,7 +62,7 @@ subroutine gsisub(init_pass,last_pass)
 !                       - add radiance_obstype_init,radiance_parameter_cloudy_init,radiance_parameter_aerosol_init 
 !   2016-07-28  lippi   - add oneobmakerwsupob if 'rw' single ob test and skips radar_bufr_read_all.
 !   2018-02-15  wu      - add code for fv3_regional option
-!   2018-01-04  Apodaca - add lightinfo_read call for GOES/GLM lightning observations  
+!   2018-01-04  Apodaca - add lightinfo_read call for goes/glm lightning observations  
 !   2018-07-24  W. Gu   - move routine corr_ob_initialize/finalize from radinfo
 !
 !   input argument list:
@@ -185,17 +185,17 @@ subroutine gsisub(init_pass,last_pass)
      call tell('gsisub','lobserver=',lobserver)
   end if
   if (lobserver) then
-    if(init_pass) call observer_init()
-    if(print_verbose)then
-       call tell('gsisub','calling observer_run()')
-    end if
-    call observer_run(init_pass=init_pass,last_pass=last_pass)
-    if(print_verbose)then
-       call tell('gsisub','returned from observer_run()')
-    end if
-    if(last_pass) call observer_finalize()
+     if(init_pass) call observer_init()
+     if(print_verbose)then
+        call tell('gsisub','calling observer_run()')
+     end if
+     call observer_run(init_pass=init_pass,last_pass=last_pass)
+     if(print_verbose)then
+        call tell('gsisub','returned from observer_run()')
+     end if
+     if(last_pass) call observer_finalize()
 #ifndef HAVE_ESMF
-      call destroy_gesfinfo()	! paired with gesinfo()
+     call destroy_gesfinfo()   ! paired with gesinfo()
 #endif
   else
      call glbsoi

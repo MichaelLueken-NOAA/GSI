@@ -4,23 +4,23 @@ module gsi_4dvar
 ! module:   gsi_4dvar
 !   prgmmr: tremolet    org: GMAO                date: 2007-02-02
 !
-! abstract: Contains variables and routines to control GSI 4D-Var
+! abstract: Contains variables and routines to control gsi 4d-var
 !
 ! program history log:
 !   2007-02-02 tremolet
-!   2007-05-29 todling  - add initialization of GCM TLM/ADM  
+!   2007-05-29 todling  - add initialization of gcm tlm/adm  
 !   2007-07-10 todling  - flag to allow writing of increment
 !   2009-10-09 wu       - replace nhr_offset with min_offset and
-!                         set default 1.5 hr for regional not for 4dvar but for FGAT
+!                         set default 1.5 hr for regional not for 4dvar but for fgat
 !   2010-03-16 todling  - add knob to calculate analysis error from lanczos
-!   2010-05-27 todling  - add gsi_4dcoupler; remove dependence on GMAO's geos pertmod
+!   2010-05-27 todling  - add gsi_4dcoupler; remove dependence on gmao's geos pertmod
 !   2010-10-05 todling  - add bi-cg option
 !   2011-03-14 guo      - Moved gsi_4dcoupler calls out of this module, to split
 !			  gsi_4dcoupler_init_traj() from gsimain_initialize(),
 !			  and gsi_4dcoupler_final_traj() from gsimain_finalize(),
 !   2011-07-10 guo/zhang- add liauon
 !   2012-02-08 kleist   - add new features for 4dvar with ensemble/hybrid.
-!   2012-09-14  Syed RH Rizvi, NCAR/NESL/MMM/DAS  - introduced ladtest_obs 
+!   2012-09-14  Syed RH Rizvi, ncar/nesl/mmm/das  - introduced ladtest_obs 
 !   2015-02-23 Rancic/Thomas - iwinbgn changed from hours to mins, added thin4d
 !                         option to remove thinning in time       
 !   2015-10-01 Guo      - trigger for redistribution of obs when applicable
@@ -34,19 +34,19 @@ module gsi_4dvar
 !
 ! Variable Definitions:
 !
-!   l4dvar            - 4D-Var on/off
-!   lsqrtb            - Use sqrt(B) preconditioning
-!   lbicg             - Use B preconditioning with bi-conjugate gradient
+!   l4dvar            - 4d-var on/off
+!   lsqrtb            - Use sqrt(b) preconditioning
+!   lbicg             - Use b preconditioning with bi-conjugate gradient
 !   lcongrad          - Use conjugate gradient/Lanczos minimizer
-!   lbfgsmin          - Use L-BFGS minimizer
-!   ltlint            - Use TL inner loop (ie TL intall)
-!   lanczosave        - Save Lanczos vectors to file
+!   lbfgsmin          - Use l-bfgs minimizer
+!   ltlint            - Use tl inner loop (ie tl intall)
+!   lanczosave        - Save lanczos vectors to file
 !   lnested_loops     - Allows multiple inner loops to work at differing resolutions
 !   jsiga             - Calculate approximate analysis errors for iteration jiter=jsiga
-!   nwrvecs           - Number of precond vectors (Lanczos) or pairs of vectors (QN)
+!   nwrvecs           - Number of precond vectors (lanczos) or pairs of vectors (qn)
 !                       being saved
-!   iorthomax         - max number of vectors used for orthogonalization of various CG options
-!   liauon            - turn on IAU mode.  The default value is set to .false.
+!   iorthomax         - max number of vectors used for orthogonalization of various cg options
+!   liauon            - turn on iau mode.  The default value is set to .false.
 !
 !   ibdate            - Date and time at start of 4dvar window
 !   iadatebgn         - Date and time at start of 4dvar window
@@ -69,9 +69,9 @@ module gsi_4dvar
 !   ladtest           - Run adjoint test
 !   ladtest_obs       - Run adjoint test for obervation
 !   lgrtest           - Run gradient test
-!   ltcost            - When .t., calc true cost within Lanczos (expensive)
+!   ltcost            - When .t., calc true cost within lanczos (expensive)
 !
-!   idmodel           - Run w/ identity GCM TLM and ADM; test mode
+!   idmodel           - Run w/ identity gcm tlm and adm; test mode
 !
 !   l4densvar         - Logical flag for 4d-ensemble-var option
 !   ens_nhr           - Time between time levels for ensemble (currently same as nhr_obsbins)
@@ -79,11 +79,11 @@ module gsi_4dvar
 !                       this variable defines the assumed filenames for ensemble
 !   ens_nstarthr      - Integer namelist option for first time level for ensemble
 !                       this should generally match with min_offset
-!   ibin_anl          - Analysis update bin.  This will be one for any 3D of 4DVAR mode, but
-!                       will be set to center of window for 4D-ens mode
-!   lwrite4danl       - logical to turn on writing out of 4D analysis state for 4D analysis modes
+!   ibin_anl          - Analysis update bin.  This will be one for any 3d of 4dvar mode, but
+!                       will be set to center of window for 4d-ens mode
+!   lwrite4danl       - logical to turn on writing out of 4d analysis state for 4D analysis modes
 !                       ** currently only set up for write_gfs in ncepgfs_io module
-!   nhr_anal          - forecast times to output if lwrite4danl=T. if zero, output all times (default).
+!   nhr_anal          - forecast times to output if lwrite4danl=t. if zero, output all times (default).
 !                       if > 0, output specific fcst time given by nhr_anal
 !   thin4d            - When .t., removes thinning of observations due to
 !                       location in the time window
@@ -116,7 +116,7 @@ module gsi_4dvar
   public :: jsiga,ltcost,iorthomax,liauon,lnested_loops
   public :: l4densvar,ens_nhr,ens_fhrlevs,ens_nstarthr,ibin_anl
   public :: lwrite4danl,thin4d,nhr_anal
-  public :: mPEs_observer
+  public :: mpes_observer
   public :: tau_fcst
   public :: efsoi_order
   public :: efsoi_afcst
@@ -158,7 +158,7 @@ module gsi_4dvar
   integer(i_kind) :: tau_fcst
   integer(i_kind) :: efsoi_order
 
-  integer(i_kind),save:: mPEs_observer=0
+  integer(i_kind),save:: mpes_observer=0
 
   real(r_kind) :: iwinbgn, winlen, winoff, winsub, hr_obsbin
 
@@ -228,9 +228,9 @@ thin4d = .false.
 nhr_anal = 0 
 
 tau_fcst = -1          ! ensemble of forecast at hour current+tau_fcst 
-efsoi_order = 1        ! order of appox used in EFSOI-like settings
-efsoi_afcst = .false.  ! internal EFSOI-like parameter (NEVER to be in namelist)
-efsoi_ana   = .false.  ! internal EFSOI-like parameter (NEVER to be in namelist)
+efsoi_order = 1        ! order of appox used in efsoi-like settings
+efsoi_afcst = .false.  ! internal efsoi-like parameter (never to be in namelist)
+efsoi_ana   = .false.  ! internal efsoi-like parameter (never to be in namelist)
 
 end subroutine init_4dvar
 ! --------------------------------------------------------------------
@@ -273,7 +273,7 @@ if (nhr_obsbin>0.and.nhr_obsbin<=nhr_assimilation) then
    hr_obsbin = real(nhr_obsbin,r_kind)
 else
    if (l4dvar) then
-!     Should depend on resolution of TLM, etc...
+!     Should depend on resolution of tlm, etc...
       hr_obsbin = one
    else if(l4densvar) then
       hr_obsbin = one   
@@ -283,16 +283,16 @@ else
 end if
 
 ! Setup observation bins
-IF (hr_obsbin<winlen) THEN
-   ibin = NINT(winlen/hr_obsbin)
-   IF (NINT(ibin*hr_obsbin)/=nhr_assimilation) THEN
+if (hr_obsbin<winlen) then
+   ibin = nint(winlen/hr_obsbin)
+   if (nint(ibin*hr_obsbin)/=nhr_assimilation) then
       write(6,*)'SETUP_4DVAR: Error=',ibin,hr_obsbin,nhr_assimilation
       write(6,*)'SETUP_4DVAR: Error in observation binning'
       call stop2(132)
-   ENDIF
-ELSE
+   endif
+else
    ibin = 0
-ENDIF
+endif
 nobs_bins = ibin + 1
 if (mype==0)  write(6,*) 'GSI_4DVAR:  nobs_bins = ',nobs_bins
 
@@ -300,16 +300,16 @@ if (mype==0)  write(6,*) 'GSI_4DVAR:  nobs_bins = ',nobs_bins
 if (nhr_subwin<=0) nhr_subwin = nhr_assimilation
 winsub = real(nhr_subwin,r_kind)
 
-IF (nhr_subwin<nhr_assimilation) THEN
+if (nhr_subwin<nhr_assimilation) then
    nsubwin = nhr_assimilation/nhr_subwin
-   IF (nsubwin*nhr_subwin/=nhr_assimilation) THEN
+   if (nsubwin*nhr_subwin/=nhr_assimilation) then
       write(6,*)'SETUP_4DVAR: Error=',nsubwin,nhr_subwin,nhr_assimilation
       write(6,*)'SETUP_4DVAR: Error in sub-windows definition'
       call stop2(133)
-   ENDIF
-ELSE
+   endif
+else
    nsubwin = 1
-ENDIF
+endif
 
 if (nwrvecs<0) then
    if (lbfgsmin) nwrvecs=10
@@ -363,7 +363,7 @@ if ( mype == 0 ) &
 
 ! Set up the time levels (nobs_bins) for the ensemble
 if ( mype == 0 ) &
-    write(6,'(A)')' SETUP_4DVAR: allocate array containing time levels for ensemble'
+   write(6,'(A)')' SETUP_4DVAR: allocate array containing time levels for ensemble'
 allocate(ens_fhrlevs(ntlevs_ens))
 do k=1,ntlevs_ens
    ens_fhrlevs(k) = ens_nstarthr + (k-1)*ens_nhr
@@ -421,7 +421,7 @@ subroutine time_4dvar(idate,step4d)
 !    idate    - Date (yyyymmddhh)
 !
 !   output argument list:
-!    step4d   - Time since start of 4D-Var window (hours)
+!    step4d   - Time since start of 4d-var window (hours)
 !
 ! attributes:
 !   language: f90
@@ -433,7 +433,7 @@ use constants, only: r60inv
 implicit none
 
 integer(i_kind),intent(in   ) :: idate   ! Date (yyyymmddhh)
-real(r_kind)   ,intent(  out) :: step4d  ! Time since start of 4D-Var window (hours)
+real(r_kind)   ,intent(  out) :: step4d  ! Time since start of 4d-var window (hours)
 
 integer(i_kind) iyr,imo,idy,ihr,nmin_obs,nhrobs,nhrbgn,nhroff
 integer(i_kind),dimension(5) :: idate5
@@ -451,13 +451,13 @@ idate5(3)=idy
 idate5(4)=ihr
 idate5(5)=0
 call w3fs21(idate5,nmin_obs)
-if (MOD(nmin_obs,60)/=0) then
+if (mod(nmin_obs,60)/=0) then
    write(6,*)'time_4dvar: minutes should be 0',nmin_obs
    call stop2(136)
 end if
 
 nhrobs=nmin_obs*r60inv
-nhrbgn=NINT(real(iwinbgn,r_kind)*r60inv)
+nhrbgn=nint(real(iwinbgn,r_kind)*r60inv)
 nhroff=nhrobs-nhrbgn
 
 step4d=real(nhroff,r_kind)

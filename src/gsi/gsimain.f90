@@ -3,7 +3,7 @@
 !-------------------------------------------------------------------------
 !BOP
 
-! ! IPROGRAM: gsimain -- runs NCEP gsi
+! ! PROGRAM: gsimain -- runs ncep gsi
 
 ! ! INTERFACE:
 
@@ -22,16 +22,16 @@
 
 !$$$  main program documentation block
 !                .      .    .                                       .
-! main program: GSI_ANL
-!   PRGMMR: DERBER           ORG: NP23                DATE: 1999-08-20
+! main program: gsi_anl
+!   prgmmr: derber           org: NP23                date: 1999-08-20
 !
-! abstract: The gridpoint statistical interpolation (GSI) analysis code
+! abstract: The gridpoint statistical interpolation (gsi) analysis code
 !   performs an atmospheric analysis over a specified domain (global
 !   or regional) in which guess fields from a forecast model are combined
-!   with available observations using a 3D-VAR approach.
+!   with available observations using a 3d-var approach.
 !
 ! program history log:
-!   1991-xx-xx  parrish/derber   initial SSI code
+!   1991-xx-xx  parrish/derber   initial ssi code
 !   1991-12-10  parrish/derber   fixed coding error in near sfc anal
 !   1992-09-14  derber           improved version of global ssi analysis
 !   1998-05-15  weiyu yang       mpp version of global ssi
@@ -48,7 +48,7 @@
 !   2004-11-10  treadon - add comments for error codes; initialize variables
 !                         wrf_anl_filename and wrf_ges_filename
 !   2004-11-29  parrish - remove code to handle regional binary update
-!   2004-12-08  xu li   - add logical variable retrieval for SST physical retrieval
+!   2004-12-08  xu li   - add logical variable retrieval for sst physical retrieval
 !                         algorithm
 !   2004-12-15  treadon - update documentation; simplify regional ges & anl i/o
 !   2004-12-22  treadon - rename diagnostic output logical flags; add logical
@@ -63,7 +63,7 @@
 !   2005-03-07  dee     - add logical gmao_intfc for gmao model interface!
 !   2005-04-08  treadon - add call set_nlnqc_flags
 !   2005-05-24  pondeca - add 2dvar only surface analysis option
-!   2005-05-27  yanqiu  - added obs_sen to control GSI's TLM
+!   2005-05-27  yanqiu  - added obs_sen to control gsi's tlm
 !   2005-05-27  kleist/derber - add option to read in new ob error table
 !   2005-05-27  kleist/parrish - add option to use new patch interpolation
 !                                if (norsp==0) will default to polar cascade
@@ -71,7 +71,7 @@
 !   2005-06-06  wu      - add namelist variable fstat, logical to seperate f
 !                         from balance projection
 !   2005-07-06  parrish - add/initialize logical variable update_pint
-!   2005-07-10  kleist  - add options for Jc term
+!   2005-07-10  kleist  - add options for jc term
 !   2005-08-01  parrish,lee - add changes to include new surface temperature 
 !                             forward model
 !   2005-08-03  derber - remove gross and variational qc conventional 
@@ -79,13 +79,13 @@
 !   2005-03-24  derber - remove call set_nlnqc_flags
 !   2005-09-08  derber - modify to use input group time window clean up unused variables
 !   2005-09-28  parrish - modify namelist parameters for radar wind superobs
-!   2005-09-29  kleist - expanded namelist for Jc option
+!   2005-09-29  kleist - expanded namelist for jc option
 !   2005-10-17  parrish - add ctph0,stph0,tlm0 to call convert_regional_guess
-!   2005-10-18  treadon - remove dload from OBS_INPUT namelist
+!   2005-10-18  treadon - remove dload from obs_input namelist
 !   2005-11-09  wu - turn off limq when using qoption=2
 !   2005-11-21  kleist - use tendency module, force flags to true if necessary
-!   2005-11-22  wu - add perturb_conv and pfact to SETUP namelist
-!   2005-12-01  cucurull - update information to include GPS bending angle code
+!   2005-11-22  wu - add perturb_conv and pfact to setup namelist
+!   2005-12-01  cucurull - update information to include gps bending angle code
 !   2005-12-20  parrish - add parameter sfcmodel for option to select boundary layer
 !                         forward model for surface temperature observations
 !   2006-01-10  treadon - move deallocate array calls from gsisub to gsimain
@@ -95,20 +95,20 @@
 !   2006-03-21  treadon - modify optional perturbation to observation
 !   2006-04-06  middlecoff - added three exit states
 !   2006-04-19  treadon - add logical switch dtbduv_on to namelist setup
-!   2006-04-20  wu - check OBS_INPUT time_window against obsmod default
+!   2006-04-20  wu - check obs_input time_window against obsmod default
 !   2006-04-20  kistler - added init_conv for conv ob bias correction
 !   2006-04-21  parrish - modifications for new treatment of level 2 radar winds
-!   2006-04-21  kleist  - Jc namelist generalized
+!   2006-04-21  kleist  - jc namelist generalized
 !   2006-05-22  su - add noiqc flag
 !   2006-07-28  derber  - add dfact1 namelist parameter, remove jppf
-!   2006-08-15  parrish - add namelist STRONGOPTS for new strong constraint option
+!   2006-08-15  parrish - add namelist strongopts for new strong constraint option
 !   2006-08-30  zhang,b - add diurnal cycle bias correction capability
 !   2006-09-29  treadon - add ifact10 logic, allow limq with qoption=2
 !   2006-10-12  treadon - set tendsflag and switch_on_derivatives for pcp data
 !   2006-10-25  sienkiewicz - add blacklist flag to namelist
 !   2006-11-30  todling - add fpsproj parameter to bkgerr namelist
 !   2007-03-12       su - add perturb_obs,perturb_fact,c_varqc
-!   2007-04-10  todling - split following C.Cruz and da Silva's modification to ESMF
+!   2007-04-10  todling - split following c.cruz and da silva's modification to esmf
 !   2007-04-13  tremolet - add error code 100
 !   2007-06-08  kleist/treadon - add init_directories
 !   2007-06-20  rancic/derber - add pbl option
@@ -117,7 +117,7 @@
 !   2007-10-24  parrish - add l2superob_only option
 !   2008-03-24      wu - add oberror tuning option 
 !   2008-05-20  Guo, J. - removed obsolete gmao_rtm control
-!			- removed diurnal bias correction implmented by Zhang, B.
+!			- removed diurnal bias correction implmented by zhang, b.
 !   2010-03-18  treadon - add comment for return code 330
 !   2010-04-26  kistler - add comment for return code 331
 !   2010-05-27  todling - error codes 127-130 no longer apply (slots emptied)
@@ -128,8 +128,8 @@
 !   2013-07-02  parrish - remove error message 328 - tlnmc_type > 2 not allowed
 !   2018-02-15  wu      - add fv3_regional
 !   2017-11-29  apodaca - add information, source codes, and exit states
-!                         related to the GOES/GLM lightnig assimilation
-!   2019-07-09  todling - add initialization of abstract layer defining use of GFS ensemble
+!                         related to the goes/glm lightnig assimilation
+!   2019-07-09  todling - add initialization of abstract layer defining use of gfs ensemble
 !   2019-08-04  guo     - moved ensemble object configuration into module gsi_fixture.
 !
 ! usage:
@@ -138,7 +138,7 @@
 !    input observation data file names are specified in namelist obs_input
 ! **************************
 !     berror_stats  - background error statistics
-!     emissivity_coefficients     - IR surface emissivity coefficient file
+!     emissivity_coefficients     - ir surface emissivity coefficient file
 !     ozinfo        - ozone observation information file
 !     pcpinfo       - precipitation rate observation info file
 !     satbias_angle - satellite angle dependent file
@@ -208,30 +208,30 @@
 !         wrf_netcdf_interface, write_all, wrsfca, wrsiga, wrwrfmassa, wrwrfnmma,
 !
 !     modules:
-!       From GSI:
+!       from gsi:
 !         berror, constants, gridmod, guess_grids, jfunc, kinds, mpimod, obsmod, 
 !         oneobmod, ozinfo, pcpinfo, qcmod, radinfo, satthin, specmod 
 !
-!       From Community Radiative Transfer Model (CRTM)):
+!       from community radiative transfer model (crtm)):
 !         error_handler, initialize, k_matrix_model, spectral_coefficients
 !
-!       From InfraRed Sea-Surface Emissivity (IRSSE) model:
+!       From infrared sea-surface emissivity (irsse) model:
 !         irsse_model
 !
 !
 !      
-!     libraries (for NCEP ibm):
-!       w3_d      - NCEP W3 library
-!       bufr_d_64 - 64 bit NCEP BUFR library
-!       sp_d      - NCEP spectral-grid transform library
-!       bacio_4   - byte addressable I/O library
-!       sigio     - NCEP GFS sigma file I/O library
-!       sfcio     - NCEP GFS surface file I/O library
-!       CRTM      - Community Radiative Transfer Model
-!       ESSL      - fast scientific calculation subroutines
-!       MASS      - fast intrinsic function replacements
-!       NETCDF    - the netcdf library
-!       WRF       - the WRF library
+!     libraries (for ncep ibm):
+!       w3_d      - ncep w3 library
+!       bufr_d_64 - 64 bit ncep bufr library
+!       sp_d      - ncep spectral-grid transform library
+!       bacio_4   - byte addressable i/o library
+!       sigio     - ncep gfs sigma file i/o library
+!       sfcio     - ncep gfs surface file i/o library
+!       crtm      - community radiative transfer model
+!       essl      - fast scientific calculation subroutines
+!       mass      - fast intrinsic function replacements
+!       netcdf    - the netcdf library
+!       wrf       - the wrf library
 !
 !   exit states:
 !     cond =   0 - successful run
@@ -239,27 +239,27 @@
 !          =  31 - extrapolation error (interp_a2e)
 !          =  32 - failure in sort routine (indexx, in satthin)
 !          =  33 - error in coarse --> fine grid interolation operator (get_3ops)
-!          =  35 - model top pressure above RTM top pressure (add_layers_rtm)
-!          =  36 - total number of model layers > RTM layers 
+!          =  35 - model top pressure above rtm top pressure (add_layers_rtm)
+!          =  36 - total number of model layers > rtm layers 
 !          =  41 - illegal min,max horizontal scale (prewgt)
 !          =  44 - illegal surface emissivity type(emiss)
-!          =  45 - IR surface emissivity failure (emiss)
+!          =  45 - ir surface emissivity failure (emiss)
 !          =  48 - allocation or i/o error (convinfo)
 !          =  49 - error in call rdmemm (read_prepbufr)
 !          =  50 - ndata > maxobs  (read_prepbufr)
 !          =  51 - invalid pflag (convthin:make3grids)
 !          =  54 - data handling mix up(setuprhsall)
-!          =  55 - NOBS > NSDATA (setuprhsall-tran)
+!          =  55 - nobs > nsdata (setuprhsall-tran)
 !          =  56 - iobs > maxobs (read_amsr2)
 !          =  59 - problems reading sst analysis (rdgrbsst)
 !          =  60 - inconsistent dimensions (rdgrbsst)
 !          =  61 - odd number of longitudes (inisph)
 !          =  62 - latitude not between +/- pi (inisph)
-!          =  63 - error in LUD matrix dcomposition (inisph)
+!          =  63 - error in lud matrix dcomposition (inisph)
 !          =  64 - singular matrix (inisph)
-!          =  65 - vanishing row in L-D-U decomposition (ldum)
-!          =  66 - singular matrix in L-D-U decomposition (ldum)
-!          =  67 - matrix too large in L-D-U decomposition (ldum)
+!          =  65 - vanishing row in l-d-u decomposition (ldum)
+!          =  66 - singular matrix in l-d-u decomposition (ldum)
+!          =  67 - matrix too large in l-d-u decomposition (ldum)
 !          =  68 - raflib error (raflib, raflib_8)
 !          =  69 - imaginary root to large (rfdpar1)
 !          =  70 - error setting up assimilation time window
@@ -292,9 +292,9 @@
 !          = 101 - prebal: inconsistent msig,nsig 
 !          = 102 - allocate_preds: vector already allocated
 !          = 103 - allocate_preds: error length
-!          = 104 - control2model: assumes sqrt(B) but not specified
+!          = 104 - control2model: assumes sqrt(b) but not specified
 !          = 105 - control2model: error 3dvar
-!          = 106 - control2state: not used for sqrt(B), but called
+!          = 106 - control2state: not used for sqrt(b), but called
 !          = 107 - control2state: error 3dvar
 !          = 108 - allocate_cv: vector already allocated
 !          = 109 - allocate_mods: error length
@@ -305,7 +305,7 @@
 !          = 114 - qdot_prod_cv: error length
 !          = 115 - axpy: error length
 !          = 116 - read_cv: wrong length
-!          = 117 - maxval_cv: MPI error
+!          = 117 - maxval_cv: mpi error
 !          = 118 - qdot_product: inconsistent dims.
 !          = 119 - set_cvsection: kbgn out of range
 !          = 120 - set_cvsection: kend out of range
@@ -320,8 +320,8 @@
 !          = 129 - 
 !          = 130 - 
 !          = 131 - grtest: pdx too small
-!          = 132 - gsi_4dvar: Error in observation binning
-!          = 133 - gsi_4dvar: Error in sub-windows definition
+!          = 132 - gsi_4dvar: error in observation binning
+!          = 133 - gsi_4dvar: error in sub-windows definition
 !          = 134 - setup_4dvar: unable to fullfil request for increment output
 !          = 135 - setup_4dvar: iwrtinc or lwrite4danl inconsistent
 !          = 136 - time_4dvar: minutes should be 0
@@ -331,9 +331,9 @@
 !          = 140 - setup_precond: no vectors for preconditioner
 !          = 141 - read_lanczos: kamxit>maxiter
 !          = 142 - read_lanczos: kiter>maxiter
-!          = 143 - m_stats: MPI_allreduce(dot-sum)
-!          = 144 - m_stats: MPI_allreduce(min-max)
-!          = 145 - m_stats: MPI_allreduce(dim)
+!          = 143 - m_stats: mpi_allreduce(dot-sum)
+!          = 144 - m_stats: mpi_allreduce(min-max)
+!          = 145 - m_stats: mpi_allreduce(dim)
 !          = 146 - control2model_ad: assumes lsqrtb
 !          = 147 - model_tl: error nstep
 !          = 148 - model_tl: error nfrctl
@@ -342,12 +342,12 @@
 !          = 151 - model_tl: error xini
 !          = 152 - model_tl: error xobs
 !          = 153 - mpl_allgatherq: troubled jdim/npe
-!          = 154 - mpl_bcast: MPI error
+!          = 154 - mpl_bcast: mpi error
 !          = 155 - init_fc_sens: unknown method
 !          = 156 - save_fc_sens: obscounts not allocated
 !          = 157 - observer: observer should only be called in 4dvar
 !          = 158 - lbfgs: maxvecs is not positive.
-!          = 159 - lbfgs: GTOL is smaller than 1.0e-4
+!          = 159 - lbfgs: gtol is smaller than 1.0e-4
 !          = 160 - lbfgs: line search failed
 !          = 161 - mcsrch: error input
 !          = 162 - mcsrch: the search direction is not a descent direction
@@ -505,14 +505,14 @@
 !          = 317 - bkerror: not for use with lsqrtb
 !          = 318 - init_jcdfi: Sum of weights is not 1
 !          = 319 - steqr: r_kind is neither default real nor double precision
-!          = 320 - steqr: SSTEQR/DSTEQR returned non-zero info
+!          = 320 - steqr: ssteqr/dsteqr returned non-zero info
 !          = 321 - ptsv: r_kind is neither default real nor double precision
-!          = 322 - ptsv: SPTSV/DPTSV returned non-zero info
+!          = 322 - ptsv: sptsv/dptsv returned non-zero info
 !          = 323 - save_precond: r_kind is neither default real nor double precision
-!          = 324 - save_precond: error computing Cholesky decomposition
+!          = 324 - save_precond: error computing cholesky decomposition
 !          = 325 - setup_precond: r_kind is neither default real nor double precision
-!          = 326 - setup_precond:  SSYEV/DSYEV returned non-zero return code
-!          = 327 - PRECOND: invalid value for kmat
+!          = 326 - setup_precond:  ssyev/dsyev returned non-zero return code
+!          = 327 - precond: invalid value for kmat
 !          = 328 -
 !          = 329 - problem with logicals or collective obs selection info file
 !          = 330 - grid --> spectral transform not safe for sptranf_s,v_b
@@ -523,8 +523,8 @@
 !          = 335 - error reading radiance diagnostic file
 !          = 336 - invalid namlist setting for nhsrf
 !          = 337 - inconsitent tlnmc namelist settings
-!          = 338 - error reading MLS vertical levels from MLS bufr 
-!          = 339 - error:more than one MLS  data type not allowed
+!          = 338 - error reading mls vertical levels from mls bufr 
+!          = 339 - error:more than one mls  data type not allowed
 !          = 340 - error reading aircraft temperature bias file
 !          = 341 - aircraft tail number exceeds maximum
 !          = 342 - setuplight: failure to allocate obsdiags
@@ -542,11 +542,11 @@
 !
 !$$$
 
-!    NOTE:  PARAMETERS RELATED TO GLOBAL/REGIONAL ANALYSIS:
+!    Note:  parameters related to global/regional analysis:
 
 !     This program has been adapted for use for global or regional analysis.
-!     Originally, only one regional model was allowed for, the WRF version of
-!     the NCEP non-hydrostatic mesoscale model (WRF NMM).  This model uses a
+!     Originally, only one regional model was allowed for, the wrf version of
+!     the ncep non-hydrostatic mesoscale model (wrf nmm).  This model uses a
 !     rotated lat-lon coordinate so it was relatively easy to adapt the global
 !     code to this rotated grid.  However, to run with other regional models
 !     with different map definitions, it would be necessary to make special
@@ -562,8 +562,8 @@
 !
 !     The analysis does not currently work with staggered grids, so some
 !     interpolation in the horizontal is required for regional models with
-!     grid staggering.  The WRF NMM uses an E-grid, and there are 2 interpolation
-!     options, one which fills the holes in the E-grid for more accurate, but
+!     grid staggering.  The wrf nmm uses an e-grid, and there are 2 interpolation
+!     options, one which fills the holes in the e-grid for more accurate, but
 !     much more expensive option, and the other which takes every other row of
 !     the E grid, which has no interpolation for mass variables, but winds must
 !     be interpolated.  To minimize the impact of interpolation errors, only
@@ -574,37 +574,37 @@
 !
 !     There are currently two regional models accepted by the analysis:
 
-!             wrf_nmm_regional = .true.   input is from WRF NMM  (NCEP model)
-!             wrf_mass_regional = .true.  input is from WRF MASS-CORE (NCAR model)
+!             wrf_nmm_regional = .true.   input is from wrf nmm  (ncep model)
+!             wrf_mass_regional = .true.  input is from wrf mass-core (ncar model)
 !
 !      new regional model added:
 !
-!             nems_nmmb_regional = .true.  input is from NEMS NMMB model
+!             nems_nmmb_regional = .true.  input is from nems nmmb model
 !             fv3_regional = .true.  input is from fv3 model
-!             cmaq_regional = .true.  input is from CMAQ model
+!             cmaq_regional = .true.  input is from cmaq model
 !
 !     For a regional run, several additional namelist parameters must be specified:
 !
 !           diagnostic_reg   -- if .true., then run diagnostic tests for debugging
 !           update_regsfc    -- if .true., then write updated surface fields to analysis file
-!           nhr_assimilation -- assimilation interval in hours, =3 for current NMM assimilation
+!           nhr_assimilation -- assimilation interval in hours, =3 for current nmm assimilation
 !           nhr_offset       -- time of analysis in assimilation window (hours)
 !                    (following only needed for wrf_nmm_regional =.true.
-!           filled_grid      -- if .true. fill in points on WRF NMM E-grid (expensive, but most accurate)
-!           half_grid        -- if .true. use every other row of WRF NMM E-grid
+!           filled_grid      -- if .true. fill in points on wrf nmm e-grid (expensive, but most accurate)
+!           half_grid        -- if .true. use every other row of wrf nmm e-grid
 !
 !     Additional notes:
 !
 !
 !        1.  For regional runs, there are specialized routines at the beginning and end of the
-!               analysis for I/O.  Currently the options are for the WRF NMM and the WRF mass core.
+!               analysis for i/o.  Currently the options are for the wrf nmm and the wrf mass core.
 !
-!        2.  WRF restart files can now be directly read into GSI. There are currently 4 options,
-!                a)  WRF NMM binary format
-!                b)  WRF NMM netcdf format
-!                c)  WRF MC  binary format
-!                d)  WRF MC  netcdf format
-!            To simplify the initial introduction of direct connection to WRF files, interface
+!        2.  wrf restart files can now be directly read into gsi. There are currently 4 options,
+!                a)  wrf nmm binary format
+!                b)  wrf nmm netcdf format
+!                c)  wrf mc  binary format
+!                d)  wrf mc  netcdf format
+!            To simplify the initial introduction of direct connection to wrf files, interface
 !               routines are called at the beginning and end of gsimain, creating an intermediate
 !               binary file which the code currently expects.  However this is now invisible
 !               to the user.
@@ -620,9 +620,9 @@
    call my_fixture_config()     ! Choose configurable extensions for a
                                 ! particular system fixture.  Note a user
                                 ! defined gsi_fixture implementation is uniquely
-                                ! selected in CMakeLists.txt at build-time.
+                                ! selected in cmakelists.txt at build-time.
 
-! Initialize atmospheric AD and TL model trajectory
+! Initialize atmospheric ad and tl model trajectory
 !  if(l4dvar) then
 !     call gsi_4dcoupler_init_traj(idmodel,rc=ier)
 !     if(ier/=0) call die(myname,'gsi_4dcoupler_init_traj(), rc =',ier)
@@ -630,7 +630,7 @@
 
    call gsimain_run(init_pass=.true.,last_pass=.true.)
 
-! Finalize atmospheric AD and TL model trajectory
+! Finalize atmospheric ad and tl model trajectory
    if(l4dvar) then
       call gsi_4dcoupler_final_traj(rc=ier)
       if(ier/=0) call die(myname,'gsi_4dcoupler_final_traj(), rc =',ier)

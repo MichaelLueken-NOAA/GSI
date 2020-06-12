@@ -201,26 +201,26 @@ contains
        ntimestep=0
 
 
-          call nemsio_setheadvar(gfile,'idate',jdate,iret)
-          write(6,*)' after setheadvar, jdate,iret=',jdate,iret
-          call nemsio_setheadvar(gfile,'nfhour',nfhour,iret)
-          write(6,*)' after setheadvar, nfhour,iret=',nfhour,iret
-          call nemsio_setheadvar(gfile,'nfminute',nfminute,iret)
-          write(6,*)' after setheadvar, nfminute,iret=',nfminute,iret
-          call nemsio_setheadvar(gfile,'nfsecondn',nfsecondn,iret)
-          write(6,*)' after setheadvar, nfsecondn,iret=',nfsecondn,iret
+       call nemsio_setheadvar(gfile,'idate',jdate,iret)
+       write(6,*)' after setheadvar, jdate,iret=',jdate,iret
+       call nemsio_setheadvar(gfile,'nfhour',nfhour,iret)
+       write(6,*)' after setheadvar, nfhour,iret=',nfhour,iret
+       call nemsio_setheadvar(gfile,'nfminute',nfminute,iret)
+       write(6,*)' after setheadvar, nfminute,iret=',nfminute,iret
+       call nemsio_setheadvar(gfile,'nfsecondn',nfsecondn,iret)
+       write(6,*)' after setheadvar, nfsecondn,iret=',nfsecondn,iret
 
 !                  
-          idat(3)=jdate(1)       !  forecast starting year
-          idat(2)=jdate(2)       !  forecast starting month
-          idat(1)=jdate(3)       !  forecast starting day  
-          ihrst=jdate(4)         !  forecast starting hour (0-23)
-          call nemsio_setheadvar(gfile,'idat',idat,iret)
-          write(6,*)' after setheadvar, idat,iret=',idat,iret
-          call nemsio_setheadvar(gfile,'ihrst',ihrst,iret)
-          write(6,*)' after setheadvar, ihrst,iret=',ihrst,iret
-          call nemsio_setheadvar(gfile,'ntimestep',ntimestep,iret)
-          write(6,*)' after setheadvar, ntimestep,iret=',ntimestep,iret
+       idat(3)=jdate(1)       !  forecast starting year
+       idat(2)=jdate(2)       !  forecast starting month
+       idat(1)=jdate(3)       !  forecast starting day  
+       ihrst=jdate(4)         !  forecast starting hour (0-23)
+       call nemsio_setheadvar(gfile,'idat',idat,iret)
+       write(6,*)' after setheadvar, idat,iret=',idat,iret
+       call nemsio_setheadvar(gfile,'ihrst',ihrst,iret)
+       write(6,*)' after setheadvar, ihrst,iret=',ihrst,iret
+       call nemsio_setheadvar(gfile,'ntimestep',ntimestep,iret)
+       write(6,*)' after setheadvar, ntimestep,iret=',ntimestep,iret
  
     
 
@@ -341,7 +341,7 @@ contains
     use mod_nmmb_to_a, only: nmmb_h_to_a,nmmb_v_to_a
     implicit none
 
-    character(*)   ,intent(in   ) :: varname,vartype,gridtype      ! gridtype='H' or 'V'
+    character(*)   ,intent(in   ) :: varname,vartype,gridtype      ! gridtype='h' or 'v'
     integer(i_kind),intent(in   ) :: lev              !   vertical level of desired variable
     real(r_kind)   ,intent(  out) :: var(lat2*lon2)
     integer(i_kind),intent(in   ) :: mype,mype_io
@@ -402,13 +402,13 @@ contains
 ! subprogram:    gsi_nemsio_read_fraction
 !   pgrmmr: Shun Liu
 !
-! abstract:  copy from gsi_nemsio_read. To read in NMMB f_rain, f_ice, f_rime and
-!            T together and then convert to rain water mixing ratio and snow
+! abstract:  copy from gsi_nemsio_read. To read in nmmb f_rain, f_ice, f_rime and
+!            t together and then convert to rain water mixing ratio and snow
 !            mixing ratio
 !
 ! program history log:
 
-!   2015-06-5  S.Liu - read in f_rain, f_ice, f_rimef and T
+!   2015-06-5  S.Liu - read in f_rain, f_ice, f_rimef and t
 !   2016-02-10 S.Liu - remove gridtype if-test since all variables are in mass point
 !
 !   input argument list:
@@ -440,8 +440,8 @@ contains
     use mod_nmmb_to_a, only: nmmb_h_to_a,nmmb_v_to_a
     implicit none
 
-    character(*)   ,intent(in   ) :: vartype      !  gridtype='H' or 'V'
-    character(*)   ,intent(in   ) :: varname_frain, varname_fice, varname_clwmr, varname_t     !  gridtype='H' or 'V'
+    character(*)   ,intent(in   ) :: vartype      !  gridtype='h' or 'v'
+    character(*)   ,intent(in   ) :: varname_frain, varname_fice, varname_clwmr, varname_t     !  gridtype='h' or 'v'
     integer(i_kind),intent(in   ) :: lev              !   vertical level of desired variable
 
     real(r_kind)   ,intent(  out) :: var_qi(lat2*lon2)
@@ -489,15 +489,15 @@ contains
        call nemsio_readrecv(gfile,trim(varname_t),trim(vartype),lev,work_b_t,iret=iret)
 
        do n=1,nlon_regional*nlat_regional
-         t=work_b_t(n)
-         f_rain=work_b_frain(n)
-         f_ice=work_b_fice(n)
-         wc=work_b_clwmr(n)
-         call fraction2variable(t,f_ice,f_rain,wc,qi,qs,qr,qw)
-         work_b_qi(n)=qi
-         work_b_qs(n)=qs
-         work_b_qr(n)=qr
-         work_b_qw(n)=qw
+          t=work_b_t(n)
+          f_rain=work_b_frain(n)
+          f_ice=work_b_fice(n)
+          wc=work_b_clwmr(n)
+          call fraction2variable(t,f_ice,f_rain,wc,qi,qs,qr,qw)
+          work_b_qi(n)=qi
+          work_b_qs(n)=qs
+          work_b_qr(n)=qr
+          work_b_qw(n)=qw
        end do
 
        if(iret==0) then
@@ -536,14 +536,14 @@ contains
     if(present(good_var)) good_var=good_var_loc
 
     if(good_var_loc) then
-      call mpi_scatterv(work_qi,ijn_s,displs_s,mpi_rtype, &
-                   var_qi,ijn_s(mm1),mpi_rtype,mype_io,mpi_comm_world,ierror)
-      call mpi_scatterv(work_qs,ijn_s,displs_s,mpi_rtype, &
-                   var_qs,ijn_s(mm1),mpi_rtype,mype_io,mpi_comm_world,ierror)
-      call mpi_scatterv(work_qr,ijn_s,displs_s,mpi_rtype, &
-                   var_qr,ijn_s(mm1),mpi_rtype,mype_io,mpi_comm_world,ierror)
-      call mpi_scatterv(work_qw,ijn_s,displs_s,mpi_rtype, &
-                   var_qw,ijn_s(mm1),mpi_rtype,mype_io,mpi_comm_world,ierror)
+       call mpi_scatterv(work_qi,ijn_s,displs_s,mpi_rtype, &
+                    var_qi,ijn_s(mm1),mpi_rtype,mype_io,mpi_comm_world,ierror)
+       call mpi_scatterv(work_qs,ijn_s,displs_s,mpi_rtype, &
+                    var_qs,ijn_s(mm1),mpi_rtype,mype_io,mpi_comm_world,ierror)
+       call mpi_scatterv(work_qr,ijn_s,displs_s,mpi_rtype, &
+                    var_qr,ijn_s(mm1),mpi_rtype,mype_io,mpi_comm_world,ierror)
+       call mpi_scatterv(work_qw,ijn_s,displs_s,mpi_rtype, &
+                    var_qw,ijn_s(mm1),mpi_rtype,mype_io,mpi_comm_world,ierror)
     end if
 
   end subroutine gsi_nemsio_read_fraction
@@ -583,7 +583,7 @@ contains
     use mod_nmmb_to_a, only: nmmb_a_to_h,nmmb_a_to_v
     implicit none
 
-    character(*)   ,intent(in   ) :: varname,vartype,gridtype      ! gridtype='H' or 'V'
+    character(*)   ,intent(in   ) :: varname,vartype,gridtype      ! gridtype='h' or 'v'
     integer(i_kind),intent(in   ) :: lev              !   vertical level of desired variable
     real(r_kind)   ,intent(in   ) :: var(lat2,lon2)
     integer(i_kind),intent(in   ) :: mype,mype_io
@@ -630,7 +630,7 @@ contains
 ! abstract:
 !
 ! program history log:
-!   2015-05-12  S.Liu - copy from gsi_nemsio_write and modify to handle NMMB hydrometor fraction variable
+!   2015-05-12  S.Liu - copy from gsi_nemsio_write and modify to handle nmmb hydrometor fraction variable
 !
 !   input argument list:
 !    varname,vartype,gridtype
@@ -656,7 +656,7 @@ contains
     use mod_nmmb_to_a, only: nmmb_a_to_h,nmmb_a_to_v
     implicit none
 
-    character(*)   ,intent(in   ) :: varname_frain,varname_fice,vartype      ! gridtype='H' or 'V'
+    character(*)   ,intent(in   ) :: varname_frain,varname_fice,vartype      ! gridtype='h' or 'v'
     integer(i_kind),intent(in   ) :: lev              !   vertical level of desired variable
     real(r_kind)   ,intent(in   ) :: var_i(lat2,lon2), var_r(lat2,lon2), var_l(lat2,lon2), var_t(lat2,lon2)
     integer(i_kind),intent(in   ) :: mype,mype_io
@@ -731,13 +731,13 @@ contains
 !      write(6,*)'writeout4', maxval(work_b_r),maxval(work_b_l)
 !      write(6,*)'writeout44',nlon_regional,nlat_regional,nlon,nlat
        do n=1,nlon_regional*nlat_regional
-             t=work_b_t(n)
-           qfi=work_b_i(n)
-           qfr=work_b_r(n)
-           qfw=work_b_l(n)
-           call variable2fraction(t, qfi, qfr, qfw, f_ice, f_rain)
-           work_b_frain(n)=f_rain
-           work_b_fice(n)=f_ice
+          t=work_b_t(n)
+          qfi=work_b_i(n)
+          qfr=work_b_r(n)
+          qfw=work_b_l(n)
+          call variable2fraction(t, qfi, qfr, qfw, f_ice, f_rain)
+          work_b_frain(n)=f_rain
+          work_b_fice(n)=f_ice
 !          work_b_frain(n)=qfr
 !          work_b_fice(n)=qfw
        end do
@@ -761,77 +761,78 @@ contains
 ! subprogram:  gsdcloudanalysis      driver for generalized cloud/hydrometeor
 ! analysis
 !
-!   PRGMMR: Shun Liu          ORG: EMC/NCEP        DATE: 2015-05-28
+!   prgmmr: Shun Liu          org: EMC/NCEP        date: 2015-05-28
 !
-! ABSTRACT:
+! abstract:
 !  This subroutine fraction to qi, qs, qr, qw
 !
-! PROGRAM HISTORY LOG:
-!    2015-05-28  Shun Liu Add NCO document block
+! program history log:
+!    2015-05-28  Shun Liu Add nco document block
 !    2016-06-21  Shun Liu give number precisio and remove f_rimef
 !
 !
 !   input argument list:
-!     mype     - processor ID that does this IO
+!     mype     - processor id that does this io
 !
 !   output argument list:
 !
-! USAGE:
-!   INTPUT:
+! usage:
+!   input:
 !     t         -  sensible temperature
 !     f_ice     -  fraction of condensate in form of ice
 !     f_rain    -  fraction of liquid water in form of rain
 !     f_rimef   -  ratio of total ice growth to deposition groth
-!   OUTPUT
+!   output
 !     qi    -  cloud ice mixing ratio
 !     qs    -  large ice mixing ratio
 !     qr    -  rain mixing ratio
 !     qw    -  cloud water mixing ratio
 !
 !
-! REMARKS:
+! remarks:
 !
-! ATTRIBUTES:
-!   LANGUAGE: FORTRAN 90
-!   MACHINE:  WCOSS at NOAA/ESRL - college park, DC
+! attributes:
+!   language: FORTRAN 90
+!   machine:  WCOSS at NOAA/ESRL - college park, DC
 !
 !$$$
 
- use kinds, only: r_kind,r_single
+    use kinds, only: r_kind,r_single
+    implicit none
 
-   real(r_single) t, qi,qs, qr, qw, wc
-   real(r_single) f_ice, f_rain
-   real(r_single),parameter:: epsq=1.e-12_r_single
-   real(r_single),parameter:: tice=233.15_r_single,ticek=273.15_r_single
-   real(r_single),parameter:: tice_mix=243.15_r_single
-   real(r_single) ::t1,t2, coef1, coef2, coef
+    real(r_single) t, qi,qs, qr, qw, wc
+    real(r_single) f_ice, f_rain
+    real(r_single),parameter:: epsq=1.e-12_r_single
+    real(r_single),parameter:: tice=233.15_r_single,ticek=273.15_r_single
+    real(r_single),parameter:: tice_mix=243.15_r_single
+    real(r_single) ::t1,t2, coef1, coef2, coef
 
 
-   qi=0.0_r_single; qs=0.0_r_single; qr=0.0_r_single; qw=0.0_r_single
-   if(wc > 0.0_r_single) then
+    qi=0.0_r_single; qs=0.0_r_single; qr=0.0_r_single; qw=0.0_r_single
+    if(wc > 0.0_r_single) then
 
-     if(f_ice>1.0_r_single) f_ice=1.0_r_single
-     if(f_ice<0.0_r_single) f_ice=0.0_r_single
-     if(f_rain>1.0_r_single) f_rain=1.0_r_single
-     if(f_rain<0.0_r_single) f_rain=0.0_r_single
+       if(f_ice>1.0_r_single) f_ice=1.0_r_single
+       if(f_ice<0.0_r_single) f_ice=0.0_r_single
+       if(f_rain>1.0_r_single) f_rain=1.0_r_single
+       if(f_rain<0.0_r_single) f_rain=0.0_r_single
 
-     qi=0.05_r_single*wc*f_ice
-     qs=0.95_r_single*wc*f_ice
+       qi=0.05_r_single*wc*f_ice
+       qs=0.95_r_single*wc*f_ice
 
-     if(t<=tice_mix)then
-       t1=tice_mix
-       t2=tice
-       coef1=0.05_r_single
-       coef2=0.10_r_single
-       coef=(t-t2)/(t1-t2)*coef1+(t-t1)/(t2-t1)*coef2
-       qi=coef*wc*f_ice
-       qs=(1.0_r_single-coef)*wc*f_ice
-     end if
+       if(t<=tice_mix)then
+          t1=tice_mix
+          t2=tice
+          coef1=0.05_r_single
+          coef2=0.10_r_single
+          coef=(t-t2)/(t1-t2)*coef1+(t-t1)/(t2-t1)*coef2
+          qi=coef*wc*f_ice
+          qs=(1.0_r_single-coef)*wc*f_ice
+       end if
 
-!* do not consider frime at the moment
-     qr=wc*(1.0_r_single-f_ice)*f_rain
-     qw=wc*(1.0_r_single-f_ice)*(1.0_r_single-f_rain)
-   end if
+!*    do not consider frime at the moment
+       qr=wc*(1.0_r_single-f_ice)*f_rain
+       qw=wc*(1.0_r_single-f_ice)*(1.0_r_single-f_rain)
+    end if
 
   end subroutine fraction2variable
 
@@ -842,72 +843,73 @@ contains
 !                .      .    .                                       .
 ! subprogram:  gsdcloudanalysis      driver for generalized cloud/hydrometeor analysis
 !
-!   PRGMMR: Shun Liu          ORG: EMC/NCEP        DATE: 2012-10-24
+!   prgmmr: Shun Liu          org: EMC/NCEP        date: 2012-10-24
 !
-! ABSTRACT:
+! abstract:
 !  This subroutine qi qr qw to fraction
 !
-! PROGRAM HISTORY LOG:
-!    2013-10-18  Shun Liu Add NCO document block
+! program history log:
+!    2013-10-18  Shun Liu Add nco document block
 !    2015-11-16  Shun Liu move from gsdcldanalysis4nmmb.F90 to this module
-!    2016-06-21  Shun Liu give number precisio
+!    2016-06-21  Shun Liu give number precision
 !
 !
 !   input argument list:
-!     mype     - processor ID that does this IO
+!     mype     - processor id that does this io
 !
 !   output argument list:
 !
-! USAGE:
-!   INPUT
+! usage:
+!   input:
 !     qi    -  cloud ice mixing ratio
 !     qr    -  rain mixing ratio
 !     qw    -  cloud water mixing ratio
-!   OUTPUT:
+!   output:
 !     f_ice     -  fraction of condensate in form of ice
 !     f_rain    -  fraction of liquid water in form of rain
 !     f_rimef   -  ratio of total ice growth to deposition groth
 !
 !
-! REMARKS:
+! remarks:
 !
-! ATTRIBUTES:
-!   LANGUAGE: FORTRAN 90
-!   MACHINE:  WCOSS at NOAA/ESRL - college park, DC
+! attributes:
+!   language: FORTRAN 90
+!   machine:  WCOSS at NOAA/ESRL - college park, DC
 !
 !$$$
 
- use kinds, only: r_kind,r_single
+    use kinds, only: r_kind,r_single
+    implicit none
 
-   real(r_single) t, qi, qr, qw, wc, dum
-   real(r_single) f_ice, f_rain
-   real(r_single),parameter:: epsq=1.e-12_r_single
-   real(r_single),parameter:: tice=233.15_r_single,ticek=273.15_r_single
+    real(r_single) t, qi, qr, qw, wc, dum
+    real(r_single) f_ice, f_rain
+    real(r_single),parameter:: epsq=1.e-12_r_single
+    real(r_single),parameter:: tice=233.15_r_single,ticek=273.15_r_single
 
-   wc=qi+qr+qw
-   if(wc > 0.0_r_single) then
-     if(qi<epsq)then 
-           f_ice=0.0_r_single
-           if(t<tice) f_ice=1.0_r_single
-     else 
-           f_ice=0.0_r_single
-           dum=qi/wc
-           if(dum<1.0_r_single) then
+    wc=qi+qr+qw
+    if(wc > 0.0_r_single) then
+       if(qi<epsq)then 
+          f_ice=0.0_r_single
+          if(t<tice) f_ice=1.0_r_single
+       else 
+          f_ice=0.0_r_single
+          dum=qi/wc
+          if(dum<1.0_r_single) then
              f_ice=dum
-           else
+          else
              f_ice=1.0_r_single
-           end if
-     end if
+          end if
+       end if
 
-     if(qr < epsq) then
-           f_rain=0.0_r_single
-     else
-           f_rain=qr/(qr+qw)
-     end if
-   else
-           f_rain=0.0_r_single
-           f_ice=0.0_r_single
-   end if
+       if(qr < epsq) then
+          f_rain=0.0_r_single
+       else
+          f_rain=qr/(qr+qw)
+       end if
+    else
+       f_rain=0.0_r_single
+       f_ice=0.0_r_single
+    end if
 
   end subroutine variable2fraction
   subroutine gsi_nemsio_read_fractionnew(varname_frain,varname_fice,varname_clwmr,varname_frimef, &
@@ -917,13 +919,13 @@ contains
 ! subprogram:    gsi_nemsio_read_fraction
 !   pgrmmr: Shun Liu
 !
-! abstract:  copy from gsi_nemsio_read. To read in NMMB f_rain, f_ice, f_rime and
-!            T together and then convert to rain water mixing ratio and snow
+! abstract:  copy from gsi_nemsio_read. To read in nmmb f_rain, f_ice, f_rime and
+!            t together and then convert to rain water mixing ratio and snow
 !            mixing ratio
 !
 ! program history log:
 
-!   2015-06-5  S.Liu - read in f_rain, f_ice, f_rimef and T
+!   2015-06-5  S.Liu - read in f_rain, f_ice, f_rimef and t
 !   2016-02-10 S.Liu - remove gridtype if-test since all variables are in mass point
 !   2016-      T. Lei - to add the frimef to be read out 
 !
@@ -956,8 +958,8 @@ contains
     use mod_nmmb_to_a, only: nmmb_h_to_a,nmmb_v_to_a
     implicit none
 
-    character(*)   ,intent(in   ) :: vartype      !  gridtype='H' or 'V'
-    character(*)   ,intent(in   ) :: varname_frain, varname_fice, varname_clwmr, varname_frimef     !  gridtype='H' or 'V'
+    character(*)   ,intent(in   ) :: vartype      !  gridtype='h' or 'v'
+    character(*)   ,intent(in   ) :: varname_frain, varname_fice, varname_clwmr, varname_frimef     !  gridtype='h' or 'v'
     integer(i_kind),intent(in   ) :: lev              !   vertical level of desired variable
 
     real(r_kind)   ,intent(  out) :: var_qi(lat2*lon2)
@@ -1004,21 +1006,21 @@ contains
        call nemsio_readrecv(gfile,trim(varname_clwmr),trim(vartype),lev,work_b_clwmr,iret=iret)
        call nemsio_readrecv(gfile,trim(varname_frimef),trim(vartype),lev,work_b_frimef,iret=iret)
        if(iret /= 0) then
-         write(6,*)'reading frimef or other variables with errors, stop'
-         stop
+          write(6,*)'reading frimef or other variables with errors, stop'
+          stop
        endif
 
 
        do n=1,nlon_regional*nlat_regional
-         f_rimef=work_b_frimef(n)
-         f_rain=work_b_frain(n)
-         f_ice=work_b_fice(n)
-         wc=work_b_clwmr(n)
-         call fraction2variablenew(f_ice,f_rain,f_rimef,wc,qi,qs,qr,qw)
-         work_b_qi(n)=qi
-         work_b_qs(n)=qs
-         work_b_qr(n)=qr
-         work_b_qw(n)=qw
+          f_rimef=work_b_frimef(n)
+          f_rain=work_b_frain(n)
+          f_ice=work_b_fice(n)
+          wc=work_b_clwmr(n)
+          call fraction2variablenew(f_ice,f_rain,f_rimef,wc,qi,qs,qr,qw)
+          work_b_qi(n)=qi
+          work_b_qs(n)=qs
+          work_b_qr(n)=qr
+          work_b_qw(n)=qw
        end do
 
        if(iret==0) then
@@ -1057,14 +1059,14 @@ contains
     if(present(good_var)) good_var=good_var_loc
 
     if(good_var_loc) then
-      call mpi_scatterv(work_qi,ijn_s,displs_s,mpi_rtype, &
-                   var_qi,ijn_s(mm1),mpi_rtype,mype_io,mpi_comm_world,ierror)
-      call mpi_scatterv(work_qs,ijn_s,displs_s,mpi_rtype, &
-                   var_qs,ijn_s(mm1),mpi_rtype,mype_io,mpi_comm_world,ierror)
-      call mpi_scatterv(work_qr,ijn_s,displs_s,mpi_rtype, &
-                   var_qr,ijn_s(mm1),mpi_rtype,mype_io,mpi_comm_world,ierror)
-      call mpi_scatterv(work_qw,ijn_s,displs_s,mpi_rtype, &
-                   var_qw,ijn_s(mm1),mpi_rtype,mype_io,mpi_comm_world,ierror)
+       call mpi_scatterv(work_qi,ijn_s,displs_s,mpi_rtype, &
+                    var_qi,ijn_s(mm1),mpi_rtype,mype_io,mpi_comm_world,ierror)
+       call mpi_scatterv(work_qs,ijn_s,displs_s,mpi_rtype, &
+                    var_qs,ijn_s(mm1),mpi_rtype,mype_io,mpi_comm_world,ierror)
+       call mpi_scatterv(work_qr,ijn_s,displs_s,mpi_rtype, &
+                    var_qr,ijn_s(mm1),mpi_rtype,mype_io,mpi_comm_world,ierror)
+       call mpi_scatterv(work_qw,ijn_s,displs_s,mpi_rtype, &
+                    var_qw,ijn_s(mm1),mpi_rtype,mype_io,mpi_comm_world,ierror)
     end if
 
   end subroutine gsi_nemsio_read_fractionnew
@@ -1077,7 +1079,7 @@ contains
 ! abstract:
 !
 ! program history log:
-!   2015-05-12  S.Liu - copy from gsi_nemsio_write and modify to handle NMMB hydrometor fraction variable
+!   2015-05-12  S.Liu - copy from gsi_nemsio_write and modify to handle nmmb hydrometor fraction variable
 !   2016        T. Lei- to add the frimef to be written out
 !   input argument list:
 !    varname,vartype,gridtype
@@ -1103,7 +1105,7 @@ contains
     use mod_nmmb_to_a, only: nmmb_a_to_h,nmmb_a_to_v
     implicit none
 
-    character(*)   ,intent(in   ) :: varname_frain,varname_fice,varname_frimef,vartype      ! gridtype='H' or 'V'
+    character(*)   ,intent(in   ) :: varname_frain,varname_fice,varname_frimef,vartype      ! gridtype='h' or 'v'
     integer(i_kind),intent(in   ) :: lev              !   vertical level of desired variable
     real(r_kind)   ,intent(in   ) :: var_i(lat2,lon2), var_r(lat2,lon2), var_l(lat2,lon2), var_s(lat2,lon2)
     integer(i_kind),intent(in   ) :: mype,mype_io
@@ -1174,14 +1176,14 @@ contains
 !      if(add_saved) work_b_r=work_b_r+work_saved_r
 !      if(add_saved) work_b_l=work_b_l+work_saved_l
        do n=1,nlon_regional*nlat_regional
-             qfs=work_b_s(n)
-           qfi=work_b_i(n)
-           qfr=work_b_r(n)
-           qfw=work_b_l(n)
-           call variable2fractionnew(qfs, qfi, qfr, qfw, f_ice, f_rain,f_rimef)
-           work_b_frain(n)=f_rain
-           work_b_fice(n)=f_ice
-           work_b_frimef(n)=f_rimef
+          qfs=work_b_s(n)
+          qfi=work_b_i(n)
+          qfr=work_b_r(n)
+          qfw=work_b_l(n)
+          call variable2fractionnew(qfs, qfi, qfr, qfw, f_ice, f_rain,f_rimef)
+          work_b_frain(n)=f_rain
+          work_b_fice(n)=f_ice
+          work_b_frimef(n)=f_rimef
 !          work_b_frain(n)=qfr
 !          work_b_fice(n)=qfw
        end do
@@ -1204,68 +1206,69 @@ contains
 ! subprogram:  gsdcloudanalysis      driver for generalized cloud/hydrometeor
 ! analysis
 !
-!   PRGMMR: Ting Lei          ORG: EMC/NCEP        DATE: 2016
+!   prgmmr: Ting Lei          org: EMC/NCEP        date: 2016
 !
-! ABSTRACT:
+! abstract:
 !  This subroutine convert fraction to qi, qs, qr, qw exactly
-!  following their theorectical formula in NMMB ferrier-Algo scheme 
+!  following their theorectical formula in nmmb ferrier-algo scheme 
 !  and, the exact physical meaning of qi, qs, qr, qw are not considerred
 !  and are only used as the intermidiate variables
 !
-! PROGRAM HISTORY LOG:
+! program history log:
 !   input argument list:
-!     mype     - processor ID that does this IO
+!     mype     - processor id that does this io
 !
 !   output argument list:
 !
-! USAGE:
-!   INTPUT:
+! usage:
+!   input:
 !     wc: summation of qi, qr and qw 
 !     f_ice     -  fraction of condensate in form of ice
 !     f_rain    -  fraction of liquid water in form of rain
 !     f_rimef   -  ratio of total ice growth to deposition groth
-!   OUTPUT
+!   output:
 !     qi    -  
 !     qs    -  
 !     qr    -  
 !     qw    -  
-!clt CW=QC+QR+QS
-!    QS=F_ICE*CW
-!   QR=F_RAIN*(1-F_ICE)*CW
-!   QC=(1-F_RAIN)*(1-F_ICE)*CW
-!   QG(qi in the above)=QS*F_RIMEF
+!clt cw=qc+qr+qs
+!    qs=f_ice*cw
+!   qr=f_rain*(1-f_ice)*cw
+!   qc=(1-f_rain)*(1-f_ice)*cw
+!   qg(qi in the above)=qs*f_rimef
 !
 !
-! REMARKS:
+! remarks:
 !
-! ATTRIBUTES:
-!   LANGUAGE: FORTRAN 90
-!   MACHINE:  WCOSS at NOAA/ESRL - college park, DC
+! attributes:
+!   language: FORTRAN 90
+!   machine:  WCOSS at NOAA/ESRL - college park, DC
 !
 !$$$
 
- use kinds, only: r_kind,r_single
+    use kinds, only: r_kind,r_single
+    implicit none
 
-   real(r_single)  qi,qs, qr, qw, wc
-   real(r_single) f_ice, f_rain,f_rimef
-   real(r_single) onemf_ice, onemf_rain
+    real(r_single)  qi,qs, qr, qw, wc
+    real(r_single) f_ice, f_rain,f_rimef
+    real(r_single) onemf_ice, onemf_rain
     
-   onemf_ice=1.0_r_single-f_ice
-   onemf_rain=1.0_r_single-f_rain
+    onemf_ice=1.0_r_single-f_ice
+    onemf_rain=1.0_r_single-f_rain
    
-   if(wc > 0.0_r_single) then
+    if(wc > 0.0_r_single) then
 
-     if(f_ice>1.0_r_single) f_ice=1.0_r_single
-     if(f_ice<0.0_r_single) f_ice=0.0_r_single
-     if(f_rain>1.0_r_single) f_rain=1.0_r_single
-     if(f_rain<0.0_r_single) f_rain=0.0_r_single
-     qs=f_ice*wc
-     qr=f_rain*onemf_ice*wc
-     qw=onemf_rain*onemf_ice*wc
-     qi=qs*f_rimef
-else
-   qi=0.0_r_single; qs=0.0_r_single; qr=0.0_r_single; qw=0.0_r_single
-   end if
+       if(f_ice>1.0_r_single) f_ice=1.0_r_single
+       if(f_ice<0.0_r_single) f_ice=0.0_r_single
+       if(f_rain>1.0_r_single) f_rain=1.0_r_single
+       if(f_rain<0.0_r_single) f_rain=0.0_r_single
+       qs=f_ice*wc
+       qr=f_rain*onemf_ice*wc
+       qw=onemf_rain*onemf_ice*wc
+       qi=qs*f_rimef
+    else
+       qi=0.0_r_single; qs=0.0_r_single; qr=0.0_r_single; qw=0.0_r_single
+    end if
 
   end subroutine fraction2variablenew
   subroutine variable2fractionnew( qs,qi, qr, qw, f_ice, f_rain,f_rimef)
@@ -1275,91 +1278,92 @@ else
 !                .      .    .                                       .
 ! subprogram:  gsdcloudanalysis      driver for generalized cloud/hydrometeor analysis
 !
-!   PRGMMR: Ting Lei          ORG: EMC/NCEP        DATE: 2016
+!   prgmmr: Ting Lei          org: EMC/NCEP        date: 2016
 !
-! ABSTRACT:
+! abstract:
 !  This subroutine qi qr qw and qs  to fraction
-!  following their theorectical formula in NMMB ferrier-Algo scheme 
+!  following their theorectical formula in nmmb ferrier-algo scheme 
 !  and, the exact physical meaning of qi, qs, qr, qw are not considerred
 !  and are only used as the intermidiate variables
 !
-! PROGRAM HISTORY LOG:
+! program history log:
 !
 !
 !   input argument list:
-!     mype     - processor ID that does this IO
+!     mype     - processor id that does this io
 !
 !   output argument list:
 !
-! USAGE:
-!   INPUT
+! usage:
+!   input:
 !     qi    -  
 !     qi    -  
 !     qr    -
 !     qw    -  
-!   OUTPUT:
+!   output:
 !     f_ice     -  fraction of condensate in form of ice
 !     f_rain    -  fraction of liquid water in form of rain
 !     f_rimef   -  ratio of total ice growth to deposition groth
 !
 !
-! REMARKS:
+! remarks:
 !
-! ATTRIBUTES:
-!   LANGUAGE: FORTRAN 90
-!   MACHINE:  WCOSS at NOAA/ESRL - college park, DC
+! attributes:
+!   language: FORTRAN 90
+!   machine:  WCOSS at NOAA/ESRL - college park, DC
 !
 !$$$
 
- use kinds, only: r_kind,r_single
+    use kinds, only: r_kind,r_single
+    implicit none
 
-   real(r_single)  qi, qr, qw, wc, dum
-   real(r_single)  qs 
-   real(r_single) f_ice, f_rain,f_rimef
-   real(r_single),parameter:: epsq=1.e-12_r_single
-   real(r_single) onemf_ice
+    real(r_single)  qi, qr, qw, wc, dum
+    real(r_single)  qs 
+    real(r_single) f_ice, f_rain,f_rimef
+    real(r_single),parameter:: epsq=1.e-12_r_single
+    real(r_single) onemf_ice
 
-   wc=qs+qr+qw
-   if(wc > 0.0_r_single) then
-     if(qs<epsq)then 
-           f_ice=0.0_r_single
-     else 
-           dum=qs/wc
-           if(dum<1.0_r_single) then
+    wc=qs+qr+qw
+    if(wc > 0.0_r_single) then
+       if(qs<epsq)then 
+          f_ice=0.0_r_single
+       else 
+          dum=qs/wc
+          if(dum<1.0_r_single) then
              f_ice=dum
-           else
+          else
              f_ice=1.0_r_single
-           end if
-     end if
-     onemf_ice=1.0_r_single-f_ice
-     if(qr < epsq) then
-           f_rain=0.0_r_single
-     else
-            dum=qr/(onemf_ice*wc)
-           if(dum<1.0_r_single) then
+          end if
+       end if
+       onemf_ice=1.0_r_single-f_ice
+       if(qr < epsq) then
+          f_rain=0.0_r_single
+       else
+          dum=qr/(onemf_ice*wc)
+          if(dum<1.0_r_single) then
              f_rain=dum
-           else
+          else
              f_rain=1.0_r_single
-            endif
-     end if
-     if(qi< epsq) then
-           f_rimef=1.0_r_single
-      else
-           if(qs>epsq) then
-           f_rimef=min(qi/qs,50.0_r_single) 
-           else
-           f_rimef=1.0_r_single !cltthinkdeb
+          endif
+       end if
+       if(qi< epsq) then
+          f_rimef=1.0_r_single
+       else
+          if(qs>epsq) then
+             f_rimef=min(qi/qs,50.0_r_single) 
+          else
+             f_rimef=1.0_r_single !cltthinkdeb
           endif
        
-    endif
+       endif
         
 
 
-   else
-           f_rain=0.0_r_single
-           f_ice=0.0_r_single
-           f_rimef=1.0_r_single
-   end if
+    else
+       f_rain=0.0_r_single
+       f_ice=0.0_r_single
+       f_rimef=1.0_r_single
+    end if
 
   end subroutine variable2fractionnew
 

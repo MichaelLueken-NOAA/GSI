@@ -1,6 +1,6 @@
 !BOI
 
-!  !TITLE: GSI\_MetGuess\_Mod: A GSI Bundle to handle Guess Fields
+!  !TITLE: gsi\_metguess\_mod: A gsi bundle to handle guess fields
 
 !  !AUTHORS: Ricardo Todling
 
@@ -11,51 +11,51 @@
 !  !INTRODUCTION: Overview
 #ifdef __PROTEX__
 
-This module defines the so-called GSI\_MetGuess\_Bundle. Its main purpose is to
-allow GSI to ingest guess fields other than those pre-set in guess\_grids,
-refered to here as Meteorological Guess.
+This module defines the so-called gsi\_metguess\_bundle. Its main purpose is to
+allow gsi to ingest guess fields other than those pre-set in guess\_grids,
+refered to here as meteorological guess.
 Eventually it would be nice to see all guess fields defined via the present module, and
 a complete revamp of guess\_grids. This is aimed at for example extending the
-current ability to run GSI for say analyzing a single field, such as Ozone, and
-only have to bring in the necessary background fields, such Ozone it self when 
+current ability to run gsi for say analyzing a single field, such as ozone, and
+only have to bring in the necessary background fields, such ozone it self when 
 temperature interdependencies are neglected.
 
 \begin{center}
-\fbox{MetGuess Bundle is a way to ingest Meterological Guess (background fields) into GSI}
+\fbox{Metguess bundle is a way to ingest meterological guess (background fields) into gsi}
 \end{center}
 
-Before the introduction of this module, all guess fields entered GSI through the 
+Before the introduction of this module, all guess fields entered gsi through the 
 and the wired-in arrays ges\_x, with x standing for particular fields, defined in 
 the guess\_grids module, e.g., ges\_u, ges\_tv, and so on. This becomes cumbersome the
-more one wants to add new features to GSI. Chemistry-related fields -- aerosols and trace gases -- are
-already handled separately from guess\_grids using GSI\_ChemBundle. The present
+more one wants to add new features to gsi. Chemistry-related fields -- aerosols and trace gases -- are
+already handled separately from guess\_grids using gsi\_chembundle. The present
 modules extends this capability to any new guess field.
 
 \begin{center}
-\fbox{MetGuess\_Bundle is a GSI\_Bundle}
+\fbox{Metguess\_bundle is a gsi\_bundle}
 \end{center}
 
-The GSI\_MetGuess\_Bundle uses the GSI\_Bundle. But while the state and control vectors 
-use the GSI\_Bundle to associate fields used by the observation operator and
-those used in the cost function, respectively, the GSI\_MetGuess\_Bundle
-is simply aimed at allowing gather together Guess fields in a flexible way. Just
+The gsi\_metguess\_bundle uses the gsi\_bundle. But while the state and control vectors 
+use the gsi\_bundle to associate fields used by the observation operator and
+those used in the cost function, respectively, the gsi\_metguess\_bundle
+is simply aimed at allowing gather together guess fields in a flexible way. Just
 as with the bundle, all parallel distribution must have already been done before 
-filling in the fields in the bundle, that is, GSI\_MetGuess\_Bundle does not 
+filling in the fields in the bundle, that is, gsi\_metguess\_bundle does not 
 handle distribution.
 
-As guess\_grids does, this module still treats the Meteorological Guess fields
-as in a common-block-like structure. That is, the GSI\_Bundle defined here to hold the
-Meteorological Guess fields is an internally defined type that cannot be passed
+As guess\_grids does, this module still treats the meteorological guess fields
+as in a common-block-like structure. That is, the gsi\_bundle defined here to hold the
+meteorological guess fields is an internally defined type that cannot be passed
 around; cannot be instanciated. This will change in the future, but for the time being 
 this is the simplest thing to do given the current code design. This is
-identical to what is done in defining the GSI\_ChemBundle.
+identical to what is done in defining the gsi\_chembundle.
 
 \begin{center}
-\fbox{MetGuess Bundle Module provides an (almost) opaque access to its entries}
+\fbox{Metguess bundle module provides an (almost) opaque access to its entries}
 \end{center}
 
 One of the ideas behind this module is that it defines an opaque-like object.
-That is, functions related to contents of the MetGuess Bundle should only be
+That is, functions related to contents of the metguess bundle should only be
 extracted via inquires using a ``get-like'' procedures. This is why, only ``methods'' are 
 made public to this module, that is, 
 
@@ -67,17 +67,17 @@ public :: gsi_metguess_get
 public :: gsi_metguess_final
 \end{verbatim}
 
-and never the variables themselves; the only exception being the GSI\_MetGuess\_Bundle itself 
+and never the variables themselves; the only exception being the gsi\_metguess\_bundle itself 
 (until it is no longer treated as a common-block).  Some of the public methods above are 
 overloaded and all have internal interfaces (name of which appears in the index of this protex 
 document. It should be a rule here that any new routine to be made public should
 have a declared interface procedure.
 
 \begin{center}
-\fbox{MetGuess\_Bundle is defined via the {\it met\_guess} table in a resource file}
+\fbox{Metguess\_bundle is defined via the {\it met\_guess} table in a resource file}
 \end{center}
 
-\underline{Defining the MetGuess\_Bundle} is done via the table {\it met\_guess}, usually 
+\underline{Defining the metguess\_bundle} is done via the table {\it met\_guess}, usually 
 embedded in the {\it anavinfo} file. An example of such table follows:
 \begin{verbatim}
 met_guess::
@@ -87,37 +87,37 @@ met_guess::
 ::
 \end{verbatim}
 
-As usual, this table follows INPAK/ESMF convention, begining with a name
+As usual, this table follows inpak/esmf convention, begining with a name
 (met\_guess), followed by double colons (::), and ending with double colons.
 Any line starting with an exclamation mark or a pound sign is taken as a comment.
 
 The current {\it met\_guess} table has five columns defined as follows:
 
 \begin{verbatim}
-Column 1: variable name - refers to internally known GSI variable name
+Column 1: variable name - refers to internally known gsi variable name
 Column 2: indicates number of levels (used to distinguish between 2d and 3d fields)
-Column 3: indicates whether variable is to be passed to CRTM or not according to 
+Column 3: indicates whether variable is to be passed to crtm or not according to 
           the following scheme:
-          if<0    general variable; not used in CRTM 
-          if=0    general variable; use prescribed global mean data to affect CRTM
-          if=1    general variable; use variable in guess field to affect CRTM 
+          if<0    general variable; not used in crtm 
+          if=0    general variable; use prescribed global mean data to affect crtm
+          if=1    general variable; use variable in guess field to affect crtm 
 Column 4: description of variable (defined by user)
 Column 5: user-defined variable name associated with name read in from file
 \end{verbatim}
 
 \begin{center}
-\fbox{Examples of extracting information related to the MetGuess\_Bundle}
+\fbox{Examples of extracting information related to the metguess\_bundle}
 \end{center}
 
-\underline{Examples} of accessing information related to fields in the MetGuess\_Bundle.
+\underline{Examples} of accessing information related to fields in the metguess\_bundle.
 \begin{enumerate}
 \item Say a routine wants to whether or not the variable ``cw'' is in
-      MetGuess\_Bundle. This can be done simply with the call
+      metguess\_bundle. This can be done simply with the call
       \begin{verbatim}
       call gsi_metguess_get ( 'var::cw', ivar, ier )
       \end{verbatim}
       if ivar is grater than zero, the variable is present in the bundle.
-\item Say a routine wants to know how $qi$ is to be used in CRTM. 
+\item Say a routine wants to know how $qi$ is to be used in crtm. 
       This is done via the {\it i4crtm::} tag, as in:
       \begin{verbatim}
       call gsi_metguess_get ( 'i4crtm::qi', iqi, ier )
@@ -126,7 +126,7 @@ Column 5: user-defined variable name associated with name read in from file
        scheme laid out for entries in column 3 of the resource file (anavinfo). 
 
 \item Say a routine wants to get the number of all 3d cloud fields in the
-      MetGuess\_Bundle, this can use the tag {\it clouds::3d}, as in:
+      metguess\_bundle, this can use the tag {\it clouds::3d}, as in:
       \begin{verbatim}
       call gsi_metguess_get ( 'clouds::3d',n,ier )
       \end{verbatim}
@@ -148,7 +148,7 @@ Other possible mnemonics known by this package can be found in the
 prologue description of the {it get} routines.
 
 \begin{center}
-\fbox{Conventions and Remarks}
+\fbox{Conventions and remarks}
 \end{center}
 
 \underline{Conventions} proposed for entries in this module:
@@ -162,10 +162,10 @@ prologue description of the {it get} routines.
 A general remark about the correct {\it met\_guess} table: it is recognized that
 the format for general specification related to specific entries in the table is 
 not general enough. A better approach is the one used by the Registry used in
-GEOS-5 GOCART where a table exists to control a particular functionality
+geos-5 gocart where a table exists to control a particular functionality
 applicable to a certain set of constituents. For example, use of a variable in
 CRTM could be control instead by a specific table listing constituents to be
-used in the CRTM and at what extent, for example, a table of the form:
+used in the crtm and at what extent, for example, a table of the form:
 \begin{verbatim}
 use_in_crtm::
  !var     use  
@@ -185,7 +185,7 @@ Something of this form should eventually replace some of the columns in the
 !-------------------------------------------------------------------------
 !BOP
 !  
-! !MODULE: GSI_MetGuess_Mod -- Implements Meteorological Guess for GSI
+! !MODULE: gsi_metguess_mod -- Implements meteorological guess for gsi
 !
 ! !INTERFACE:
 
@@ -196,7 +196,7 @@ module gsi_metguess_mod
 !               we'll generalize this.
 !
 ! !REMARKS:
-!   1. VERY IMPORTANT: No object from this file is to be make
+!   1. Very Important: No object from this file is to be make
 !                      explicitly available to the outside world.
 !                      Each object must be opaque with a get and
 !                      a put method associated with it.
@@ -211,14 +211,14 @@ use constants, only: max_varname_length
 use mpimod, only : mype
 use mpeu_util,only: die
 use file_utility, only : get_lun
-use gsi_bundlemod, only : GSI_BundleCreate
-use gsi_bundlemod, only : GSI_BundleGetPointer
-use gsi_bundlemod, only : GSI_Bundle
-use gsi_bundlemod, only : GSI_BundlePrint
-use gsi_bundlemod, only : GSI_BundleDestroy
+use gsi_bundlemod, only : gsi_bundlecreate
+use gsi_bundlemod, only : gsi_bundlegetpointer
+use gsi_bundlemod, only : gsi_bundle
+use gsi_bundlemod, only : gsi_bundleprint
+use gsi_bundlemod, only : gsi_bundledestroy
 
-use gsi_bundlemod, only : GSI_Grid
-use gsi_bundlemod, only : GSI_GridCreate
+use gsi_bundlemod, only : gsi_grid
+use gsi_bundlemod, only : gsi_gridcreate
 
 use mpeu_util, only: gettablesize
 use mpeu_util, only: gettable
@@ -236,31 +236,31 @@ public :: gsi_metguess_init
 public :: gsi_metguess_get
 public :: gsi_metguess_final
 
-public :: GSI_MetGuess_Bundle   ! still a common for now, ultimately should 
+public :: gsi_metguess_bundle   ! still a common for now, ultimately should 
                                 ! be a dynamic "type", passed around in arg list
 
 ! !INTERFACE:
 
 interface gsi_metguess_init
-          module procedure init_
+   module procedure init_
 end interface
 interface gsi_metguess_final
-          module procedure final_ 
+   module procedure final_ 
 end interface
 interface gsi_metguess_create_grids
-          module procedure create_
+   module procedure create_
 end interface
 interface gsi_metguess_destroy_grids
-          module procedure destroy_
+   module procedure destroy_
 end interface
 interface gsi_metguess_get
-          module procedure get_int0d_
-          module procedure get_int1d_
-          module procedure get_char0d_
-          module procedure get_char1d_
+   module procedure get_int0d_
+   module procedure get_int1d_
+   module procedure get_char0d_
+   module procedure get_char1d_
 end interface
 
-type(GSI_Bundle),pointer :: GSI_MetGuess_Bundle(:)   ! still a common block for now
+type(gsi_bundle),pointer :: gsi_metguess_bundle(:)   ! still a common block for now
 
 
 ! !REVISION HISTORY:
@@ -273,7 +273,7 @@ type(GSI_Bundle),pointer :: GSI_MetGuess_Bundle(:)   ! still a common block for 
 ! !PRIVATE ROUTINES:
 !BOC
 
-integer(i_kind),parameter::MAXSTR=max_varname_length
+integer(i_kind),parameter::maxstr=max_varname_length
 logical:: guess_grid_initialized_=.false.
 logical:: guess_initialized_=.false.
 character(len=*), parameter :: myname = 'gsi_metguess_mod'
@@ -285,17 +285,17 @@ integer(i_kind) :: n2dcloud=0
 integer(i_kind) :: n3dcloud=0
 integer(i_kind) :: ng3d=-1
 integer(i_kind) :: ng2d=-1
-character(len=MAXSTR),allocatable :: mguess(:)    ! same as list above, but each var as element of array
-character(len=MAXSTR),allocatable :: mguess3d(:)   ! same as list above, but each var as element of array
-character(len=MAXSTR),allocatable :: mguess2d(:)   ! same as list above, but each var as element of array
-character(len=MAXSTR),allocatable :: metstype(:)   ! indicate type of meteorological field
-character(len=MAXSTR),allocatable :: metsty3d(:)   ! indicate 3d type of met-guess
-character(len=MAXSTR),allocatable :: metsty2d(:)   ! indicate 3d type of met-guess
-character(len=MAXSTR),allocatable :: usrname2d(:)  ! user-defined 2d field names
-character(len=MAXSTR),allocatable :: usrname3d(:)  ! user-defined 3d field names
-character(len=MAXSTR),allocatable :: usrname(:)    ! user-defined field names
-integer(i_kind),allocatable,dimension(:) :: i4crtm ! controls use of gas in CRTM:
-                                                   ! < 0 don't use in CRTM
+character(len=maxstr),allocatable :: mguess(:)    ! same as list above, but each var as element of array
+character(len=maxstr),allocatable :: mguess3d(:)   ! same as list above, but each var as element of array
+character(len=maxstr),allocatable :: mguess2d(:)   ! same as list above, but each var as element of array
+character(len=maxstr),allocatable :: metstype(:)   ! indicate type of meteorological field
+character(len=maxstr),allocatable :: metsty3d(:)   ! indicate 3d type of met-guess
+character(len=maxstr),allocatable :: metsty2d(:)   ! indicate 3d type of met-guess
+character(len=maxstr),allocatable :: usrname2d(:)  ! user-defined 2d field names
+character(len=maxstr),allocatable :: usrname3d(:)  ! user-defined 3d field names
+character(len=maxstr),allocatable :: usrname(:)    ! user-defined field names
+integer(i_kind),allocatable,dimension(:) :: i4crtm ! controls use of gas in crtm:
+                                                   ! < 0 don't use in crtm
                                                    ! = 0 use predefined global mean
                                                    ! = 1 use gfs yearly global annual mean historical value
                                                    ! = 2 use gfs 3d background field
@@ -313,7 +313,7 @@ contains
 !-------------------------------------------------------------------------
 !BOP
 !
-! !IROUTINE:  init_ --- Initialize MetGuess Bundle (read resource table); alloc internal
+! !IROUTINE:  init_ --- Initialize metguess bundle (read resource table); alloc internal
 !
 ! !INTERFACE:
 !
@@ -321,8 +321,8 @@ subroutine init_ (iamroot)
 ! USES:
 implicit none
 ! !INPUT PARAMETER:
-   logical,optional,intent(in) :: iamroot 
-! !DESCRIPTION: Define contents of Meteorological Guess Bundle through rc 
+logical,optional,intent(in) :: iamroot 
+! !DESCRIPTION: Define contents of meteorological guess bundle through rc 
 !               file (typilcally embedded in anavinfo text file.
 !
 ! !REVISION HISTORY:
@@ -405,8 +405,8 @@ if(ng2d > 0)then
             usrname2d(ng2d))
 end if
 
-   allocate(levels(nmguess),i4crtm(nmguess),usrname(nmguess),&
-         mguess(nmguess),metstype(nmguess))
+allocate(levels(nmguess),i4crtm(nmguess),usrname(nmguess),&
+      mguess(nmguess),metstype(nmguess))
 
 ! Now load information from table
 ng3d=0;ng2d=0
@@ -475,14 +475,14 @@ end subroutine init_
 !-------------------------------------------------------------------------
 !BOP
 !
-! !IROUTINE:  final_ --- Deallocate internal MetGuess Bundle info arrays
+! !IROUTINE:  final_ --- Deallocate internal metguess bundle info arrays
 !
 ! !INTERFACE:
 !
 subroutine final_
 implicit none
 
-! !DESCRIPTION: Dealloc grids holding trace gases
+! !DESCRIPTION: Dealloc grids holding meteorological guess fields
 !
 ! !REVISION HISTORY:
 !   2010-04-10  todling  initial code
@@ -525,22 +525,22 @@ end subroutine final_
 !
 ! !INTERFACE:
 !
-!!subroutine create_(GSI_MetGuess_Bundle,im,jm,km,lm,istatus) ! ultimately
-  subroutine create_(im,jm,km,lm,istatus)
+!!subroutine create_(gsi_metguess_bundle,im,jm,km,lm,istatus) ! ultimately
+subroutine create_(im,jm,km,lm,istatus)
 
 ! !USES:
 
-    use constants,only: zero
-    implicit none
+use constants,only: zero
+implicit none
 
 ! !INPUT PARAMETERS:
-    integer(i_kind),intent(in)::im,jm,km,lm
+integer(i_kind),intent(in)::im,jm,km,lm
 
 ! !OUTPUT PARAMETERS:
-    integer(i_kind),intent(out)::istatus
+integer(i_kind),intent(out)::istatus
 
 ! !INPUT/OUTPUT PARAMETERS:
-!!  type(GSI_Bundle) :: GSI_MetGuess_Bundle
+!!  type(gsi_bundle) :: gsi_metguess_bundle
 
 ! !DESCRIPTION: allocate grids to hold guess cloud fields
 !
@@ -558,40 +558,40 @@ end subroutine final_
 !-------------------------------------------------------------------------
 !BOC
 
-    character(len=*), parameter :: myname_ = myname//'*create_'
-    integer(i_kind) nt,ier
-    type(GSI_Grid):: grid
+character(len=*), parameter :: myname_ = myname//'*create_'
+integer(i_kind) nt,ier
+type(gsi_grid):: grid
 
-    istatus=0
-    if(nmguess<=0) return
+istatus=0
+if(nmguess<=0) return
 
-    if(guess_grid_initialized_) return
+if(guess_grid_initialized_) return
 
-!   Create simple regular grid
-    call gsi_gridcreate ( grid, im, jm, km )
+! Create simple regular grid
+call gsi_gridcreate ( grid, im, jm, km )
 
-    nbundles = lm
-    allocate(GSI_MetGuess_Bundle(nbundles))
-    do nt=1,nbundles
-       call GSI_BundleCreate ( GSI_MetGuess_Bundle(nt), grid, 'Meteo Guess', ier, &
-                               names3d=mguess3d,names2d=mguess2d,levels=levels3d,&
-                               bundle_kind=r_kind )
-       istatus=istatus+ier
-    enddo
+nbundles = lm
+allocate(gsi_metguess_bundle(nbundles))
+do nt=1,nbundles
+   call gsi_bundlecreate ( gsi_metguess_bundle(nt), grid, 'Meteo Guess', ier, &
+                           names3d=mguess3d,names2d=mguess2d,levels=levels3d,&
+                           bundle_kind=r_kind )
+   istatus=istatus+ier
+enddo
 
-    if (istatus/=0) then
-       if(mype==0) write(6,*)trim(myname_),':  allocate error1, istatus=',&
-                      istatus,im,jm,km,lm
-       return
-    endif
+if (istatus/=0) then
+   if(mype==0) write(6,*)trim(myname_),':  allocate error1, istatus=',&
+                  istatus,im,jm,km,lm
+   return
+endif
 
-    if (verbose_) then
-       if(mype==0) write(6,*) trim(myname_),': alloc() for met-guess done'
-    endif
-    guess_grid_initialized_=.true.
+if (verbose_) then
+   if(mype==0) write(6,*) trim(myname_),': alloc() for met-guess done'
+endif
+guess_grid_initialized_=.true.
 
-    return
-  end subroutine create_
+return
+end subroutine create_
 !EOC
 
 !-------------------------------------------------------------------------
@@ -601,19 +601,19 @@ end subroutine final_
 !
 ! !INTERFACE:
 !
-!!subroutine destroy_ (GSI_MetGuess_Bundle, istatus) ! ultimately
-  subroutine destroy_ (istatus)
+!!subroutine destroy_ (gsi_metguess_bundle, istatus) ! ultimately
+subroutine destroy_ (istatus)
 
 ! !USES:
-  implicit none
+implicit none
 
 ! !INPUT PARAMETERS:
 
 ! !OUTPUT PARAMETERS:
-  integer(i_kind), intent(out) :: istatus
+integer(i_kind), intent(out) :: istatus
 
-! !INPPUT/OUTPUT PARAMETERS:
-!!  type(GSI_Bundle) :: GSI_MetGuess_Bundle
+! !INPUT/OUTPUT PARAMETERS:
+!!  type(gsi_bundle) :: gsi_metguess_bundle
 
 ! !DESCRIPTION: Dealloc grids holding for meteorological guess
 !
@@ -631,31 +631,31 @@ end subroutine final_
 !-------------------------------------------------------------------------
 !BOC
 
-    character(len=*), parameter :: myname_ = myname//'*destroy_'
-    integer(i_kind) :: nt,ier
+character(len=*), parameter :: myname_ = myname//'*destroy_'
+integer(i_kind) :: nt,ier
 
-    istatus=0
-    if(.not.guess_grid_initialized_) return
+istatus=0
+if(.not.guess_grid_initialized_) return
 
-     do nt=1,nbundles
-        call GSI_BundleDestroy ( GSI_MetGuess_Bundle(nt), ier )
-        istatus=istatus+ier
-     enddo
-     deallocate(GSI_MetGuess_Bundle,stat=istatus)
-     istatus=istatus+ier
+do nt=1,nbundles
+   call gsi_bundledestroy ( gsi_metguess_bundle(nt), ier )
+   istatus=istatus+ier
+enddo
+deallocate(gsi_metguess_bundle,stat=istatus)
+istatus=istatus+ier
 
-    if (istatus/=0) then
-       if(mype==0) write(6,*)trim(myname_),':  deallocate error1, istatus=',istatus
-       return
-    endif
+if (istatus/=0) then
+   if(mype==0) write(6,*)trim(myname_),':  deallocate error1, istatus=',istatus
+   return
+endif
 
-    if (verbose_) then
-       if(mype==0) write(6,*) trim(myname_),': dealloc() for met-guess done'
-    endif
-    guess_grid_initialized_=.false.
+if (verbose_) then
+   if(mype==0) write(6,*) trim(myname_),': dealloc() for met-guess done'
+endif
+guess_grid_initialized_=.false.
 
-    return
-  end subroutine destroy_
+return
+end subroutine destroy_
 !EOC
 
 ! ----------------------------------------------------------
@@ -668,21 +668,21 @@ end subroutine final_
 ! !IROUTINE:  get_int0d_ --- inquire rank-0 integer
 !
 ! !INTERFACE:
-  subroutine get_int0d_ ( desc, ivar, istatus )
+subroutine get_int0d_ ( desc, ivar, istatus )
 
 ! !USES:
-  implicit none
+implicit none
 !
 ! !DESCRIPTION: Rank-0 integer inquire routine; integer mnemonics:
 ! \begin{verbatim}
 !      Known mnemonics        retrieve
 !      ---------------        --------
 !      dim                    total number of meteorological guesses 
-!      i4crtm::XXX            information related to CRTM usage of gas XXX
-!      var::XXX               index of gas XXX in met-bundle
+!      i4crtm::xxx            information related to crtm usage of gas xxx
+!      var::xxx               index of gas xxx in met-bundle
 ! 
 ! \end{verbatim}
-!  where XXX represents the name of the gas of interest. 
+!  where xxx represents the name of the gas of interest. 
 !
 ! !REVISION HISTORY:
 !   2010-04-10  todling  initial code
@@ -698,63 +698,63 @@ end subroutine final_
 !EOP
 !-------------------------------------------------------------------------
 !BOC
-  character(len=*),intent(in):: desc
-  integer(i_kind),intent(out):: ivar
-  integer(i_kind),intent(out):: istatus
-  character(len=*),parameter:: myname_=myname//"*get_int0d_"
-  character(len=MAXSTR):: work
-  integer(i_kind) ii,id,ln
-  istatus=1
-  ivar=0
-  if(.not.guess_initialized_) return
-  if(trim(desc)=='dim') then
-     ivar = nmguess
-     istatus=0
-  else if(trim(desc)=='clouds') then
-     ivar = ncloud
-     istatus=0
-  else if(trim(desc)=='clouds::3d') then
-     ivar = n3dcloud
-     istatus=0
-  else if(trim(desc)=='clouds::2d') then
-     ivar = n2dcloud
-     istatus=0
-  else if(trim(desc)=='meteo_4crtm_jac::3d') then
-     do ii=1,ng3d
-        if (i4crtm3d(ii)==2) ivar=ivar+1
-     enddo
-     istatus=0
-  else if(trim(desc)=='clouds_4crtm_jac::3d') then
-     do ii=1,ng3d
-        if (i4crtm3d(ii)==12) ivar=ivar+1
-     enddo
-     istatus=0
-  else if(trim(desc)=='clouds_4crtm_fwd::3d') then
-     do ii=1,ng3d
-        if (i4crtm3d(ii)>10) ivar=ivar+1
-     enddo
-     istatus=0
-  else if(index(trim(desc),'i4crtm::')/=0) then
-     ln=len_trim(desc)
-     work=desc(9:ln)
-     if(allocated(mguess)) then
-        id=getindex(mguess,trim(work))
-        if(id>0) ivar=i4crtm(id)
-     else
-        ivar=0
-     endif
-     istatus=0
-  else if(desc(1:5)=='var::') then
-     if(allocated(mguess)) then
-        id=len_trim(desc)
-        if(id>=6) ivar=getindex(mguess,desc(6:id))
-     endif
-     istatus=0
-  else
-     call die(myname_,'label unavailable :'//trim(desc),99)
-  endif
-  return
-  end subroutine get_int0d_
+character(len=*),intent(in):: desc
+integer(i_kind),intent(out):: ivar
+integer(i_kind),intent(out):: istatus
+character(len=*),parameter:: myname_=myname//"*get_int0d_"
+character(len=maxstr):: work
+integer(i_kind) ii,id,ln
+istatus=1
+ivar=0
+if(.not.guess_initialized_) return
+if(trim(desc)=='dim') then
+   ivar = nmguess
+   istatus=0
+else if(trim(desc)=='clouds') then
+   ivar = ncloud
+   istatus=0
+else if(trim(desc)=='clouds::3d') then
+   ivar = n3dcloud
+   istatus=0
+else if(trim(desc)=='clouds::2d') then
+   ivar = n2dcloud
+   istatus=0
+else if(trim(desc)=='meteo_4crtm_jac::3d') then
+   do ii=1,ng3d
+      if (i4crtm3d(ii)==2) ivar=ivar+1
+   enddo
+   istatus=0
+else if(trim(desc)=='clouds_4crtm_jac::3d') then
+   do ii=1,ng3d
+      if (i4crtm3d(ii)==12) ivar=ivar+1
+   enddo
+   istatus=0
+else if(trim(desc)=='clouds_4crtm_fwd::3d') then
+   do ii=1,ng3d
+      if (i4crtm3d(ii)>10) ivar=ivar+1
+   enddo
+   istatus=0
+else if(index(trim(desc),'i4crtm::')/=0) then
+   ln=len_trim(desc)
+   work=desc(9:ln)
+   if(allocated(mguess)) then
+      id=getindex(mguess,trim(work))
+      if(id>0) ivar=i4crtm(id)
+   else
+      ivar=0
+   endif
+   istatus=0
+else if(desc(1:5)=='var::') then
+   if(allocated(mguess)) then
+      id=len_trim(desc)
+      if(id>=6) ivar=getindex(mguess,desc(6:id))
+   endif
+   istatus=0
+else
+   call die(myname_,'label unavailable :'//trim(desc),99)
+endif
+return
+end subroutine get_int0d_
 !EOC
 !-------------------------------------------------------------------------
 !BOP
@@ -762,10 +762,10 @@ end subroutine final_
 ! !IROUTINE:  get_int1d_ --- inquire rank-1 integer
 !
 ! !INTERFACE:
-  subroutine get_int1d_ ( desc, ivar, istatus )
+subroutine get_int1d_ ( desc, ivar, istatus )
 
 ! !USES:
-  implicit none
+implicit none
 !
 ! !DESCRIPTION: Rank-1 integer inquire routine; integer mnemonics:
 ! \begin{verbatim}
@@ -775,7 +775,6 @@ end subroutine final_
 !      clouds_level::3d       levels of all 3d clouds
 ! 
 ! \end{verbatim}
-!  where XXX represents the name of the gas of interest. 
 !
 ! !REVISION HISTORY:
 !   2011-05-17  todling  initial code
@@ -791,49 +790,49 @@ end subroutine final_
 !EOP
 !-------------------------------------------------------------------------
 !BOC
-  character(len=*),intent(in):: desc
-  integer(i_kind),intent(out):: ivar(:)
-  integer(i_kind),intent(out):: istatus
-  character(len=*),parameter:: myname_=myname//"*get_int1d_"
-  integer(i_kind) i,ii
-  logical labfound
-  labfound=.false.
-  istatus=1
-  ivar=0
-  if(.not.guess_initialized_) return
-  if(trim(desc)=='guesses_level') then
-     labfound=.true.
-     do i=1,nmguess
-        ivar(i)=levels(i) 
-     enddo
-     istatus=0
-  endif
-  if(trim(desc)=='clouds_level') then
-     labfound=.true.
-     ii=0
-     do i=1,nmguess
-        if(i4crtm(i)>=10.and.i4crtm(i)<20) then
-           ii=ii+1
-           ivar(ii)=levels(i) 
-        endif
-     enddo
-     if(ii>0) istatus=0
-  endif
-  if(trim(desc)=='clouds_level::3d') then
-     labfound=.true.
-     ii=0
-     do i=1,ng3d
-        if(i4crtm3d(i)>=10.and.i4crtm3d(i)<20) then
-           ii=ii+1
-           ivar(ii)=levels3d(i) 
-        endif
-     enddo
-     if(ii>0) istatus=0
-  endif
-  if (.not.labfound) then
-     call die(myname_,'label unavailable :'//trim(desc),99)
-  endif
-  end subroutine get_int1d_
+character(len=*),intent(in):: desc
+integer(i_kind),intent(out):: ivar(:)
+integer(i_kind),intent(out):: istatus
+character(len=*),parameter:: myname_=myname//"*get_int1d_"
+integer(i_kind) i,ii
+logical labfound
+labfound=.false.
+istatus=1
+ivar=0
+if(.not.guess_initialized_) return
+if(trim(desc)=='guesses_level') then
+   labfound=.true.
+   do i=1,nmguess
+      ivar(i)=levels(i) 
+   enddo
+   istatus=0
+endif
+if(trim(desc)=='clouds_level') then
+   labfound=.true.
+   ii=0
+   do i=1,nmguess
+      if(i4crtm(i)>=10.and.i4crtm(i)<20) then
+         ii=ii+1
+         ivar(ii)=levels(i) 
+      endif
+   enddo
+   if(ii>0) istatus=0
+endif
+if(trim(desc)=='clouds_level::3d') then
+   labfound=.true.
+   ii=0
+   do i=1,ng3d
+      if(i4crtm3d(i)>=10.and.i4crtm3d(i)<20) then
+         ii=ii+1
+         ivar(ii)=levels3d(i) 
+      endif
+   enddo
+   if(ii>0) istatus=0
+endif
+if (.not.labfound) then
+   call die(myname_,'label unavailable :'//trim(desc),99)
+endif
+end subroutine get_int1d_
 !EOC
 
 !-------------------------------------------------------------------------
@@ -842,9 +841,9 @@ end subroutine final_
 ! !IROUTINE:  get_char0d_ --- inquire rank-0 character 
 !
 ! !INTERFACE:
-  subroutine get_char0d_ ( desc, ivar, istatus )
+subroutine get_char0d_ ( desc, ivar, istatus )
 ! !USES:
-  implicit none
+implicit none
 !
 ! !DESCRIPTION: Character-string mnemonics (rank-0):
 ! \begin{verbatim}
@@ -854,7 +853,6 @@ end subroutine final_
 !      list::clouds           list of all cloud-related guesses
 ! 
 ! \end{verbatim}
-!  where XXX represents the name of the gas of interest. 
 !
 ! !REVISION HISTORY:
 !   2010-04-10  todling  initial code
@@ -870,63 +868,63 @@ end subroutine final_
 !EOP
 !-------------------------------------------------------------------------
 !BOC
-  character(len=*),intent(in):: desc
-  character(len=*),intent(out):: ivar
-  integer(i_kind),intent(out):: istatus
-  character(len=*),parameter:: myname_=myname//"*get_char0d_"
-  character(len=MAXSTR):: gaslist
-  character(len=MAXSTR),allocatable:: work(:)
-  integer(i_kind) is,ie,i,i0
-  logical labfound
-  labfound=.false.
-  istatus=1
-  ivar=''
-  if(.not.guess_initialized_) return
-  if(trim(desc)=='list'.or.trim(desc)=='olist') then
-     labfound=.true.
-     if(nmguess>0) then
-        allocate(work(size(mguess)))
-        work=mguess
-        if(desc(1:1)=='o') work=usrname
-        gaslist=trim(work(1))
-        do i=2,nmguess
-           i0=len_trim(gaslist)
-           is=i0+1
-           ie=is+len_trim(work(i))+1
-           gaslist(is:ie)=','//work(i)
-        enddo
-        if(nmguess>1.and.gaslist(1:1)==',') gaslist=gaslist(2:ie)
-        ivar = trim(gaslist)
-        if(ivar/='') istatus=0
-        deallocate(work)
-     endif
-  endif
-  if(trim(desc)=='list::clouds'.or.trim(desc)=='olist::clouds') then
-     labfound=.true.
-     if(ncloud>0) then
-        allocate(work(size(mguess)))
-        work=mguess
-        if(desc(1:1)=='o') work=usrname
-        gaslist=''
-        if(abs(i4crtm(1))>=10.and.abs(i4crtm(1))<20) gaslist=trim(work(1))
-        do i=2,nmguess
-           if(abs(i4crtm(i))>=10.and.abs(i4crtm(i))<20) then
-              i0=len_trim(gaslist)
-              is=i0+1
-              ie=is+len_trim(work(i))+1
-              gaslist(is:ie)=','//work(i)
-           endif
-        enddo
-        if(nmguess>1.and.gaslist(1:1)==',') gaslist=gaslist(2:ie)
-        ivar = trim(gaslist)
-        if(ivar/='') istatus=0
-        deallocate(work)
-     endif
-  endif
-  if (.not.labfound) then
-     call die(myname_,'label unavailable :'//trim(desc),99)
-  endif
-  end subroutine get_char0d_
+character(len=*),intent(in):: desc
+character(len=*),intent(out):: ivar
+integer(i_kind),intent(out):: istatus
+character(len=*),parameter:: myname_=myname//"*get_char0d_"
+character(len=maxstr):: gaslist
+character(len=maxstr),allocatable:: work(:)
+integer(i_kind) is,ie,i,i0
+logical labfound
+labfound=.false.
+istatus=1
+ivar=''
+if(.not.guess_initialized_) return
+if(trim(desc)=='list'.or.trim(desc)=='olist') then
+   labfound=.true.
+   if(nmguess>0) then
+      allocate(work(size(mguess)))
+      work=mguess
+      if(desc(1:1)=='o') work=usrname
+      gaslist=trim(work(1))
+      do i=2,nmguess
+         i0=len_trim(gaslist)
+         is=i0+1
+         ie=is+len_trim(work(i))+1
+         gaslist(is:ie)=','//work(i)
+      enddo
+      if(nmguess>1.and.gaslist(1:1)==',') gaslist=gaslist(2:ie)
+      ivar = trim(gaslist)
+      if(ivar/='') istatus=0
+      deallocate(work)
+   endif
+endif
+if(trim(desc)=='list::clouds'.or.trim(desc)=='olist::clouds') then
+   labfound=.true.
+   if(ncloud>0) then
+      allocate(work(size(mguess)))
+      work=mguess
+      if(desc(1:1)=='o') work=usrname
+      gaslist=''
+      if(abs(i4crtm(1))>=10.and.abs(i4crtm(1))<20) gaslist=trim(work(1))
+      do i=2,nmguess
+         if(abs(i4crtm(i))>=10.and.abs(i4crtm(i))<20) then
+            i0=len_trim(gaslist)
+            is=i0+1
+            ie=is+len_trim(work(i))+1
+            gaslist(is:ie)=','//work(i)
+         endif
+      enddo
+      if(nmguess>1.and.gaslist(1:1)==',') gaslist=gaslist(2:ie)
+      ivar = trim(gaslist)
+      if(ivar/='') istatus=0
+      deallocate(work)
+   endif
+endif
+if (.not.labfound) then
+   call die(myname_,'label unavailable :'//trim(desc),99)
+endif
+end subroutine get_char0d_
 !EOC
 
 !-------------------------------------------------------------------------
@@ -935,23 +933,22 @@ end subroutine final_
 ! !IROUTINE:  get_char1d_ --- inquire rank-1 character 
 !
 ! !INTERFACE:
-  subroutine get_char1d_ ( desc, ivar, istatus )
+subroutine get_char1d_ ( desc, ivar, istatus )
 ! !USES:
-  implicit none
+implicit none
 !
 ! !DESCRIPTION: Rank-1 character inquire routine; character mnemonics:
 ! \begin{verbatim}
 !      Known mnemonics        retrieve
 !      ---------------        --------
-!      gsinames               list of short names for met-fields as known in GSI
+!      gsinames               list of short names for met-fields as known in gsi
 !      usrnames               list of user-difined met-fields
 !      clouds::3d             list of 3d cloud fields
-!      meteo_4crtm_jac::3d    list of 3d meteorology fields to participate in CRTM-Jac calc
-!      clouds_4crtm_jac::3d   list of 3d cloud fields to participate in CRTM-Jac calc
-!      clouds_4crtm_fwd::3d   list of 3d cloud fields to participate in CRTM-fwd calc
+!      meteo_4crtm_jac::3d    list of 3d meteorology fields to participate in crtm-jac calc
+!      clouds_4crtm_jac::3d   list of 3d cloud fields to participate in crtm-jac calc
+!      clouds_4crtm_fwd::3d   list of 3d cloud fields to participate in crtm-fwd calc
 ! 
 ! \end{verbatim}
-!  where XXX represents the name of the gas of interest. 
 !
 ! !REVISION HISTORY:
 !   2010-04-10  todling  initial code
@@ -970,122 +967,122 @@ end subroutine final_
 !EOP
 !-------------------------------------------------------------------------
 !BOC
-  character(len=*),intent(in):: desc
-  character(len=*),intent(out):: ivar(:)
-  character(len=*),parameter:: myname_=myname//"*get_char1d_"
-  integer(i_kind),intent(out):: istatus
-  integer(i_kind) i,ii
-  logical labfound
-  labfound=.false.
-  istatus=1
-  ivar=''
-  if(.not.guess_initialized_) return
-  if(trim(desc)=='gsinames') then
-     labfound=.true.
-     if(size(ivar)>=size(mguess)) then
-        if(allocated(mguess))then
-           ivar = mguess
-           istatus=0
-        endif
-     endif
-  endif
-  if(trim(desc)=='usrnames') then
-     labfound=.true.
-     if(size(ivar)>=size(usrname)) then
-        if(allocated(usrname))then
-           ivar = usrname
-           istatus=0
-        endif
-     endif
-  endif
-  if(trim(desc)=='clouds') then
-     labfound=.true.
-     if(size(ivar)>=ncloud) then
-        ii=0
-        do i=1,nmguess
-           if(abs(i4crtm(i))>=10.and.abs(i4crtm(i))<20) then
-              ii=ii+1
-              ivar(ii)=mguess(ii) 
-           endif
-        enddo
-        if(ii>0) istatus=0
-     endif
-  endif
-  if(trim(desc)=='meteo_4crtm_jac::3d') then
-     labfound=.true.
-     ii=0
-     do i=1,ng3d
-        if(i4crtm3d(i)==2) then
-           ii=ii+1
-           ivar(ii)=mguess3d(i) 
-        endif
-     enddo
-     if(ii>0) istatus=0
-  endif
-  if(trim(desc)=='clouds_4crtm_jac::3d') then
-     labfound=.true.
-     ii=0
-     do i=1,ng3d
-        if(i4crtm3d(i)==12) then
-           ii=ii+1
-           ivar(ii)=mguess3d(i) 
-        endif
-     enddo
-     if(ii>0) istatus=0
-  endif
-  if(trim(desc)=='clouds_4crtm_fwd::3d') then
-     labfound=.true.
-     ii=0
-     do i=1,ng3d
-        if(i4crtm3d(i)>10) then
-           ii=ii+1
-           ivar(ii)=mguess3d(i)
-        endif
-     enddo
-     if(ii>0) istatus=0
-  endif
-  if(trim(desc)=='clouds::3d') then
-     labfound=.true.
-     if(size(ivar)>=n3dcloud) then
-        ii=0
-        do i=1,ng3d
-           if(abs(i4crtm3d(i))>=10.and.abs(i4crtm3d(i))<20) then
-              ii=ii+1
-              ivar(ii)=mguess3d(i) 
-           endif
-        enddo
-        if(ii>0) istatus=0
-     endif
-  endif
-  if(trim(desc)=='clouds::2d') then
-     labfound=.true.
-     if(size(ivar)>=n2dcloud) then
-        ii=0
-        do i=1,ng2d
-           if(abs(i4crtm2d(i))>=10.and.abs(i4crtm2d(i))<20) then
-              ii=ii+1
-              ivar(ii)=mguess2d(i) 
-           endif
-        enddo
-        if(ii>0) istatus=0
-     endif
-  endif
-  if(trim(desc)=='cloud_types::3d') then
-     labfound=.true.
-     if(size(ivar)>=n3dcloud) then
-        ii=0
-        do i=1,ng3d
-           if(abs(i4crtm3d(i))>=10.and.abs(i4crtm3d(i))<20) then
-              ii=ii+1
-              ivar(ii)=metsty3d(i)
-           endif
-        enddo
-        if(ii>0) istatus=0
-     endif
-  endif
-  if (.not.labfound) then
-     call die(myname_,'label unavailable :'//trim(desc),99)
-  endif
-  end subroutine get_char1d_
+character(len=*),intent(in):: desc
+character(len=*),intent(out):: ivar(:)
+character(len=*),parameter:: myname_=myname//"*get_char1d_"
+integer(i_kind),intent(out):: istatus
+integer(i_kind) i,ii
+logical labfound
+labfound=.false.
+istatus=1
+ivar=''
+if(.not.guess_initialized_) return
+if(trim(desc)=='gsinames') then
+   labfound=.true.
+   if(size(ivar)>=size(mguess)) then
+      if(allocated(mguess))then
+         ivar = mguess
+         istatus=0
+      endif
+   endif
+endif
+if(trim(desc)=='usrnames') then
+   labfound=.true.
+   if(size(ivar)>=size(usrname)) then
+      if(allocated(usrname))then
+         ivar = usrname
+         istatus=0
+      endif
+   endif
+endif
+if(trim(desc)=='clouds') then
+   labfound=.true.
+   if(size(ivar)>=ncloud) then
+      ii=0
+      do i=1,nmguess
+         if(abs(i4crtm(i))>=10.and.abs(i4crtm(i))<20) then
+            ii=ii+1
+            ivar(ii)=mguess(ii) 
+         endif
+      enddo
+      if(ii>0) istatus=0
+   endif
+endif
+if(trim(desc)=='meteo_4crtm_jac::3d') then
+   labfound=.true.
+   ii=0
+   do i=1,ng3d
+      if(i4crtm3d(i)==2) then
+         ii=ii+1
+         ivar(ii)=mguess3d(i) 
+      endif
+   enddo
+   if(ii>0) istatus=0
+endif
+if(trim(desc)=='clouds_4crtm_jac::3d') then
+   labfound=.true.
+   ii=0
+   do i=1,ng3d
+      if(i4crtm3d(i)==12) then
+         ii=ii+1
+         ivar(ii)=mguess3d(i) 
+      endif
+   enddo
+   if(ii>0) istatus=0
+endif
+if(trim(desc)=='clouds_4crtm_fwd::3d') then
+   labfound=.true.
+   ii=0
+   do i=1,ng3d
+      if(i4crtm3d(i)>10) then
+         ii=ii+1
+         ivar(ii)=mguess3d(i)
+      endif
+   enddo
+   if(ii>0) istatus=0
+endif
+if(trim(desc)=='clouds::3d') then
+   labfound=.true.
+   if(size(ivar)>=n3dcloud) then
+      ii=0
+      do i=1,ng3d
+         if(abs(i4crtm3d(i))>=10.and.abs(i4crtm3d(i))<20) then
+            ii=ii+1
+            ivar(ii)=mguess3d(i) 
+         endif
+      enddo
+      if(ii>0) istatus=0
+   endif
+endif
+if(trim(desc)=='clouds::2d') then
+   labfound=.true.
+   if(size(ivar)>=n2dcloud) then
+      ii=0
+      do i=1,ng2d
+         if(abs(i4crtm2d(i))>=10.and.abs(i4crtm2d(i))<20) then
+            ii=ii+1
+            ivar(ii)=mguess2d(i) 
+         endif
+      enddo
+      if(ii>0) istatus=0
+   endif
+endif
+if(trim(desc)=='cloud_types::3d') then
+   labfound=.true.
+   if(size(ivar)>=n3dcloud) then
+      ii=0
+      do i=1,ng3d
+         if(abs(i4crtm3d(i))>=10.and.abs(i4crtm3d(i))<20) then
+            ii=ii+1
+            ivar(ii)=metsty3d(i)
+         endif
+      enddo
+      if(ii>0) istatus=0
+   endif
+endif
+if (.not.labfound) then
+   call die(myname_,'label unavailable :'//trim(desc),99)
+endif
+end subroutine get_char1d_
 end module gsi_metguess_mod
 !EOC

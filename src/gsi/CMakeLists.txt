@@ -45,8 +45,8 @@ cmake_minimum_required(VERSION 2.8)
   list( REMOVE_ITEM GSIFORT_SRC
     ${STUB_SRC}
     ${CPLR_SRC}
-    ${CMAKE_CURRENT_SOURCE_DIR}/gsi_fixture_REGIONAL.F90
-    ${CMAKE_CURRENT_SOURCE_DIR}/gsi_fixture_GFS.F90
+    ${CMAKE_CURRENT_SOURCE_DIR}/gsi_fixture_regional.f90
+    ${CMAKE_CURRENT_SOURCE_DIR}/gsi_fixture_gfs.f90
     ${CMAKE_CURRENT_SOURCE_DIR}/stub_nstmod.f90
     ${GSIUTIL_SRC}
     ${GSIMAIN_SRC}
@@ -62,7 +62,7 @@ cmake_minimum_required(VERSION 2.8)
   if(USE_WRF)
     list( APPEND GSIFORT_SRC
 	${CPLR_SRC}
-	${CMAKE_CURRENT_SOURCE_DIR}/gsi_fixture_REGIONAL.F90
+	${CMAKE_CURRENT_SOURCE_DIR}/gsi_fixture_regional.f90
     )
   endif()
 
@@ -70,7 +70,7 @@ cmake_minimum_required(VERSION 2.8)
   if(BUILD_GLOBAL)
     list( APPEND GSIFORT_SRC
 	${STUB_SRC}
-	${CMAKE_CURRENT_SOURCE_DIR}/gsi_fixture_GFS.F90
+	${CMAKE_CURRENT_SOURCE_DIR}/gsi_fixture_gfs.f90
     )
   endif(BUILD_GLOBAL)
 

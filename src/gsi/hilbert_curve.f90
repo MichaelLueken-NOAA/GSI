@@ -30,9 +30,9 @@ subroutine hilbert(mskip,nob,xob,yob,test_set)
 ! the efficient sorting procedure, bsort. The resulting linked list of obs
 ! is accessed by "firsta" and terminated when "next(iob)" ==0.
 !
-! From this linked list, "A", construct linked subsets, "B", that can be used
-! us validation subsets. Members of old A not able to be put into any of the
-! mskip B subset are gathered into a reconstritued lined list, new "A". All
+! From this linked list, "a", construct linked subsets, "b", that can be used
+! us validation subsets. Members of old a not able to be put into any of the
+! mskip b subset are gathered into a reconstritued lined list, new "a". All
 ! this is done in subroutine getvalsets.
 !
 !$$$ end documentation block
@@ -50,10 +50,10 @@ real(r_kind),parameter           :: xhskip=.00030_r_kind
 !real(r_kind),parameter          :: delta=.001_r_kind,xhskip=.00001_r_kind
 !real(r_kind),parameter          :: delta=.001_r_kind,xhskip=.005_r_kind
 
-integer(i_kind)                ,intent(IN   ) :: mskip,nob
-real(r_kind), dimension(nob)   ,intent(IN   ) :: xob,yob
+integer(i_kind)                ,intent(in   ) :: mskip,nob
+real(r_kind), dimension(nob)   ,intent(in   ) :: xob,yob
 
-integer(i_kind), dimension(nob),intent(  OUT) :: test_set
+integer(i_kind), dimension(nob),intent(  out) :: test_set
 
 real(r_kind),dimension(nob)     :: xh
 integer(i_kind),dimension(nob)  :: next

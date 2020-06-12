@@ -4,14 +4,14 @@ subroutine half_nmm_grid2(gin,nx,ny,gout,igtype,iorder)
 ! subprogram:    half_nmm_grid2    make a-grid from every other row of e-grid
 !   prgmmr: parrish          org: np22                date: 2004-06-22
 !
-! abstract: creates an unstaggered A grid from the staggered E grid used by the wrf nmm.
-!           This is done by keeping every other row of the original E grid.  If this 
+! abstract: creates an unstaggered a grid from the staggered e grid used by the wrf nmm.
+!           This is done by keeping every other row of the original e grid.  If this 
 !           is a mass variable (igtype=1), then no interpolation is required.  If this
 !           is a wind variable (igtype=2), then interpolation is necessary.  This procedure
 !           is necessary because the gsi is not yet able to work with anything other than
 !           unstaggered grids.  This solution introduces greater interpolation error
 !           compared to the option fill_nmm_grid2, but has the advantage of 4 times fewer
-!           grid points compared to the output of fill_nmm__grid2.  This routine will be
+!           grid points compared to the output of fill_nmm_grid2.  This routine will be
 !           eliminated when the gsi has the capability to work directly with staggered grids.
 !
 ! program history log:

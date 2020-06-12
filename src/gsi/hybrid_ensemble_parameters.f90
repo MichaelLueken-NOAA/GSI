@@ -10,29 +10,29 @@ module hybrid_ensemble_parameters
 !=====================================================================================================
 !initial documentation for hybrid ensemble option (2009-12-16):
 !
-!  Only implemented for 3dvar full B version of GSI.  Future extension to sqrt(B) and 4dvar will
-!   require collaboration with GMAO.  As long as hybrid ensemble option is turned off, 4dvar option
+!  Only implemented for 3dvar full b version of gsi.  Future extension to sqrt(b) and 4dvar will
+!   require collaboration with gmao.  As long as hybrid ensemble option is turned off, 4dvar option
 !   should still work.  This is an initial working formulation.  It is expected that many changes
 !   will be made over the next several years.
 !
 ! This formulation is based on 
-!    Wang, X.,  D. M. Barker, C. Snyder, and T. M. Hamill, 2008:  A Hybrid ETKF.3DVAR 
-!	Data Assimilation Scheme for the WRF Model.  Part I: Observing System 
-!	Simulation Experiment.  Mon. Wea. Rev., 136, 5116-5131.
+!    wang, x.,  d. m. barker, c. snyder, and t. m. hamill, 2008:  a hybrid etkf.3dvar 
+!	data assimilation scheme for the wrf model.  part I: observing system 
+!	simulation experiment.  mon. wea. rev., 136, 5116-5131.
 !
-!  only difference is that preconditioning is based on full B instead of sqrt(B):
+!  only difference is that preconditioning is based on full b instead of sqrt(b):
 !
 !  To introduce ensemble information into the background, a new control variable a (a_en in code), with
 !    corresponding background error A, is added to the cost function.
 !
-!       J(x1,a) = .5*x1_trans*Bs_inv*x1 + .5*a_trans*Ae_inv*a + Jo(x,yobs)
+!       j(x1,a) = .5*x1_trans*Bs_inv*x1 + .5*a_trans*ae_inv*a + jo(x,yobs)
 !
-!   where Bs is the weighted static background error covariance and
-!         Ae is the weighted ensemble amplitude localization covariance.
+!   where bs is the weighted static background error covariance and
+!         ae is the weighted ensemble amplitude localization covariance.
 !
-!   Bs = diag(sqrt(beta_s)*B*diag(sqrt(beta_s)
+!   bs = diag(sqrt(beta_s)*b*diag(sqrt(beta_s)
 !
-!   Ae = diag(sqrt(beta_e)*A*diag(sqrt(beta_e)
+!   ae = diag(sqrt(beta_e)*a*diag(sqrt(beta_e)
 !
 !   beta_s and beta_e are currently allowed to vary in the vertical.
 !
@@ -46,13 +46,13 @@ module hybrid_ensemble_parameters
 !
 !  The state variable x is recovered from the control variable pair (x1,a) using
 !
-!         x = L*(x1 + sum(n=1,n_ensemble (a(n) o x_ensemble(n)))  
+!         x = l*(x1 + sum(n=1,n_ensemble (a(n) o x_ensemble(n)))  
 !
-!          where L is tlnmc or identity.
+!          where l is tlnmc or identity.
 !
 !                x_ensemble(n)  are n_ensemble sets of ensemble perturbations
 !
-!            and x o y is elementwise (Shur) product
+!            and x o y is elementwise (shur) product
 !
 !          Each a(n) is technically the same length as x_ensemble(n), but in practice
 !            the actual stored size is one 3D grid.
@@ -61,35 +61,35 @@ module hybrid_ensemble_parameters
 !                located in file hybrid_ensemble_isotropic.f90
 !
 !
-!  A = diag(S,S,...,S) is a block diagonal matrix, and each S is a correlation matrix, applied
+!  a = diag(s,s,...,s) is a block diagonal matrix, and each S is a correlation matrix, applied
 !  identically to each a(n).  In the current version, S is implemented using recursive filters
 !  in horizontal and vertical (spectral in horizontal for global application).
 !
 !  Full background precondioning is used:
 !
-!         x1 = Bs*y1
+!         x1 = bs*y1
 !
-!         a  = Ae*b
+!         a  = ae*b
 !
 !  The resulting cost function:
 !
-!       J = .5*x1_trans*y1 + .5*a_trans*b  + Jo(x,yobs)
+!       j = .5*x1_trans*y1 + .5*a_trans*b  + jo(x,yobs)
 !
 !   How to control the hybrid ensemble option:
 !
-!   NAMELIST HYBRID_ENSEMBLE:
+!   Namelist hybrid_ensemble:
 !
 !      l_hyb_ens:  logical variable, if .true., then turn on hybrid ensemble option, default = .false. 
 !      n_ens:      ensemble size, default = 0
 !      nlon_ens            - number of longitudes to use for ensemble members and ensemble control vector
 !      nlat_ens            - number of latitudes to use for ensemble members and ensemble control vector
 !      beta_s0:    value between 0 and 1, default = 1.0, 
-!                  relative weight given to static background B when (readin_beta=.false.)
+!                  relative weight given to static background b when (readin_beta=.false.)
 !                  when (readin_beta=.true.), the vertical weighting parameters are read from a file,
 !                  instead of being defined based on beta_s0 namelist or default value. 
 !      s_ens_h:    horizontal localization correlation length (units of km), default = 2828.0
 !      s_ens_v:    vertical localization correlation length (grid units), default = 30.0
-!      generate_ens:  if .true., generate ensemble perturbations internally as random samples of background B.
+!      generate_ens:  if .true., generate ensemble perturbations internally as random samples of background b.
 !                       (used primarily for testing/debugging)
 !                     if .false., read external ensemble perturbations
 !      aniso_a_en: if .true., then allow anisotropic localization correlation (not active yet)
@@ -103,10 +103,10 @@ module hybrid_ensemble_parameters
 !      use_localization_grid: if true, then use extra lower res gaussian grid for horizontal localization
 !                                   (global runs only--allows possiblity for non-gaussian ensemble grid)
 !      oz_univ_static:  if .true., ozone perturbations are zeroed out to make the ozone analysis
-!                       univariate, and defaults back to static B (no ensemble component)
+!                       univariate, and defaults back to static b (no ensemble component)
 !      eqspace_ensgrid: if .true., then ensemble grid is equal spaced, staggered 1/2 grid unit off
 !                               poles.  if .false., then gaussian grid assumed for ensemble (global only)
-!      pwgtflg: if true, vertical integration function for ensemble contribution on Psfc
+!      pwgtflg: if true, vertical integration function for ensemble contribution on psfc
 !      full_ensemble: if true, first ensemble member perturbed on first guess
 !                    if false, first member perturbed on ensemble mean as the rest of the menbers
 !      grid_ratio_ens: ratio of ensemble grid resolution to analysis resolution (default value is 1)
@@ -114,7 +114,7 @@ module hybrid_ensemble_parameters
 !                function of z, default = .false. 
 !      ensemble_path: path to ensemble members; default './'
 !      ens_fast_read: read ensemble in parallel; default '.false.'
-!      sst_staticB:   if .true. (default) uses only static part of B error covariance for SST
+!      sst_staticb:   if .true. (default) uses only static part of b error covariance for sst
 !=====================================================================================================
 !
 !
@@ -131,7 +131,7 @@ module hybrid_ensemble_parameters
 !                             For the current s_ens_v > 0, the measure is vertical grid units.
 !                             s_ens_v = 20 and s_ens_v = -0.44 are roughly comparable, and
 !                             connection of .44 is .44 = (sqrt(.15)/sqrt(2))*1.6, where 1.6 is the value used
-!                             by Jeff Whitaker for his distance in which the Gaspari-Cohn function 1st = 0.
+!                             by jeff whitaker for his distance in which the gaspari-cohn function 1st = 0.
 !   2010-09-25  parrish - add logical parameter gefs_in_regional to signal use gefs for regional hybens.
 !   2010-10-13  parrish - add parameter write_ens_sprd to allow option of writing global ensemble spread
 !                             in byte addressable format for plotting with grads.
@@ -146,8 +146,8 @@ module hybrid_ensemble_parameters
 !   2013-11-22  kleist  - add option for q perturbations
 !   2014-05-14  wu      - add logical variable vvlocal for vertically verying horizontal localization length in regional
 !   2015-01-22  Hu      - add flag i_en_perts_io to control reading ensemble perturbation.
-!   2015-02-11  Hu      - add flag l_ens_in_diff_time to force GSI hybrid use ensembles not available at analysis time
-!   2015-09-18  todling - add sst_staticB to control use of ensemble SST error covariance 
+!   2015-02-11  Hu      - add flag l_ens_in_diff_time to force gsi hybrid use ensembles not available at analysis time
+!   2015-09-18  todling - add sst_staticb to control use of ensemble sst error covariance 
 !
 ! subroutines included:
 
@@ -158,7 +158,7 @@ module hybrid_ensemble_parameters
 !   def q_hyb_ens          - if true, use specific humidity
 !   def aniso_a_en    - if true, then use anisotropic rf for localization
 !   def generate_ens   - if true, then create ensemble members internally
-!                              using sqrt of static background error acting on N(0,1) random vectors
+!                              using sqrt of static background error acting on n(0,1) random vectors
 !   def n_ens               - number of ensemble members
 !   def nlon_ens            - number of longitudes to use for ensemble members and ensemble control vector
 !   def nlat_ens            - number of latitudes to use for ensemble members and ensemble control vector
@@ -168,8 +168,8 @@ module hybrid_ensemble_parameters
 !                             =1, then ensemble information turned off
 !                             =0, then static background turned off
 !                             the weights are applied per vertical level such that : 
-!                                   beta_s(:) = beta_s0     , vertically varying weights given to B ; 
-!                                   beta_e(:) = 1 - beta_s0 , vertically varying weights given to A.
+!                                   beta_s(:) = beta_s0     , vertically varying weights given to b ; 
+!                                   beta_e(:) = 1 - beta_s0 , vertically varying weights given to a.
 !                            If (readin_beta) then beta_s and beta_e are read from a file and beta_s0 is not used.
 !   def s_ens_h             - homogeneous isotropic horizontal ensemble localization scale (km)
 !   def s_ens_v             - vertical localization scale (grid units for now)
@@ -197,31 +197,31 @@ module hybrid_ensemble_parameters
 !   def pseudo_hybens       - if true, read in ensemble member from pseudo ensemble library and merge
 !                             the pseudo ensemble perturbations with global ensemble perturbations.
 !   def merge_two_grid_ensperts  - if true, merge ensemble perturbations from two forecast domains
-!                                  to analysis domain (one way to deal with hybrid DA for HWRF moving nest)
+!                                  to analysis domain (one way to deal with hybrid da for hwrf moving nest)
 !   def regional_ensemble_option - integer, used to select type of ensemble to read in for regional
 !                                application.  Currently takes values from 1 to 5.
-!                                 =1: use GEFS internally interpolated to ensemble grid.
-!                                 =2: ensembles are WRF NMM format.
-!                                 =3: ensembles are ARW netcdf format.
-!                                 =4: ensembles are NEMS NMMB format.
+!                                 =1: use gefs internally interpolated to ensemble grid.
+!                                 =2: ensembles are wrf nmm format.
+!                                 =3: ensembles are arw netcdf format.
+!                                 =4: ensembles are nems nmmb format.
 !   def ntlevs_ens          - integer number of time levels for ensemble perturbations.  Default is 1, but
-!                             will be equal to nobs_bins (4DVAR) when running in 4d-ensemble-var mode
+!                             will be equal to nobs_bins (4dvar) when running in 4d-ensemble-var mode
 !   def full_ensemble       - logical switch to use ensemble perturbation on first guess or on ensemble mean
 !                              for the first member of ensemble
-!   def   beta_s            - vertical weighting function for static B
-!   def   beta_e            - vertical weighting function for localization A
+!   def   beta_s            - vertical weighting function for static b
+!   def   beta_e            - vertical weighting function for localization a
 !   def sqrt_beta_s            - sqrt(beta_s)
 !   def sqrt_beta_e            - sqrt(beta_e)
-!   def pwgt                - vertical integration function for influence of ensemble on Psfc
-!   def pwgtflg             - logical switch to use vertical integration function for ensemble contribution on Psfc
+!   def pwgt                - vertical integration function for influence of ensemble on psfc
+!   def pwgtflg             - logical switch to use vertical integration function for ensemble contribution on psfc
 !   def grid_ratio_ens:     - ratio of ensemble grid resolution to analysis resolution (default value is 1)
 !   def use_localization_grid - if true, then use extra lower res gaussian grid for horizontal localization
 !                                   (global runs only--allows possiblity for non-gaussian ensemble grid)
 !   def vvlocal             - logical switch for vertically varying horizontal localization length
 !   def i_en_perts_io       - flag to write out and read in ensemble perturbations in ensemble grid.   
-!                             This is to speed up RAP/HRRR hybrid runs because the
+!                             This is to speed up rap/hrrr hybrid runs because the
 !                             same ensemble perturbations are used in 6 cycles    
-!                               =0:  No ensemble perturbations IO (default)
+!                               =0:  No ensemble perturbations io (default)
 !                               =2:  skip get_gefs_for_regional and read in ensemble
 !                                     perturbations from saved files.
 !   def  l_ens_in_diff_time  -  if use ensembles that are available at different       
@@ -289,9 +289,9 @@ module hybrid_ensemble_parameters
   public :: region_lat_ens,region_lon_ens
   public :: region_dx_ens,region_dy_ens
   public :: ens_fast_read
-  public :: sst_staticB
+  public :: sst_staticb
 
-  logical l_hyb_ens,uv_hyb_ens,q_hyb_ens,oz_univ_static,sst_staticB
+  logical l_hyb_ens,uv_hyb_ens,q_hyb_ens,oz_univ_static,sst_staticb
   logical aniso_a_en
   logical full_ensemble,pwgtflg
   logical generate_ens
@@ -319,7 +319,7 @@ module hybrid_ensemble_parameters
   real(r_kind),allocatable,dimension(:,:,:) :: pwgt
 !    nval_lenz_en is total length of ensemble extended control variable for sqrt
 !    minimization mode
-!NOTE:   for sqrt minimization, nval_lenz_en =
+!Note:   for sqrt minimization, nval_lenz_en =
 !nhoriz*(grd_loc%kend_alloc-grd_loc%kbegin_loc+1)
 !      and nhoriz = grd_loc%nlat*grd_loc%nlon for regional,
 !          nhoriz = (sp_loc%jcap+1)*(sp_loc%jcap+2) for global
@@ -380,7 +380,7 @@ subroutine init_hybrid_ensemble_parameters
   uv_hyb_ens=.false.
   q_hyb_ens=.false.
   oz_univ_static=.false.
-  sst_staticB=.true.
+  sst_staticb=.true.
   aniso_a_en=.false.
   generate_ens=.true.
   pseudo_hybens=.false.
@@ -391,7 +391,7 @@ subroutine init_hybrid_ensemble_parameters
   readin_localization=.false.
   readin_beta=.false.
   use_localization_grid=.false.
-  use_gfs_ens=.true.         ! when global: default is to read ensemble from GFS
+  use_gfs_ens=.true.         ! when global: default is to read ensemble from gfs
   eqspace_ensgrid=.false.
   vvlocal=.false.
   l_ens_in_diff_time=.false.
@@ -403,14 +403,14 @@ subroutine init_hybrid_ensemble_parameters
   beta_s0=one
   grid_ratio_ens=one
   s_ens_h = 2828._r_kind     !  km (this was optimal value in 
-                             !   Wang, X.,D. M. Barker, C. Snyder, and T. M. Hamill, 2008: A hybrid
-                             !      ETKF.3DVAR data assimilation scheme for the WRF Model. Part II: 
-                             !      Observing system simulation experiment. Mon.  Wea. Rev., 136, 5132-5147.)
+                             !   wang, x.,d. m. barker, c. snyder, and t. m. hamill, 2008: A hybrid
+                             !      etkf.3dvar data assimilation scheme for the wrf model. Part II: 
+                             !      Observing system simulation experiment. mon. wea. rev., 136, 5132-5147.)
 
   s_ens_v = 30._r_kind       ! grid units
   nval_lenz_en=-1            ! initialize dimension to absurd value
   ntlevs_ens=1               ! default for number of time levels for ensemble perturbations
-  i_en_perts_io=0            ! default for en_pert IO. 0 is no IO
+  i_en_perts_io=0            ! default for en_pert io. 0 is no io
   ensemble_path = './'       ! default for path to ensemble members
   ens_fast_read=.false.
 
