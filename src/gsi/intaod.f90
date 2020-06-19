@@ -8,7 +8,7 @@ module intaodmod
 !
 ! program history log:
 !   2010-10-20  hclin   - modified from intrad for total aod
-!   2016-05-18  guo     - replaced ob_type with polymorphic obsNode through type casting
+!   2016-05-18  guo     - replaced ob_type with polymorphic obsnode through type casting
 !
 ! subroutines included:
 !   sub intaod_
@@ -21,17 +21,17 @@ module intaodmod
 !
 !$$$ end documentation block
 
-  use m_obsNode , only: obsNode
-  use m_aeroNode , only: aeroNode
-  use m_aeroNode , only: aeroNode_typecast
-  use m_aeroNode , only: aeroNode_nextcast
+  use m_obsnode , only: obsnode
+  use m_aeronode , only: aeronode
+  use m_aeronode , only: aeronode_typecast
+  use m_aeronode , only: aeronode_nextcast
   implicit none
 
   private
   public :: intaod
 
   interface intaod; module procedure &
-            intaod_
+     intaod_
   end interface
 
 contains
@@ -73,11 +73,11 @@ contains
     use gsi_bundlemod, only: gsi_bundleputvar
     use gsi_chemguess_mod, only: gsi_chemguess_get
     use mpeu_util, only: getindex
-    use m_obsdiagNode, only: obsdiagNode_set
+    use m_obsdiagnode, only: obsdiagnode_set
     implicit none
 
 ! Declare passed variables
-    class(obsNode),pointer,intent(in) :: aerohead
+    class(obsnode),pointer,intent(in) :: aerohead
     type(gsi_bundle), intent(in   ) :: sval
     type(gsi_bundle), intent(inout) :: rval
 
@@ -88,7 +88,7 @@ contains
     real(r_kind) val
     real(r_kind) w1,w2,w3,w4
 !   real(r_kind) cg_aero,p0,wnotgross,wgross
-    type(aeroNode), pointer :: aeroptr
+    type(aeronode), pointer :: aeroptr
 
     real(r_kind),pointer,dimension(:) :: sv_chem
     real(r_kind),pointer,dimension(:) :: rv_chem
@@ -99,7 +99,7 @@ contains
     if ( naero <= 0 ) return
 
     !aeroptr => aerohead
-    aeroptr => aeroNode_typecast(aerohead)
+    aeroptr => aeronode_typecast(aerohead)
     do while (associated(aeroptr))
        j1=aeroptr%ij(1)
        j2=aeroptr%ij(2)
@@ -114,7 +114,7 @@ contains
           tval(k)=zero
        end do
 
-!  Begin Forward model
+!  Begin forward model
 !  calculate temperature, q, ozone, sst vector at observation location
        i1n(1) = j1
        i2n(1) = j2
@@ -155,10 +155,10 @@ contains
              if (lsaveobsens) then
                 val = val*aeroptr%err2(nn)*aeroptr%raterr2(nn)
                 !-- aeroptr%diags(nn)%ptr%obssen(jiter) = val
-                call obsdiagNode_set(aeroptr%diags(nn)%ptr,jiter=jiter,obssen=val)
+                call obsdiagnode_set(aeroptr%diags(nn)%ptr,jiter=jiter,obssen=val)
              else
                 !-- if (aeroptr%luse) aeroptr%diags(nn)%ptr%tldepart(jiter) = val
-                if (aeroptr%luse) call obsdiagNode_set(aeroptr%diags(nn)%ptr,jiter=jiter,tldepart=val)
+                if (aeroptr%luse) call obsdiagnode_set(aeroptr%diags(nn)%ptr,jiter=jiter,tldepart=val)
              endif
           endif
 
@@ -214,7 +214,7 @@ contains
        endif ! < l_do_adjoint >
 
        !aeroptr => aeroptr%llpoint
-       aeroptr => aeroNode_nextcast(aeroptr)
+       aeroptr => aeronode_nextcast(aeroptr)
 !       call stop2(999)
     end do
 

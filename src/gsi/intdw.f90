@@ -12,8 +12,8 @@ module intdwmod
 !   2005-11-16  Derber - remove interfaces
 !   2008-11-26  Todling - remove intdw_tl
 !   2009-08-13  lueken - updated documentation
-!   2012-09-14  Syed RH Rizvi, NCAR/NESL/MMM/DAS  - implemented obs adjoint test  
-!   2016-05-18  guo     - replaced ob_type with polymorphic obsNode through type casting
+!   2012-09-14  Syed RH Rizvi, ncar/nesl/mmm/das  - implemented obs adjoint test  
+!   2016-05-18  guo     - replaced ob_type with polymorphic obsnode through type casting
 !
 ! subroutines included:
 !   sub intdw_
@@ -26,18 +26,18 @@ module intdwmod
 !
 !$$$ end documentation block
 
-use m_obsNode, only: obsNode
-use m_dwNode , only: dwNode
-use m_dwNode , only: dwNode_typecast
-use m_dwNode , only: dwNode_nextcast
-use m_obsdiagNode, only: obsdiagNode_set
+use m_obsnode, only: obsnode
+use m_dwnode , only: dwnode
+use m_dwnode , only: dwnode_typecast
+use m_dwnode , only: dwnode_nextcast
+use m_obsdiagnode, only: obsdiagnode_set
 implicit none
 
-PRIVATE
-PUBLIC intdw
+private
+public intdw
 
 interface intdw; module procedure &
-          intdw_
+   intdw_
 end interface
 
 contains
@@ -61,15 +61,15 @@ subroutine intdw_(dwhead,rval,sval)
 !   2005-08-02  derber  - modify for variational qc parameters for each ob
 !   2005-09-28  derber  - consolidate location and weight arrays
 !   2006-07-28  derber  - modify to use new inner loop obs data structure
-!                       - unify NL qc
+!                       - unify nl qc
 !   2007-03-19  tremolet - binning of observations
 !   2007-06-05  tremolet - use observation diagnostics structure
 !   2007-07-09  tremolet - observation sensitivity
 !   2008-06-02  safford - rm unused vars
-!   2008-01-04  tremolet - Don't apply H^T if l_do_adjoint is false
-!   2008-11-28  todling  - turn FOTO optional; changed ptr%time handle
+!   2008-01-04  tremolet - Don't apply h^t if l_do_adjoint is false
+!   2008-11-28  todling  - turn foto optional; changed ptr%time handle
 !   2010-05-13  todling  - update to use gsi_bundle; update interface
-!   2012-09-14  Syed RH Rizvi, NCAR/NESL/MMM/DAS  - introduced ladtest_obs         
+!   2012-09-14  Syed RH Rizvi, ncar/nesl/mmm/das  - introduced ladtest_obs         
 !   2014-12-03  derber  - modify so that use of obsdiags can be turned off
 !
 ! usage: call intdw(ru,rv,su,sv)
@@ -99,7 +99,7 @@ subroutine intdw_(dwhead,rval,sval)
   implicit none
 
 ! Declare passed variables
-  class(obsNode),pointer,intent(in   ) :: dwhead
+  class(obsnode),pointer,intent(in   ) :: dwhead
   type(gsi_bundle),        intent(in   ) :: sval
   type(gsi_bundle),        intent(inout) :: rval
 
@@ -110,7 +110,7 @@ subroutine intdw_(dwhead,rval,sval)
   real(r_kind) cg_dw,p0,grad,wnotgross,wgross
   real(r_kind),pointer,dimension(:) :: su,sv
   real(r_kind),pointer,dimension(:) :: ru,rv
-  type(dwNode), pointer :: dwptr
+  type(dwnode), pointer :: dwptr
 
 !  If no dw observations return
   if(.not. associated(dwhead))return
@@ -124,7 +124,7 @@ subroutine intdw_(dwhead,rval,sval)
   if(ier/=0)return
 
   !dwptr => dwhead
-  dwptr => dwNode_typecast(dwhead)
+  dwptr => dwnode_typecast(dwhead)
   do while (associated(dwptr))
      j1=dwptr%ij(1)
      j2=dwptr%ij(2)
@@ -154,14 +154,14 @@ subroutine intdw_(dwhead,rval,sval)
         if (lsaveobsens) then
            grad = val * dwptr%raterr2 * dwptr%err2
            !-- dwptr%diags%obssen(jiter) = grad
-           call obsdiagNode_set(dwptr%diags,jiter=jiter,obssen=grad)
+           call obsdiagnode_set(dwptr%diags,jiter=jiter,obssen=grad)
         else
            !-- if (dwptr%luse) dwptr%diags%tldepart(jiter)=val
-           if (dwptr%luse) call obsdiagNode_set(dwptr%diags,jiter=jiter,tldepart=val)
+           if (dwptr%luse) call obsdiagnode_set(dwptr%diags,jiter=jiter,tldepart=val)
         endif
      endif
 
-!    Do Adjoint
+!    Do adjoint
      if (l_do_adjoint) then
         if (.not. lsaveobsens) then
            if( .not. ladtest_obs)   val=val-dwptr%res
@@ -206,7 +206,7 @@ subroutine intdw_(dwhead,rval,sval)
      endif
 
      !dwptr => dwptr%llpoint
-     dwptr => dwNode_nextcast(dwptr)
+     dwptr => dwnode_nextcast(dwptr)
 
   end do
 

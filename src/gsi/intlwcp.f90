@@ -20,18 +20,18 @@ module intlwcpmod
 !
 !$$$ end documentation block
 
-use m_obsNode, only: obsNode
-use m_lwcpNode, only: lwcpNode
-use m_lwcpNode, only: lwcpNode_typecast
-use m_lwcpNode, only: lwcpNode_nextcast
-use m_obsdiagNode, only: obsdiagNode_set
+use m_obsnode, only: obsnode
+use m_lwcpnode, only: lwcpnode
+use m_lwcpnode, only: lwcpnode_typecast
+use m_lwcpnode, only: lwcpnode_nextcast
+use m_obsdiagnode, only: obsdiagnode_set
 implicit none
 
-PRIVATE
-PUBLIC intlwcp
+private
+public intlwcp
 
 interface intlwcp; module procedure &
-          intlwcp_
+   intlwcp_
 end interface
 
 contains
@@ -47,10 +47,10 @@ subroutine intlwcp_(lwcphead,rval,sval)
 !
 ! program history log:
 !   2017-06-28  Ting-Chi Wu - mimic the structure in intpw.f90 and intgps.f90 
-!                           - intlwcp.f90 includes 2 TL/ADJ options
+!                           - intlwcp.f90 includes 2 tl/ad options
 !                             1) when l_wcp_cwm = .false.: 
-!                                operator = f(T,P,q)
-!                             2) when l_wcp_cwm = .true. and CWM partition6: 
+!                                operator = f(t,p,q)
+!                             2) when l_wcp_cwm = .true. and cwm partition6: 
 !                                 operator = f(ql,qr) partition6
 !
 !   input argument list:
@@ -88,7 +88,7 @@ subroutine intlwcp_(lwcphead,rval,sval)
   implicit none
 
 ! Declare passed variables
-  class(obsNode), pointer, intent(in   ) :: lwcphead
+  class(obsnode), pointer, intent(in   ) :: lwcphead
   type(gsi_bundle)        ,intent(in   ) :: sval
   type(gsi_bundle)        ,intent(inout) :: rval
 
@@ -96,17 +96,17 @@ subroutine intlwcp_(lwcphead,rval,sval)
   integer(i_kind) k,ier,istatus
   integer(i_kind),dimension(nsig):: i1,i2,i3,i4
 ! real(r_kind) penalty
-  real(r_kind) :: t_TL,p_TL,q_TL
-  real(r_kind) :: t_AD,p_AD,q_AD
-  real(r_kind) :: ql_TL,qr_TL
-  real(r_kind) :: ql_AD,qr_AD
+  real(r_kind) :: t_tl,p_tl,q_tl
+  real(r_kind) :: t_ad,p_ad,q_ad
+  real(r_kind) :: ql_tl,qr_tl
+  real(r_kind) :: ql_ad,qr_ad
   real(r_kind) val,w1,w2,w3,w4
   real(r_kind) cg_lwcp,grad,p0,wnotgross,wgross,pg_lwcp
   real(r_kind),pointer,dimension(:) :: st, sp, sq
   real(r_kind),pointer,dimension(:) :: sql, sqr
   real(r_kind),pointer,dimension(:) :: rt, rp, rq
   real(r_kind),pointer,dimension(:) :: rql, rqr
-  type(lwcpNode), pointer :: lwcpptr
+  type(lwcpnode), pointer :: lwcpptr
 
 !  If no lwcp data return
   if(.not. associated(lwcphead))return
@@ -116,69 +116,69 @@ subroutine intlwcp_(lwcphead,rval,sval)
 
   if (.not.l_wcp_cwm) then
 
-    call gsi_bundlegetpointer(sval,'tsen',st,istatus);ier=istatus+ier
-    call gsi_bundlegetpointer(sval,'prse',sp,istatus);ier=istatus+ier
-    call gsi_bundlegetpointer(sval,'q'   ,sq,istatus);ier=istatus+ier
-    call gsi_bundlegetpointer(rval,'tsen',rt,istatus);ier=istatus+ier
-    call gsi_bundlegetpointer(rval,'prse',rp,istatus);ier=istatus+ier
-    call gsi_bundlegetpointer(rval,'q'   ,rq,istatus);ier=istatus+ier
+     call gsi_bundlegetpointer(sval,'tsen',st,istatus);ier=istatus+ier
+     call gsi_bundlegetpointer(sval,'prse',sp,istatus);ier=istatus+ier
+     call gsi_bundlegetpointer(sval,'q'   ,sq,istatus);ier=istatus+ier
+     call gsi_bundlegetpointer(rval,'tsen',rt,istatus);ier=istatus+ier
+     call gsi_bundlegetpointer(rval,'prse',rp,istatus);ier=istatus+ier
+     call gsi_bundlegetpointer(rval,'q'   ,rq,istatus);ier=istatus+ier
 
   else
 
-    call gsi_bundlegetpointer(sval,'ql',sql,istatus);ier=istatus+ier
-    call gsi_bundlegetpointer(sval,'qr',sqr,istatus);ier=istatus+ier
-    call gsi_bundlegetpointer(rval,'ql',rql,istatus);ier=istatus+ier
-    call gsi_bundlegetpointer(rval,'qr',rqr,istatus);ier=istatus+ier
-
+     call gsi_bundlegetpointer(sval,'ql',sql,istatus);ier=istatus+ier
+     call gsi_bundlegetpointer(sval,'qr',sqr,istatus);ier=istatus+ier
+     call gsi_bundlegetpointer(rval,'ql',rql,istatus);ier=istatus+ier
+     call gsi_bundlegetpointer(rval,'qr',rqr,istatus);ier=istatus+ier
+ 
   endif ! l_wcp_cwm
 
   if(ier/=0)return
 
   !lwcpptr => lwcphead
-  lwcpptr => lwcpNode_typecast(lwcphead)
+  lwcpptr => lwcpnode_typecast(lwcphead)
   do while (associated(lwcpptr))
 
      w1=lwcpptr%wij(1)
      w2=lwcpptr%wij(2)
      w3=lwcpptr%wij(3)
      w4=lwcpptr%wij(4)
-    do k=1,nsig
-      i1(k)=lwcpptr%ij(1,k)
-      i2(k)=lwcpptr%ij(2,k)
-      i3(k)=lwcpptr%ij(3,k)
-      i4(k)=lwcpptr%ij(4,k)
-    enddo
+     do k=1,nsig
+        i1(k)=lwcpptr%ij(1,k)
+        i2(k)=lwcpptr%ij(2,k)
+        i3(k)=lwcpptr%ij(3,k)
+        i4(k)=lwcpptr%ij(4,k)
+     enddo
      
      val=zero
 
 !    Forward model
 
      if (.not.l_wcp_cwm) then
-       do k=1,nsig
-         t_TL=w1* st(i1(k))+w2* st(i2(k))+w3* st(i3(k))+w4* st(i4(k))
-         p_TL=w1* sp(i1(k))+w2* sp(i2(k))+w3* sp(i3(k))+w4* sp(i4(k))
-         q_TL=w1* sq(i1(k))+w2* sq(i2(k))+w3* sq(i3(k))+w4* sq(i4(k))
-         val = val + ( t_TL*lwcpptr%jac_t(k) + &
-                       p_TL*lwcpptr%jac_p(k) + & 
-                       q_TL*lwcpptr%jac_q(k) ) ! tpwcon*r10*(piges(k)-piges(k+1)) already did in setuplwcp.f90
-       end do
+        do k=1,nsig
+           t_tl=w1* st(i1(k))+w2* st(i2(k))+w3* st(i3(k))+w4* st(i4(k))
+           p_tl=w1* sp(i1(k))+w2* sp(i2(k))+w3* sp(i3(k))+w4* sp(i4(k))
+           q_tl=w1* sq(i1(k))+w2* sq(i2(k))+w3* sq(i3(k))+w4* sq(i4(k))
+           val = val + ( t_tl*lwcpptr%jac_t(k) + &
+                         p_tl*lwcpptr%jac_p(k) + & 
+                         q_tl*lwcpptr%jac_q(k) ) ! tpwcon*r10*(piges(k)-piges(k+1)) already did in setuplwcp.f90
+        end do
      else
-       do k=1,nsig
-         ql_TL=w1* sql(i1(k))+w2* sql(i2(k))+w3* sql(i3(k))+w4* sql(i4(k))
-         qr_TL=w1* sqr(i1(k))+w2* sqr(i2(k))+w3* sqr(i3(k))+w4* sqr(i4(k))
-         val = val + ( ql_TL*lwcpptr%jac_ql(k) + & 
-                       qr_TL*lwcpptr%jac_qr(k) ) ! tpwcon*r10*(piges(k)-piges(k+1)) already did in setuplwcp.f90
-       end do
+        do k=1,nsig
+           ql_tl=w1* sql(i1(k))+w2* sql(i2(k))+w3* sql(i3(k))+w4* sql(i4(k))
+           qr_tl=w1* sqr(i1(k))+w2* sqr(i2(k))+w3* sqr(i3(k))+w4* sqr(i4(k))
+           val = val + ( ql_tl*lwcpptr%jac_ql(k) + & 
+                         qr_tl*lwcpptr%jac_qr(k) ) ! tpwcon*r10*(piges(k)-piges(k+1)) already did in setuplwcp.f90
+        end do
      endif ! l_wcp_cwm
 
      if(luse_obsdiag)then
         if (lsaveobsens) then
            grad = val*lwcpptr%raterr2*lwcpptr%err2
            !-- lwcpptr%diags%obssen(jiter) = grad
-           call obsdiagNode_set(lwcpptr%diags,jiter=jiter,obssen=grad)
+           call obsdiagnode_set(lwcpptr%diags,jiter=jiter,obssen=grad)
         else
            !-- if (lwcpptr%luse) lwcpptr%diags%tldepart(jiter)=val
-           if (lwcpptr%luse) call obsdiagNode_set(lwcpptr%diags,jiter=jiter,tldepart=val)
+           if (lwcpptr%luse) call obsdiagnode_set(lwcpptr%diags,jiter=jiter,tldepart=val)
         endif
      end if
 
@@ -206,42 +206,42 @@ subroutine intlwcp_(lwcphead,rval,sval)
 !       Adjoint
 
         if (.not.l_wcp_cwm) then
-          do k=1,nsig
-            t_AD = grad*lwcpptr%jac_t(k)
-            rt(i1(k))=rt(i1(k))+w1*t_AD
-            rt(i2(k))=rt(i2(k))+w2*t_AD
-            rt(i3(k))=rt(i3(k))+w3*t_AD
-            rt(i4(k))=rt(i4(k))+w4*t_AD
-            p_AD = grad*lwcpptr%jac_p(k)
-            rp(i1(k))=rp(i1(k))+w1*p_AD
-            rp(i2(k))=rp(i2(k))+w2*p_AD
-            rp(i3(k))=rp(i3(k))+w3*p_AD
-            rp(i4(k))=rp(i4(k))+w4*p_AD
-            q_AD = grad*lwcpptr%jac_q(k)
-            rq(i1(k))=rq(i1(k))+w1*q_AD
-            rq(i2(k))=rq(i2(k))+w2*q_AD
-            rq(i3(k))=rq(i3(k))+w3*q_AD
-            rq(i4(k))=rq(i4(k))+w4*q_AD
-          enddo
+           do k=1,nsig
+              t_ad = grad*lwcpptr%jac_t(k)
+              rt(i1(k))=rt(i1(k))+w1*t_ad
+              rt(i2(k))=rt(i2(k))+w2*t_ad
+              rt(i3(k))=rt(i3(k))+w3*t_ad
+              rt(i4(k))=rt(i4(k))+w4*t_ad
+              p_ad = grad*lwcpptr%jac_p(k)
+              rp(i1(k))=rp(i1(k))+w1*p_ad
+              rp(i2(k))=rp(i2(k))+w2*p_ad
+              rp(i3(k))=rp(i3(k))+w3*p_ad
+              rp(i4(k))=rp(i4(k))+w4*p_ad
+              q_ad = grad*lwcpptr%jac_q(k)
+              rq(i1(k))=rq(i1(k))+w1*q_ad
+              rq(i2(k))=rq(i2(k))+w2*q_ad
+              rq(i3(k))=rq(i3(k))+w3*q_ad
+              rq(i4(k))=rq(i4(k))+w4*q_ad
+           enddo
         else
-          do k=1,nsig
-            ql_AD = grad*lwcpptr%jac_ql(k)
-            rql(i1(k))=rql(i1(k))+w1*ql_AD
-            rql(i2(k))=rql(i2(k))+w2*ql_AD
-            rql(i3(k))=rql(i3(k))+w3*ql_AD
-            rql(i4(k))=rql(i4(k))+w4*ql_AD
-            qr_AD = grad*lwcpptr%jac_qr(k)
-            rqr(i1(k))=rqr(i1(k))+w1*qr_AD
-            rqr(i2(k))=rqr(i2(k))+w2*qr_AD
-            rqr(i3(k))=rqr(i3(k))+w3*qr_AD
-            rqr(i4(k))=rqr(i4(k))+w4*qr_AD
-          enddo
+           do k=1,nsig
+              ql_ad = grad*lwcpptr%jac_ql(k)
+              rql(i1(k))=rql(i1(k))+w1*ql_ad
+              rql(i2(k))=rql(i2(k))+w2*ql_ad
+              rql(i3(k))=rql(i3(k))+w3*ql_ad
+              rql(i4(k))=rql(i4(k))+w4*ql_ad
+              qr_ad = grad*lwcpptr%jac_qr(k)
+              rqr(i1(k))=rqr(i1(k))+w1*qr_ad
+              rqr(i2(k))=rqr(i2(k))+w2*qr_ad
+              rqr(i3(k))=rqr(i3(k))+w3*qr_ad
+              rqr(i4(k))=rqr(i4(k))+w4*qr_ad
+           enddo
         endif ! l_wcp_cwm
 
      endif ! l_do_adjoint
 
      !lwcpptr => lwcpptr%llpoint
-     lwcpptr => lwcpNode_nextcast(lwcpptr)
+     lwcpptr => lwcpnode_nextcast(lwcpptr)
 
   end do
 

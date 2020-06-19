@@ -4,10 +4,10 @@ module intjcmod
 ! module:   intjcmod    module for weak constraint int routines
 !  pgrmmr:  kleist
 !
-! abstract: module for Jc int routines
+! abstract: module for jc int routines
 !
 ! program history log:
-!   2012-01-21  kleist - consolidation of Jc int routines into single module
+!   2012-01-21  kleist - consolidation of jc int routines into single module
 !   2013-10-25  todling - nullify work pointers
 !   2014-03-19  pondeca - add weak constraint subroutine for wspd10m
 !   2014-05-07  pondeca - add weak constraint subroutine for howv
@@ -30,8 +30,8 @@ use gsi_bundlemod, only: gsi_bundle,gsi_bundlegetpointer
 
 implicit none
 
-PRIVATE
-PUBLIC intlimqc,intlimq,intlimg,intlimp,intlimv,intlimw10m,intlimhowv,intliml,intlimcldch,intjcdfi,intjcpdry,intjcpdry1,intjcpdry2  
+private
+public intlimqc,intlimq,intlimg,intlimp,intlimv,intlimw10m,intlimhowv,intliml,intlimcldch,intjcdfi,intjcpdry,intjcpdry1,intjcpdry2  
 
 contains
 
@@ -80,14 +80,14 @@ subroutine intlimq(rval,sval,itbin)
 ! Declare passed variables
   type(gsi_bundle),intent(in   ) :: sval
   type(gsi_bundle),intent(inout) :: rval
-  integer, intent(in)            :: itbin
+  integer(i_kind),intent(in    ) :: itbin
 
 ! Declare local variables
   integer(i_kind) i,j,k,ier,istatus,ii,mm1
   real(r_kind) q
-  real(r_kind),pointer,dimension(:,:,:) :: sq=>NULL()
-  real(r_kind),pointer,dimension(:,:,:) :: rq=>NULL()
-  real(r_kind),pointer,dimension(:,:,:) :: ges_q_it=>NULL()
+  real(r_kind),pointer,dimension(:,:,:) :: sq=>null()
+  real(r_kind),pointer,dimension(:,:,:) :: rq=>null()
+  real(r_kind),pointer,dimension(:,:,:) :: ges_q_it=>null()
 
   if (factqmin==zero .and. factqmax==zero) return
  
@@ -169,9 +169,9 @@ subroutine intlimqc(rval,sval,itbin,cldtype)
   integer(i_kind) i,j,k,ier,ier1,istatus
   real(r_kind) qc
   real(r_kind) factqc   
-  real(r_kind),pointer,dimension(:,:,:) :: sqc=>NULL()
-  real(r_kind),pointer,dimension(:,:,:) :: rqc=>NULL()
-  real(r_kind),pointer,dimension(:,:,:) :: ges_qc_it=>NULL()
+  real(r_kind),pointer,dimension(:,:,:) :: sqc=>null()
+  real(r_kind),pointer,dimension(:,:,:) :: rqc=>null()
+  real(r_kind),pointer,dimension(:,:,:) :: ges_qc_it=>null()
 
   ier=0
   ier1=0
@@ -263,8 +263,8 @@ subroutine intlimg(rval,sval)
 ! Declare local variables
   integer(i_kind) i,j,ier,istatus
   real(r_kind) gust
-  real(r_kind),pointer,dimension(:,:) :: sg=>NULL()
-  real(r_kind),pointer,dimension(:,:) :: rg=>NULL()
+  real(r_kind),pointer,dimension(:,:) :: sg=>null()
+  real(r_kind),pointer,dimension(:,:) :: rg=>null()
 
   if (factg==zero) return
 
@@ -325,8 +325,8 @@ subroutine intlimp(rval,sval)
 ! Declare local variables
   integer(i_kind) i,j,ier,istatus
   real(r_kind) pblh
-  real(r_kind),pointer,dimension(:,:) :: sp=>NULL()
-  real(r_kind),pointer,dimension(:,:) :: rp=>NULL()
+  real(r_kind),pointer,dimension(:,:) :: sp=>null()
+  real(r_kind),pointer,dimension(:,:) :: rp=>null()
 
   if (factp==zero) return
 
@@ -387,8 +387,8 @@ subroutine intlimv(rval,sval)
 ! Declare local variables
   integer(i_kind) i,j,ier,istatus
   real(r_kind) vis
-  real(r_kind),pointer,dimension(:,:) :: sv=>NULL()
-  real(r_kind),pointer,dimension(:,:) :: rv=>NULL()
+  real(r_kind),pointer,dimension(:,:) :: sv=>null()
+  real(r_kind),pointer,dimension(:,:) :: rv=>null()
 
   if (factv==zero) return
 
@@ -453,8 +453,8 @@ subroutine intlimw10m(rval,sval)
 ! Declare local variables
   integer(i_kind) i,j,ier,istatus
   real(r_kind) wspd10m
-  real(r_kind),pointer,dimension(:,:) :: sg=>NULL()
-  real(r_kind),pointer,dimension(:,:) :: rg=>NULL()
+  real(r_kind),pointer,dimension(:,:) :: sg=>null()
+  real(r_kind),pointer,dimension(:,:) :: rg=>null()
 
   if (factw10m==zero) return
 
@@ -519,8 +519,8 @@ subroutine intlimhowv(rval,sval)
 ! Declare local variables
   integer(i_kind) i,j,ier,istatus
   real(r_kind) howv
-  real(r_kind),pointer,dimension(:,:) :: sg=>NULL()
-  real(r_kind),pointer,dimension(:,:) :: rg=>NULL()
+  real(r_kind),pointer,dimension(:,:) :: sg=>null()
+  real(r_kind),pointer,dimension(:,:) :: rg=>null()
 
   if (facthowv==zero) return
 
@@ -581,8 +581,8 @@ subroutine intliml(rval,sval)
 ! Declare local variables
   integer(i_kind) i,j,ier,istatus
   real(r_kind) lcbas
-  real(r_kind),pointer,dimension(:,:) :: sv=>NULL()
-  real(r_kind),pointer,dimension(:,:) :: rv=>NULL()
+  real(r_kind),pointer,dimension(:,:) :: sv=>null()
+  real(r_kind),pointer,dimension(:,:) :: rv=>null()
 
   if (factl==zero) return
 
@@ -647,8 +647,8 @@ subroutine intlimcldch(rval,sval)
 ! Declare local variables
   integer(i_kind) i,j,ier,istatus
   real(r_kind) cldch
-  real(r_kind),pointer,dimension(:,:) :: sg=>NULL()
-  real(r_kind),pointer,dimension(:,:) :: rg=>NULL()
+  real(r_kind),pointer,dimension(:,:) :: sg=>null()
+  real(r_kind),pointer,dimension(:,:) :: rg=>null()
 
   if (factcldch==zero) return
 
@@ -725,22 +725,22 @@ subroutine intjcpdry(rval,sval,nbins,pjc)
   real(r_quad),dimension(nsig) :: mass2
   real(r_quad) rcon,con,dmass
   integer(i_kind) i,j,k,it,ii,mm1,ier,icw,iql,iqi,istatus
-  real(r_kind),pointer,dimension(:,:,:) :: sq =>NULL()
-  real(r_kind),pointer,dimension(:,:,:) :: sc =>NULL()
-  real(r_kind),pointer,dimension(:,:,:) :: sql=>NULL()
-  real(r_kind),pointer,dimension(:,:,:) :: sqi=>NULL()
-  real(r_kind),pointer,dimension(:,:,:) :: rq =>NULL()
-  real(r_kind),pointer,dimension(:,:,:) :: rc =>NULL()
-  real(r_kind),pointer,dimension(:,:,:) :: rql=>NULL()
-  real(r_kind),pointer,dimension(:,:,:) :: rqi=>NULL()
-  real(r_kind),pointer,dimension(:,:)   :: sp =>NULL()
-  real(r_kind),pointer,dimension(:,:)   :: rp =>NULL()
+  real(r_kind),pointer,dimension(:,:,:) :: sq =>null()
+  real(r_kind),pointer,dimension(:,:,:) :: sc =>null()
+  real(r_kind),pointer,dimension(:,:,:) :: sql=>null()
+  real(r_kind),pointer,dimension(:,:,:) :: sqi=>null()
+  real(r_kind),pointer,dimension(:,:,:) :: rq =>null()
+  real(r_kind),pointer,dimension(:,:,:) :: rc =>null()
+  real(r_kind),pointer,dimension(:,:,:) :: rql=>null()
+  real(r_kind),pointer,dimension(:,:,:) :: rqi=>null()
+  real(r_kind),pointer,dimension(:,:)   :: sp =>null()
+  real(r_kind),pointer,dimension(:,:)   :: rp =>null()
 
   integer(i_kind) :: n
   
   it=ntguessig
   mass=zero_quad
-  rcon=one_quad/(two_quad*float(nlon))
+  rcon=one_quad/(two_quad*real(nlon,r_quad))
   mm1=mype+1
 
   do n=1,nbins
@@ -753,17 +753,17 @@ subroutine intjcpdry(rval,sval,nbins,pjc)
      call gsi_bundlegetpointer(sval(n),'qi',sqi,istatus);iqi=istatus+iqi
      call gsi_bundlegetpointer(sval(n),'ps',sp, istatus);ier=istatus+ier
      if(ier+icw*(iql+iqi)/=0)then
-       if (mype==0) write(6,*)'intjcpdry: checking ier+icw*(iql+iqi)=', ier+icw*(iql+iqi)
-       return
+        if (mype==0) write(6,*)'intjcpdry: checking ier+icw*(iql+iqi)=', ier+icw*(iql+iqi)
+        return
      end if
 
 
 ! Calculate mean surface pressure contribution in subdomain
      do j=2,lon2-1
-       do i=2,lat2-1
-         ii=istart(mm1)+i-2
-         mass(n)=mass(n)+sp(i,j)*wgtlats(ii)
-       end do
+        do i=2,lat2-1
+           ii=istart(mm1)+i-2
+           mass(n)=mass(n)+sp(i,j)*wgtlats(ii)
+        end do
      end do
 
      mass2(:)=zero_quad
@@ -788,7 +788,7 @@ subroutine intjcpdry(rval,sval,nbins,pjc)
      end do
   end do
 
-! First, use MPI to get global mean increment
+! First, use mpi to get global mean increment
   call mpl_allreduce(2*nbins,qpvals=mass)
 
   do n=1,nbins
@@ -799,8 +799,8 @@ subroutine intjcpdry(rval,sval,nbins,pjc)
      call gsi_bundlegetpointer(rval(n),'qi',rqi,istatus);iqi=istatus+iqi
      call gsi_bundlegetpointer(rval(n),'ps',rp, istatus);ier=istatus+ier
      if(ier+icw*(iql+iqi)/=0)then
-       if (mype==0) write(6,*)'intjcpdry: checking ier+icw*(iql+iqi)=', ier+icw*(iql+iqi)
-       return
+        if (mype==0) write(6,*)'intjcpdry: checking ier+icw*(iql+iqi)=', ier+icw*(iql+iqi)
+        return
      end if
 !    Remove water-vapor contribution to get incremental dry ps
 !    if (mype==0) write(6,*)'intjcpdry: total mass =', mass(n)
@@ -813,10 +813,10 @@ subroutine intjcpdry(rval,sval,nbins,pjc)
 
 !    Calculate mean surface pressure contribution in subdomain
      do j=2,lon2-1
-       do i=2,lat2-1
-         ii=istart(mm1)+i-2
-         rp(i,j)=rp(i,j)+dmass*wgtlats(ii)
-       end do
+        do i=2,lat2-1
+           ii=istart(mm1)+i-2
+           rp(i,j)=rp(i,j)+dmass*wgtlats(ii)
+        end do
      end do
 !    Remove water to get incremental dry ps
 !$omp parallel do  schedule(dynamic,1) private(k,j,i,ii,con)
@@ -887,21 +887,21 @@ subroutine intjcpdry1(sval,nbins,mass)
   real(r_quad) rcon,con
   integer(i_kind) i,j,k,it,ii,mm1,icw,iql,iqi
   integer(i_kind) iq,iqr,iqs,iqg,iqh,ips    
-  real(r_kind),pointer,dimension(:,:,:) :: sq =>NULL()
-  real(r_kind),pointer,dimension(:,:,:) :: sc =>NULL()
-  real(r_kind),pointer,dimension(:,:,:) :: sql=>NULL()
-  real(r_kind),pointer,dimension(:,:,:) :: sqi=>NULL()
-  real(r_kind),pointer,dimension(:,:,:) :: sqr=>NULL()
-  real(r_kind),pointer,dimension(:,:,:) :: sqs=>NULL()
-  real(r_kind),pointer,dimension(:,:,:) :: sqg=>NULL()
-  real(r_kind),pointer,dimension(:,:,:) :: sqh=>NULL()
-  real(r_kind),pointer,dimension(:,:)   :: sp =>NULL()
+  real(r_kind),pointer,dimension(:,:,:) :: sq =>null()
+  real(r_kind),pointer,dimension(:,:,:) :: sc =>null()
+  real(r_kind),pointer,dimension(:,:,:) :: sql=>null()
+  real(r_kind),pointer,dimension(:,:,:) :: sqi=>null()
+  real(r_kind),pointer,dimension(:,:,:) :: sqr=>null()
+  real(r_kind),pointer,dimension(:,:,:) :: sqs=>null()
+  real(r_kind),pointer,dimension(:,:,:) :: sqg=>null()
+  real(r_kind),pointer,dimension(:,:,:) :: sqh=>null()
+  real(r_kind),pointer,dimension(:,:)   :: sp =>null()
 
   integer(i_kind) :: n
   
   it=ntguessig
   mass=zero_quad
-  rcon=one_quad/(two_quad*float(nlon))
+  rcon=one_quad/(two_quad*real(nlon,r_quad))
   mm1=mype+1
 
   do n=1,nbins
@@ -918,17 +918,17 @@ subroutine intjcpdry1(sval,nbins,mass)
      call gsi_bundlegetpointer(sval(n),'qh',sqh, iqh )
      call gsi_bundlegetpointer(sval(n),'ps',sp,  ips )
      if ( iq*ips/=0 .or. icw*(iql+iqi)/=0 ) then
-       if (mype==0) write(6,*)'intjcpdry1: warning - missing some required variables'        
-       if (mype==0) write(6,*)'intjcpdry1: constraint for dry mass constraint not performed'  
-       return
+        if (mype==0) write(6,*)'intjcpdry1: warning - missing some required variables'        
+        if (mype==0) write(6,*)'intjcpdry1: constraint for dry mass constraint not performed'  
+        return
      end if
 
 ! Calculate mean surface pressure contribution in subdomain
      do j=2,lon2-1
-       do i=2,lat2-1
-         ii=istart(mm1)+i-2
-         mass(n)=mass(n)+sp(i,j)*wgtlats(ii)
-       end do
+        do i=2,lat2-1
+           ii=istart(mm1)+i-2
+           mass(n)=mass(n)+sp(i,j)*wgtlats(ii)
+        end do
      end do
 
      mass2(:)=zero_quad
@@ -1010,20 +1010,20 @@ subroutine intjcpdry2(rval,nbins,mass,pjc)
   real(r_quad) rcon,con,dmass
   integer(i_kind) i,j,k,it,ii,mm1,icw,iql,iqi
   integer(i_kind) iq,iqr,iqs,iqg,iqh,ips
-  real(r_kind),pointer,dimension(:,:,:) :: rq =>NULL()
-  real(r_kind),pointer,dimension(:,:,:) :: rc =>NULL()
-  real(r_kind),pointer,dimension(:,:,:) :: rql=>NULL()
-  real(r_kind),pointer,dimension(:,:,:) :: rqi=>NULL()
-  real(r_kind),pointer,dimension(:,:,:) :: rqr=>NULL()
-  real(r_kind),pointer,dimension(:,:,:) :: rqs=>NULL()
-  real(r_kind),pointer,dimension(:,:,:) :: rqg=>NULL()
-  real(r_kind),pointer,dimension(:,:,:) :: rqh=>NULL()
-  real(r_kind),pointer,dimension(:,:)   :: rp =>NULL()
+  real(r_kind),pointer,dimension(:,:,:) :: rq =>null()
+  real(r_kind),pointer,dimension(:,:,:) :: rc =>null()
+  real(r_kind),pointer,dimension(:,:,:) :: rql=>null()
+  real(r_kind),pointer,dimension(:,:,:) :: rqi=>null()
+  real(r_kind),pointer,dimension(:,:,:) :: rqr=>null()
+  real(r_kind),pointer,dimension(:,:,:) :: rqs=>null()
+  real(r_kind),pointer,dimension(:,:,:) :: rqg=>null()
+  real(r_kind),pointer,dimension(:,:,:) :: rqh=>null()
+  real(r_kind),pointer,dimension(:,:)   :: rp =>null()
 
   integer(i_kind) :: n
   
   it=ntguessig
-  rcon=one_quad/(two_quad*float(nlon))
+  rcon=one_quad/(two_quad*real(nlon,r_quad))
   mm1=mype+1
 
   do n=1,nbins
@@ -1038,9 +1038,9 @@ subroutine intjcpdry2(rval,nbins,mass,pjc)
      call gsi_bundlegetpointer(rval(n),'qh',rqh, iqh )
      call gsi_bundlegetpointer(rval(n),'ps',rp,  ips )
      if( iq*ips /=0 .or. icw*(iql+iqi) /=0 ) then
-       if (mype==0) write(6,*)'intjcpdry2: warning - missing some required variables' 
-       if (mype==0) write(6,*)'intjcpdry2: constraint for dry mass constraint not performed' 
-       return
+        if (mype==0) write(6,*)'intjcpdry2: warning - missing some required variables' 
+        if (mype==0) write(6,*)'intjcpdry2: constraint for dry mass constraint not performed' 
+        return
      end if
 !    Remove water-vapor contribution to get incremental dry ps
 !    if (mype==0) write(6,*)'intjcpdry: total mass =', mass(n)
@@ -1053,10 +1053,10 @@ subroutine intjcpdry2(rval,nbins,mass,pjc)
 
 !    Calculate mean surface pressure contribution in subdomain
      do j=2,lon2-1
-       do i=2,lat2-1
-         ii=istart(mm1)+i-2
-         rp(i,j)=rp(i,j)+dmass*wgtlats(ii)
-       end do
+        do i=2,lat2-1
+           ii=istart(mm1)+i-2
+           rp(i,j)=rp(i,j)+dmass*wgtlats(ii)
+        end do
      end do
 !    Remove water to get incremental dry ps
 !$omp parallel do  schedule(dynamic,1) private(k,j,i,ii,con)
@@ -1087,7 +1087,7 @@ end subroutine intjcpdry2
 subroutine intjcdfi(rval,sval,pjc)
 !$$$  subprogram documentation block
 !                .      .    .                                       .
-! subprogram:    intjcdfi    calculate Jc DFI terms and contribution to gradient
+! subprogram:    intjcdfi    calculate jc dfi terms and contribution to gradient
 !   prgmmr: tremolet
 !
 ! program history log:
@@ -1113,23 +1113,23 @@ subroutine intjcdfi(rval,sval,pjc)
 !
 !$$$ end documentation block
 
-use jcmod, only: wgtdfi,alphajc
-use gsi_4dvar, only: nobs_bins
-use mpimod, only: mype
-use state_vectors, only : allocate_state,deallocate_state
-use gsi_bundlemod, only : self_add,self_mul,assignment(=)
-implicit none
+  use jcmod, only: wgtdfi,alphajc
+  use gsi_4dvar, only: nobs_bins
+  use mpimod, only: mype
+  use state_vectors, only : allocate_state,deallocate_state
+  use gsi_bundlemod, only : self_add,self_mul,assignment(=)
+  implicit none
 
 ! Declare passed variables
-type(gsi_bundle),dimension(nobs_bins),intent(in   ) :: sval
-type(gsi_bundle),dimension(nobs_bins),intent(inout) :: rval
-real(r_quad),               optional, intent(  out) :: pjc
+  type(gsi_bundle),dimension(nobs_bins),intent(in   ) :: sval
+  type(gsi_bundle),dimension(nobs_bins),intent(inout) :: rval
+  real(r_quad),               optional, intent(  out) :: pjc
 
 ! Declare local variables
-integer(i_kind) :: jj,idfi
-real(r_quad),parameter :: half_quad=0.5_r_quad
-type(gsi_bundle) :: sfilter,afilter
-real(r_quad) :: cost
+  integer(i_kind) :: jj,idfi
+  real(r_quad),parameter :: half_quad=0.5_r_quad
+  type(gsi_bundle) :: sfilter,afilter
+  real(r_quad) :: cost
 
 !************************************************************************************  
 
@@ -1146,11 +1146,11 @@ real(r_quad) :: cost
 ! Compute difference from filtered state
   call self_add(sfilter,-one,sval(idfi))
 
-! Apply Jc multiplicative factor
+! Apply jc multiplicative factor
   call self_mul(sfilter,alphajc)
 
-! Compute Jc (norm of difference)
-! Jc = 1/2 * wgt * sfilter *sfilter
+! Compute jc (norm of difference)
+! jc = 1/2 * wgt * sfilter *sfilter
 ! afilter = wgt * sfilter
   call enorm_state(sfilter,cost,afilter)
   if(present(pjc))then
@@ -1158,7 +1158,7 @@ real(r_quad) :: cost
      if (mype==0) write(6,*)'Jc DFI=',pjc
   endif
 
-! Adjoint Jc multiplicative factor
+! Adjoint jc multiplicative factor
   call self_mul(afilter,alphajc)
 
 ! Adjoint of difference from filtered state

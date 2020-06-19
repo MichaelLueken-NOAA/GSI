@@ -7,8 +7,8 @@ module intgustmod
 ! abstract: module for intgust and its tangent linear intgust_tl
 !
 ! program history log:
-!   2012-09-14  Syed RH Rizvi, NCAR/NESL/MMM/DAS  - implemented obs adjoint test  
-!   2016-05-18  guo     - replaced ob_type with polymorphic obsNode through type casting
+!   2012-09-14  Syed RH Rizvi, ncar/nesl/mmm/das  - implemented obs adjoint test  
+!   2016-05-18  guo     - replaced ob_type with polymorphic obsnode through type casting
 !
 ! subroutines included:
 !   sub intgust
@@ -21,15 +21,15 @@ module intgustmod
 !
 !$$$ end documentation block
 
-use m_obsNode , only: obsNode
-use m_gustNode, only: gustNode
-use m_gustNode, only: gustNode_typecast
-use m_gustNode, only: gustNode_nextcast
-use m_obsdiagNode, only: obsdiagNode_set
+use m_obsnode , only: obsnode
+use m_gustnode, only: gustnode
+use m_gustnode, only: gustnode_typecast
+use m_gustnode, only: gustnode_nextcast
+use m_obsdiagnode, only: obsdiagnode_set
 implicit none
 
-PRIVATE
-PUBLIC intgust
+private
+public intgust
 
 contains
 
@@ -44,7 +44,7 @@ subroutine intgust(gusthead,rval,sval)
 !
 ! program history log:
 !
-!   2012-09-14  Syed RH Rizvi, NCAR/NESL/MMM/DAS  - introduced ladtest_obs         
+!   2012-09-14  Syed RH Rizvi, ncar/nesl/mmm/das  - introduced ladtest_obs         
 !   2014-12-03  derber  - modify so that use of obsdiags can be turned off
 !
 !   input argument list:
@@ -71,7 +71,7 @@ subroutine intgust(gusthead,rval,sval)
   implicit none
 
 ! Declare passed variables
-  class(obsNode),pointer,intent(in   ) :: gusthead
+  class(obsnode),pointer,intent(in   ) :: gusthead
   type(gsi_bundle),         intent(in   ) :: sval
   type(gsi_bundle),         intent(inout) :: rval
 
@@ -84,7 +84,7 @@ subroutine intgust(gusthead,rval,sval)
   real(r_kind) cg_gust,p0,grad,wnotgross,wgross,pg_gust
   real(r_kind),pointer,dimension(:) :: sgust
   real(r_kind),pointer,dimension(:) :: rgust
-  type(gustNode), pointer :: gustptr
+  type(gustnode), pointer :: gustptr
 
 ! Retrieve pointers
 ! Simply return if any pointer not found
@@ -94,7 +94,7 @@ subroutine intgust(gusthead,rval,sval)
   if(ier/=0)return
 
   !gustptr => gusthead
-  gustptr => gustNode_typecast(gusthead)
+  gustptr => gustnode_typecast(gusthead)
   do while (associated(gustptr))
      j1=gustptr%ij(1)
      j2=gustptr%ij(2)
@@ -113,10 +113,10 @@ subroutine intgust(gusthead,rval,sval)
         if (lsaveobsens) then
            grad = val*gustptr%raterr2*gustptr%err2
            !-- gustptr%diags%obssen(jiter) = grad
-           call obsdiagNode_set(gustptr%diags,jiter=jiter,obssen=grad)
+           call obsdiagnode_set(gustptr%diags,jiter=jiter,obssen=grad)
         else
            !-- if (gustptr%luse) gustptr%diags%tldepart(jiter)=val
-           if (gustptr%luse) call obsdiagNode_set(gustptr%diags,jiter=jiter,tldepart=val)
+           if (gustptr%luse) call obsdiagnode_set(gustptr%diags,jiter=jiter,tldepart=val)
         endif
      endif
 
@@ -149,7 +149,7 @@ subroutine intgust(gusthead,rval,sval)
      endif
 
      !gustptr => gustptr%llpoint
-     gustptr => gustNode_nextcast(gustptr)
+     gustptr => gustnode_nextcast(gustptr)
 
   end do
 

@@ -13,7 +13,7 @@ module intgpsmod
 !   2008-11-28  Todling - add interface back
 !   2009-08-13  lueken - update documentation
 !   2013-10-28  todling - rename p3d to prse
-!   2016-05-18  guo     - replaced ob_type with polymorphic obsNode through type casting
+!   2016-05-18  guo     - replaced ob_type with polymorphic obsnode through type casting
 !
 ! subroutines included:
 !   sub intgps_
@@ -25,18 +25,18 @@ module intgpsmod
 !   machine:
 !
 !$$$ end documentation block
-use m_obsNode, only: obsNode
-use m_gpsNode, only: gpsNode
-use m_gpsNode, only: gpsNode_typecast
-use m_gpsNode, only: gpsNode_nextcast
-use m_obsdiagNode, only: obsdiagNode_set
+use m_obsnode, only: obsnode
+use m_gpsnode, only: gpsnode
+use m_gpsnode, only: gpsnode_typecast
+use m_gpsnode, only: gpsnode_nextcast
+use m_obsdiagnode, only: obsdiagnode_set
 implicit none
 
-PRIVATE
-PUBLIC intgps
+private
+public intgps
 
 interface intgps; module procedure &
-          intgps_
+   intgps_
 end interface
 
 contains
@@ -57,8 +57,8 @@ subroutine intgps_(gpshead,rval,sval)
 !   2004-10-08  parrish - add nonlinear qc option
 !   2004-11-19  cucurull- add increments for surface pressure and temperature at levels
 !                          below observation. Install non-linear forward operator.
-!   2005-01-26  cucurull- Implement local GPS RO operator
-!   2005-03-01  parrish - nonlinear qc change as above; correct bug in zeroing of tl_AD
+!   2005-01-26  cucurull- Implement local gps ro operator
+!   2005-03-01  parrish - nonlinear qc change as above; correct bug in zeroing of tl_ad
 !   2005-03-23  cucurull- correct bounds for obs below the second level; place 
 !                         bounds for k1 and k2
 !   2005-04-11  treadon - merge intref and intref_qc into single routine
@@ -67,15 +67,15 @@ subroutine intgps_(gpshead,rval,sval)
 !   2005-12-02  cucurull - fix bug for dimensions of sp and rp
 !   2006-01-03  treadon - include r_kind type in w1,w2,...,w12 declaration
 !   2006-07-28  derber  - modify to use new inner loop obs data structure
-!                       - unify NL qc
+!                       - unify nl qc
 !   2006-09-06  cucurull - generalize code to hybrid vertical coordinate and modify to use
 !                          surface pressure
 !   2007-01-13  derber - clean up code and use coding standards
 !   2007-03-28  derber - turn intref into generalized intgps
 !   2007-07-26  cucurull - in/out 3d pressure to update code to generalized vertical coordinate
 !   2008-06-02  safford - rm unused vars
-!   2008-11-26  todling  - add 4dvar and GSI adjoint capability (obs binning, obsens, etc) 
-!   2008-11-26  todling - turned FOTO optional; changed ptr%time handle
+!   2008-11-26  todling  - add 4dvar and gsi adjoint capability (obs binning, obsens, etc) 
+!   2008-11-26  todling - turned foto optional; changed ptr%time handle
 !   2010-05-13  todling - update to use gsi_bundle; update interface
 !   2014-12-03  derber  - modify so that use of obsdiags can be turned off
 !   
@@ -83,7 +83,7 @@ subroutine intgps_(gpshead,rval,sval)
 !     gpshead  - obs type pointer to obs structure
 !     st       - input temperature correction field
 !     sq       - input q correction field
-!     sp       - input (3D) p correction field
+!     sp       - input (3d) p correction field
 !
 !   output argument list:
 !     gpshead  - obs type pointer to obs structure
@@ -108,7 +108,7 @@ subroutine intgps_(gpshead,rval,sval)
   implicit none
 
 ! Declare passed variables
-  class(obsNode),  pointer, intent(in   ) :: gpshead
+  class(obsnode),  pointer, intent(in   ) :: gpshead
   type(gsi_bundle),         intent(in   ) :: sval
   type(gsi_bundle),         intent(inout) :: rval
 
@@ -116,14 +116,14 @@ subroutine intgps_(gpshead,rval,sval)
   integer(i_kind) j,ier,istatus
   integer(i_kind),dimension(nsig):: i1,i2,i3,i4
   real(r_kind) :: w1,w2,w3,w4
-  real(r_kind) :: p_TL,p_AD,t_TL,t_AD,q_TL,q_AD
+  real(r_kind) :: p_tl,p_ad,t_tl,t_ad,q_tl,q_ad
   real(r_kind) :: val,pg_gps
   real(r_kind) ::cg_gps,grad,p0,wnotgross,wgross
   real(r_kind),pointer,dimension(:) :: st,sq
   real(r_kind),pointer,dimension(:) :: rt,rq
   real(r_kind),pointer,dimension(:) :: sp
   real(r_kind),pointer,dimension(:) :: rp
-  type(gpsNode), pointer :: gpsptr
+  type(gpsnode), pointer :: gpsptr
 
 !  If no gps obs return
   if(.not. associated(gpshead))return
@@ -139,7 +139,7 @@ subroutine intgps_(gpshead,rval,sval)
   if(ier/=0)return
 
   !gpsptr => gpshead
-  gpsptr => gpsNode_typecast(gpshead)
+  gpsptr => gpsnode_typecast(gpshead)
   do while (associated(gpsptr))
 
 ! Load location information into local variables
@@ -160,20 +160,20 @@ subroutine intgps_(gpshead,rval,sval)
 !  local refractivity (linear operator)
 
      do j=1,nsig
-        t_TL=w1* st(i1(j))+w2* st(i2(j))+w3* st(i3(j))+w4* st(i4(j))
-        q_TL=w1* sq(i1(j))+w2* sq(i2(j))+w3* sq(i3(j))+w4* sq(i4(j))
-        p_TL=w1* sp(i1(j))+w2* sp(i2(j))+w3* sp(i3(j))+w4* sp(i4(j))
-        val = val + p_TL*gpsptr%jac_p(j) + t_TL*gpsptr%jac_t(j)+q_TL*gpsptr%jac_q(j)
+        t_tl=w1* st(i1(j))+w2* st(i2(j))+w3* st(i3(j))+w4* st(i4(j))
+        q_tl=w1* sq(i1(j))+w2* sq(i2(j))+w3* sq(i3(j))+w4* sq(i4(j))
+        p_tl=w1* sp(i1(j))+w2* sp(i2(j))+w3* sp(i3(j))+w4* sp(i4(j))
+        val = val + p_tl*gpsptr%jac_p(j) + t_tl*gpsptr%jac_t(j)+q_tl*gpsptr%jac_q(j)
      end do
 
      if (luse_obsdiag)then
         if (lsaveobsens) then
            grad = val*gpsptr%raterr2*gpsptr%err2
            !-- gpsptr%diags%obssen(jiter) = grad
-           call obsdiagNode_set(gpsptr%diags,jiter=jiter,obssen=grad)
+           call obsdiagnode_set(gpsptr%diags,jiter=jiter,obssen=grad)
         else
            !-- if (gpsptr%luse) gpsptr%diags%tldepart(jiter)=val
-           if (gpsptr%luse) call obsdiagNode_set(gpsptr%diags,jiter=jiter,tldepart=val)
+           if (gpsptr%luse) call obsdiagnode_set(gpsptr%diags,jiter=jiter,tldepart=val)
         endif
      endif
 
@@ -205,27 +205,27 @@ subroutine intgps_(gpshead,rval,sval)
 !       adjoint 
 
         do j=1,nsig
-           t_AD = grad*gpsptr%jac_t(j)
-           rt(i1(j))=rt(i1(j))+w1*t_AD
-           rt(i2(j))=rt(i2(j))+w2*t_AD
-           rt(i3(j))=rt(i3(j))+w3*t_AD
-           rt(i4(j))=rt(i4(j))+w4*t_AD
-           q_AD = grad*gpsptr%jac_q(j)
-           rq(i1(j))=rq(i1(j))+w1*q_AD
-           rq(i2(j))=rq(i2(j))+w2*q_AD
-           rq(i3(j))=rq(i3(j))+w3*q_AD
-           rq(i4(j))=rq(i4(j))+w4*q_AD
-           p_AD = grad*gpsptr%jac_p(j)
-           rp(i1(j))=rp(i1(j))+w1*p_AD
-           rp(i2(j))=rp(i2(j))+w2*p_AD
-           rp(i3(j))=rp(i3(j))+w3*p_AD
-           rp(i4(j))=rp(i4(j))+w4*p_AD
+           t_ad = grad*gpsptr%jac_t(j)
+           rt(i1(j))=rt(i1(j))+w1*t_ad
+           rt(i2(j))=rt(i2(j))+w2*t_ad
+           rt(i3(j))=rt(i3(j))+w3*t_ad
+           rt(i4(j))=rt(i4(j))+w4*t_ad
+           q_ad = grad*gpsptr%jac_q(j)
+           rq(i1(j))=rq(i1(j))+w1*q_ad
+           rq(i2(j))=rq(i2(j))+w2*q_ad
+           rq(i3(j))=rq(i3(j))+w3*q_ad
+           rq(i4(j))=rq(i4(j))+w4*q_ad
+           p_ad = grad*gpsptr%jac_p(j)
+           rp(i1(j))=rp(i1(j))+w1*p_ad
+           rp(i2(j))=rp(i2(j))+w2*p_ad
+           rp(i3(j))=rp(i3(j))+w3*p_ad
+           rp(i4(j))=rp(i4(j))+w4*p_ad
         enddo
 
      endif
 
      !gpsptr => gpsptr%llpoint
-     gpsptr => gpsNode_nextcast(gpsptr)
+     gpsptr => gpsnode_nextcast(gpsptr)
 
   end do
 

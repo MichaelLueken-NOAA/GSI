@@ -7,7 +7,7 @@ module intlcbasmod
 ! abstract: module for intlcbas 
 !
 ! program history log:
-!   2016-05-18  guo     - replaced ob_type with polymorphic obsNode through type casting
+!   2016-05-18  guo     - replaced ob_type with polymorphic obsnode through type casting
 !
 ! subroutines included:
 !   sub intlcbas
@@ -20,15 +20,15 @@ module intlcbasmod
 !
 !$$$ end documentation block
 
-use m_obsNode  , only: obsNode
-use m_lcbasNode, only: lcbasNode
-use m_lcbasNode, only: lcbasNode_typecast
-use m_lcbasNode, only: lcbasNode_nextcast
-use m_obsdiagNode, only: obsdiagNode_set
+use m_obsnode  , only: obsnode
+use m_lcbasnode, only: lcbasnode
+use m_lcbasnode, only: lcbasnode_typecast
+use m_lcbasnode, only: lcbasnode_nextcast
+use m_obsdiagnode, only: obsdiagnode_set
 implicit none
 
-PRIVATE
-PUBLIC intlcbas
+private
+public intlcbas
 
 contains
 
@@ -68,7 +68,7 @@ subroutine intlcbas(lcbashead,rval,sval)
   implicit none
 
 ! Declare passed variables
-  class(obsNode),pointer,intent(in) :: lcbashead
+  class(obsnode),pointer,intent(in) :: lcbashead
   type(gsi_bundle),         intent(in   ) :: sval
   type(gsi_bundle),         intent(inout) :: rval
 
@@ -81,7 +81,7 @@ subroutine intlcbas(lcbashead,rval,sval)
   real(r_kind) cg_lcbas,p0,grad,wnotgross,wgross,pg_lcbas
   real(r_kind),pointer,dimension(:) :: slcbas
   real(r_kind),pointer,dimension(:) :: rlcbas
-  type(lcbasNode), pointer :: lcbasptr
+  type(lcbasnode), pointer :: lcbasptr
 
 ! If no lcbas data return
   if(.not. associated(lcbashead))return
@@ -94,7 +94,7 @@ subroutine intlcbas(lcbashead,rval,sval)
   if(ier/=0)return
 
   !lcbasptr => lcbashead
-  lcbasptr => lcbasNode_typecast(lcbashead)
+  lcbasptr => lcbasnode_typecast(lcbashead)
   do while (associated(lcbasptr))
      j1=lcbasptr%ij(1)
      j2=lcbasptr%ij(2)
@@ -113,10 +113,10 @@ subroutine intlcbas(lcbashead,rval,sval)
         if (lsaveobsens) then
            grad = val*lcbasptr%raterr2*lcbasptr%err2
            !-- lcbasptr%diags%obssen(jiter) = grad
-           call obsdiagNode_set(lcbasptr%diags,jiter=jiter,obssen=grad)
+           call obsdiagnode_set(lcbasptr%diags,jiter=jiter,obssen=grad)
         else
            !-- if (lcbasptr%luse) lcbasptr%diags%tldepart(jiter)=val
-           if (lcbasptr%luse) call obsdiagNode_set(lcbasptr%diags,jiter=jiter,tldepart=val)
+           if (lcbasptr%luse) call obsdiagnode_set(lcbasptr%diags,jiter=jiter,tldepart=val)
         endif
      endif
 
@@ -146,7 +146,7 @@ subroutine intlcbas(lcbashead,rval,sval)
      endif
 
      !lcbasptr => lcbasptr%llpoint
-     lcbasptr => lcbasNode_nextcast(lcbasptr)
+     lcbasptr => lcbasnode_nextcast(lcbasptr)
 
   end do
 

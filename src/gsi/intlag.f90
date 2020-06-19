@@ -11,7 +11,7 @@ module intlagmod
 !   2008-03-23  lmeunier - initial code
 !   2009-08-13  lueken - update documentation
 !   2011-08-01  lueken - changed F90 to f90
-!   2016-05-18  guo     - replaced ob_type with polymorphic obsNode through type casting
+!   2016-05-18  guo     - replaced ob_type with polymorphic obsnode through type casting
 !
 ! subroutines included:
 !   sub intlag
@@ -23,15 +23,15 @@ module intlagmod
 !   machine:
 !
 !$$$ end documentation block
-use m_obsNode, only: obsNode
-use m_lagNode, only: lagNode
-use m_lagNode, only: lagNode_typecast
-use m_lagNode, only: lagNode_nextcast
-use m_obsdiagNode, only: obsdiagNode_set
+use m_obsnode, only: obsnode
+use m_lagnode, only: lagnode
+use m_lagnode, only: lagnode_typecast
+use m_lagnode, only: lagnode_nextcast
+use m_obsdiagnode, only: obsdiagnode_set
 implicit none
 
-PRIVATE
-PUBLIC intlag
+private
+public intlag
 
 contains
 
@@ -72,7 +72,7 @@ subroutine intlag(laghead,rval,sval,obsbin)
   use gsi_bundlemod, only: gsi_bundle
   use gsi_bundlemod, only: gsi_bundlegetpointer
 
-  use lag_fields, only: lag_gather_stateuv,lag_ADscatter_stateuv
+  use lag_fields, only: lag_gather_stateuv,lag_adscatter_stateuv
   use lag_fields, only: lag_u_full,lag_v_full,lag_uv_alloc,lag_uv_fill
   use lag_fields, only: lag_tl_vec,lag_ad_vec
   use lag_fields, only: orig_lag_num,ntotal_orig_lag,lag_kcount
@@ -83,7 +83,7 @@ subroutine intlag(laghead,rval,sval,obsbin)
   implicit none
 
 ! Declare passed variables
-  class(obsNode),pointer,intent(in   ) :: laghead
+  class(obsnode),pointer,intent(in   ) :: laghead
   type(gsi_bundle),         intent(in   ) :: sval
   type(gsi_bundle),         intent(inout) :: rval
   integer(i_kind),          intent(in   ) :: obsbin
@@ -97,7 +97,7 @@ subroutine intlag(laghead,rval,sval,obsbin)
   real(r_kind) grad_lon,grad_lat,grad_p
   real(r_kind),pointer,dimension(:) :: su,sv
   real(r_kind),pointer,dimension(:) :: ru,rv
-  type(lagNode), pointer :: lagptr
+  type(lagnode), pointer :: lagptr
   integer(i_kind) i,j,ier,istatus
 
   real(r_kind),dimension(:,:),allocatable:: adu_tmp,adv_tmp
@@ -123,7 +123,7 @@ subroutine intlag(laghead,rval,sval,obsbin)
      end if
   end if
 
-  ! Allocate AD fields
+  ! Allocate ad fields
   if (l_do_adjoint) then
      allocate(adu_tmp(iglobal,lag_kcount))
      allocate(adv_tmp(iglobal,lag_kcount))
@@ -131,7 +131,7 @@ subroutine intlag(laghead,rval,sval,obsbin)
   end if
 
   !lagptr => laghead
-  lagptr => lagNode_typecast(laghead)
+  lagptr => lagnode_typecast(laghead)
   do while (associated(lagptr))
 
     ! Forward model
@@ -148,8 +148,8 @@ subroutine intlag(laghead,rval,sval,obsbin)
         print *,'MAX INC V',maxval(abs(lag_v_full(:,:,obsbin)))
      end if
      call lag_rk2iter_tl(lagptr%speci,lagptr%specr,&
-       &lon_tl,lat_tl,p_tl,&
-       &lag_u_full(:,:,obsbin),lag_v_full(:,:,obsbin))
+        lon_tl,lat_tl,p_tl,&
+        lag_u_full(:,:,obsbin),lag_v_full(:,:,obsbin))
      if (iv_debug>=1) print *,'TL correction:',lon_tl*rad2deg,lat_tl*rad2deg
 
      if (lsaveobsens) then
@@ -157,13 +157,13 @@ subroutine intlag(laghead,rval,sval,obsbin)
         grad_lat = lat_tl*lagptr%raterr2*lagptr%err2_lat
         !-- lagptr%diag_lon%obssen(jiter) = lon_tl*lagptr%raterr2*lagptr%err2_lon
         !-- lagptr%diag_lat%obssen(jiter) = lat_tl*lagptr%raterr2*lagptr%err2_lat
-        call obsdiagNode_set(lagptr%diag_lon,jiter=jiter,obssen=grad_lon)
-        call obsdiagNode_set(lagptr%diag_lat,jiter=jiter,obssen=grad_lat)
+        call obsdiagnode_set(lagptr%diag_lon,jiter=jiter,obssen=grad_lon)
+        call obsdiagnode_set(lagptr%diag_lat,jiter=jiter,obssen=grad_lat)
      else
         !-- if (lagptr%luse) lagptr%diag_lon%tldepart(jiter)=lon_tl
         !-- if (lagptr%luse) lagptr%diag_lat%tldepart(jiter)=lat_tl
-        if (lagptr%luse) call obsdiagNode_set(lagptr%diag_lon,jiter=jiter,tldepart=lon_tl)
-        if (lagptr%luse) call obsdiagNode_set(lagptr%diag_lat,jiter=jiter,tldepart=lat_tl)
+        if (lagptr%luse) call obsdiagnode_set(lagptr%diag_lon,jiter=jiter,tldepart=lon_tl)
+        if (lagptr%luse) call obsdiagnode_set(lagptr%diag_lat,jiter=jiter,tldepart=lat_tl)
      endif
 
      if (l_do_adjoint) then
@@ -181,7 +181,7 @@ subroutine intlag(laghead,rval,sval,obsbin)
               wnotgross= one-lagptr%pg
               wgross = lagptr%pg*cg_lag/wnotgross
               p0   = wgross/(wgross+&
-                    &exp(-half*(lagptr%err2_lon*lon_tl**2+lagptr%err2_lat*lat_tl**2)))
+                     exp(-half*(lagptr%err2_lon*lon_tl**2+lagptr%err2_lat*lat_tl**2)))
               lon_tl = lon_tl*(one-p0)
               lat_tl = lat_tl*(one-p0)
               if (iv_debug>=1) print *,'Do nlnqc_iter'
@@ -199,13 +199,13 @@ subroutine intlag(laghead,rval,sval,obsbin)
 
 !       Adjoint
         call lag_rk2iter_ad(lagptr%speci,lagptr%specr,&
-          &grad_lon,grad_lat,grad_p,adu_tmp,adv_tmp)
+           grad_lon,grad_lat,grad_p,adu_tmp,adv_tmp)
         lag_ad_vec(orig_lag_num(lagptr%intnum,3),obsbin,1)=&
-          &lag_ad_vec(orig_lag_num(lagptr%intnum,3),obsbin,1)+grad_lon
+           lag_ad_vec(orig_lag_num(lagptr%intnum,3),obsbin,1)+grad_lon
         lag_ad_vec(orig_lag_num(lagptr%intnum,3),obsbin,2)=&
-          &lag_ad_vec(orig_lag_num(lagptr%intnum,3),obsbin,2)+grad_lat
+           lag_ad_vec(orig_lag_num(lagptr%intnum,3),obsbin,2)+grad_lat
         lag_ad_vec(orig_lag_num(lagptr%intnum,3),obsbin,3)=&
-          &lag_ad_vec(orig_lag_num(lagptr%intnum,3),obsbin,3)+grad_p
+           lag_ad_vec(orig_lag_num(lagptr%intnum,3),obsbin,3)+grad_p
         if (iv_debug>=2) then
            do i=1,iglobal
               do j=1,lag_kcount
@@ -218,15 +218,15 @@ subroutine intlag(laghead,rval,sval,obsbin)
      endif
 
      !lagptr => lagptr%llpoint
-     lagptr => lagNode_nextcast(lagptr)
+     lagptr => lagnode_nextcast(lagptr)
 
   end do
 
   if (l_do_adjoint) then
      lag_u_full(:,:,obsbin)=adu_tmp
      lag_v_full(:,:,obsbin)=adv_tmp
-     ! Scater back the UV adjoint values back to state vector
-     call lag_ADscatter_stateuv(ru,rv,obsbin)
+     ! Scatter back the uv adjoint values back to state vector
+     call lag_adscatter_stateuv(ru,rv,obsbin)
      lag_u_full(:,:,obsbin)=zero
      lag_v_full(:,:,obsbin)=zero
 

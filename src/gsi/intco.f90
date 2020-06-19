@@ -13,8 +13,8 @@ module intcomod
 !   2008-11-26  Todling - remove intoz_tl; add interface back
 !   2009-08-13  lueken - update documentation
 !   2010-06-02  tangborn - converted intoz into intco 
-!   2012-09-14  Syed RH Rizvi, NCAR/NESL/MMM/DAS  - implemented obs adjoint test  
-!   2016-05-18  guo     - replaced ob_type with polymorphic obsNode through type casting
+!   2012-09-14  Syed RH Rizvi, ncar/nesl/mmm/das  - implemented obs adjoint test  
+!   2016-05-18  guo     - replaced ob_type with polymorphic obsnode through type casting
 !
 ! subroutines included:
 !   sub intco_
@@ -28,18 +28,18 @@ module intcomod
 !
 !$$$ end documentation block
 
-use m_obsNode, only: obsNode
-use m_colvkNode , only: colvkNode
-use m_colvkNode , only: colvkNode_typecast
-use m_colvkNode , only: colvkNode_nextcast
-use m_obsdiagNode, only: obsdiagNode_set
+use m_obsnode, only: obsnode
+use m_colvknode , only: colvknode
+use m_colvknode , only: colvknode_typecast
+use m_colvknode , only: colvknode_nextcast
+use m_obsdiagnode, only: obsdiagnode_set
 implicit none
 
-PRIVATE
-PUBLIC intco
+private
+public intco
 
 interface intco; module procedure &
-          intco_
+   intco_
 end interface
 
 contains
@@ -61,7 +61,7 @@ subroutine intco_(colvkhead,rval,sval)
 !   2010-06-02  tangborn - made version for carbon monoxide
 !
 !   input argument list:
-!     colvkhead  - level carbon monoxide obs type pointer to obs structure for MOPITT
+!     colvkhead  - level carbon monoxide obs type pointer to obs structure for mopitt
 !     sco     - carbon monoxide increment in grid space
 !
 !   output argument list:
@@ -77,7 +77,7 @@ subroutine intco_(colvkhead,rval,sval)
   implicit none
 
 ! Declare passed variables
-  class(obsNode),pointer,intent(in   ) :: colvkhead
+  class(obsnode),pointer,intent(in   ) :: colvkhead
   type(gsi_bundle),intent(in   ) :: sval
   type(gsi_bundle),intent(inout) :: rval
 
@@ -98,7 +98,7 @@ subroutine intcolev_(colvkhead,rval,sval)
 ! program history log:
 !   1995-07-11  derber
 !   2010-06-07  tangborn - carbon monoxide based on ozone code
-!   2012-09-14  Syed RH Rizvi, NCAR/NESL/MMM/DAS  - introduced ladtest_obs         
+!   2012-09-14  Syed RH Rizvi, ncar/nesl/mmm/das  - introduced ladtest_obs         
 !   2014-12-03  derber  - modify so that use of obsdiags can be turned off
 !
 !   input argument list:
@@ -125,7 +125,7 @@ subroutine intcolev_(colvkhead,rval,sval)
   implicit none
 
 ! Declare passed variables
-  class(obsNode),pointer,intent(in   ) :: colvkhead
+  class(obsnode),pointer,intent(in   ) :: colvkhead
   type(gsi_bundle)          ,intent(in   ) :: sval
   type(gsi_bundle)          ,intent(inout) :: rval
 
@@ -142,7 +142,7 @@ subroutine intcolev_(colvkhead,rval,sval)
   real(r_kind),allocatable,dimension(:)   :: coak
   real(r_kind),allocatable,dimension(:)   :: vali
   real(r_kind),allocatable,dimension(:)   :: val_ret
-  type(colvkNode), pointer :: colvkptr
+  type(colvknode), pointer :: colvkptr
 
 !  If no co observations return
   if(.not. associated(colvkhead))return
@@ -166,11 +166,11 @@ subroutine intcolev_(colvkhead,rval,sval)
      enddo
   enddo
 !
-! MOPITT CARBON MONOXIDE: LAYER CO 
+! mopitt carbon monoxide: layer co 
 !
 ! Loop over carbon monoxide observations.
   !colvkptr => colvkhead
-  colvkptr => colvkNode_typecast(colvkhead)
+  colvkptr => colvknode_typecast(colvkhead)
   do while (associated(colvkptr))
 
 !    Set location
@@ -185,107 +185,107 @@ subroutine intcolev_(colvkhead,rval,sval)
 !    with several of the terms already calculated 
 
 
-        allocate(vali(colvkptr%nlco))
-        allocate(coak(colvkptr%nlco))
-        allocate(val_ret(colvkptr%nlco))
+     allocate(vali(colvkptr%nlco))
+     allocate(coak(colvkptr%nlco))
+     allocate(val_ret(colvkptr%nlco))
 
-        do k=1,colvkptr%nlco   ! loop over MOPITT ave. ker. contribution levels 
-           pob = colvkptr%prs(k)
-           k1=int(pob)
-           k2=min(k1+1,nsig)
-           w1=colvkptr%wij(1,k)
-           w2=colvkptr%wij(2,k)
-           w3=colvkptr%wij(3,k)
-           w4=colvkptr%wij(4,k)
-           w5=colvkptr%wij(5,k)
-           w6=colvkptr%wij(6,k)
-           w7=colvkptr%wij(7,k)
-           w8=colvkptr%wij(8,k)
-           val1=   w1* sco(j1,k1)+ &
-                   w2* sco(j2,k1)+ &
-                   w3* sco(j3,k1)+ &
-                   w4* sco(j4,k1)+ &
-                   w5* sco(j1,k2)+ &
-                   w6* sco(j2,k2)+ &
-                   w7* sco(j3,k2)+ & 
-                   w8* sco(j4,k2)
-           vali(k)=val1
-        enddo
+     do k=1,colvkptr%nlco   ! loop over mopitt ave. ker. contribution levels 
+        pob = colvkptr%prs(k)
+        k1=int(pob)
+        k2=min(k1+1,nsig)
+        w1=colvkptr%wij(1,k)
+        w2=colvkptr%wij(2,k)
+        w3=colvkptr%wij(3,k)
+        w4=colvkptr%wij(4,k)
+        w5=colvkptr%wij(5,k)
+        w6=colvkptr%wij(6,k)
+        w7=colvkptr%wij(7,k)
+        w8=colvkptr%wij(8,k)
+        val1=   w1* sco(j1,k1)+ &
+                w2* sco(j2,k1)+ &
+                w3* sco(j3,k1)+ &
+                w4* sco(j4,k1)+ &
+                w5* sco(j1,k2)+ &
+                w6* sco(j2,k2)+ &
+                w7* sco(j3,k2)+ & 
+                w8* sco(j4,k2)
+        vali(k)=val1
+     enddo
 
-!       Averaging kernel  
+!    Averaging kernel  
 
-        do k=1,colvkptr%nlco   ! loop over MOPITT retrieval levels
-           val1=zero_quad
-           do j=1,colvkptr%nlco  ! loop over MOPITT ak levels 
-              val1=val1+colvkptr%ak(k,j)*vali(j)
-           enddo 
+     do k=1,colvkptr%nlco   ! loop over mopitt retrieval levels
+        val1=zero_quad
+        do j=1,colvkptr%nlco  ! loop over mopitt ak levels 
+           val1=val1+colvkptr%ak(k,j)*vali(j)
+        enddo 
 
-           if(luse_obsdiag)then
-              if (lsaveobsens) then
-                 valx=val1*colvkptr%err2(k)*colvkptr%raterr2(k)
-                 !-- colvkptr%diags(k)%ptr%obssen(jiter)=valx
-                 call obsdiagNode_set(colvkptr%diags(k)%ptr,jiter=jiter,obssen=real(valx,r_kind))
-              else
-                 !-- if (colvkptr%luse) colvkptr%diags(k)%ptr%tldepart(jiter)=val1
-                 if (colvkptr%luse) call obsdiagNode_set(colvkptr%diags(k)%ptr,tldepart=real(val1,r_kind))
-              endif
+        if(luse_obsdiag)then
+           if (lsaveobsens) then
+              valx=val1*colvkptr%err2(k)*colvkptr%raterr2(k)
+              !-- colvkptr%diags(k)%ptr%obssen(jiter)=valx
+              call obsdiagnode_set(colvkptr%diags(k)%ptr,jiter=jiter,obssen=real(valx,r_kind))
+           else
+              !-- if (colvkptr%luse) colvkptr%diags(k)%ptr%tldepart(jiter)=val1
+              if (colvkptr%luse) call obsdiagnode_set(colvkptr%diags(k)%ptr,tldepart=real(val1,r_kind))
            endif
+        endif
 
-           if (l_do_adjoint) then
-              if (.not. lsaveobsens) then
-                 if( ladtest_obs ) then
-                    valx = val1
-                 else
-                    val1=val1-colvkptr%res(k)
+        if (l_do_adjoint) then
+           if (.not. lsaveobsens) then
+              if( ladtest_obs ) then
+                 valx = val1
+              else
+                 val1=val1-colvkptr%res(k)
 
-                    valx=val1*colvkptr%err2(k) 
-                    valx=valx*colvkptr%raterr2(k)
-                 end if
-              endif
-              val_ret(k)=valx  
-           endif 
-        enddo ! k
+                 valx=val1*colvkptr%err2(k) 
+                 valx=valx*colvkptr%raterr2(k)
+              end if
+           endif
+           val_ret(k)=valx  
+        endif 
+     enddo ! k
 
 !  Averaging kernel First - spread values to ak contribution levels 
 
-        if(l_do_adjoint)then 
-              do k=1,colvkptr%nlco  !loop over ak levels 
-                 coak(k)=zero_quad
-                 do j=1,colvkptr%nlco  !loop over profile levels  
-                    coak(k)=coak(k)+colvkptr%ak(j,k)*val_ret(j) ! Contribution to kth ak level from jth retrieval level
-                 enddo
-              enddo 
+     if(l_do_adjoint)then 
+        do k=1,colvkptr%nlco  !loop over ak levels 
+           coak(k)=zero_quad
+           do j=1,colvkptr%nlco  !loop over profile levels  
+              coak(k)=coak(k)+colvkptr%ak(j,k)*val_ret(j) ! Contribution to kth ak level from jth retrieval level
+           enddo
+        enddo 
 
 ! Adjoint of interpolation - spreads each ave. kernel level to interpolant gridpoints  
 
-              do kk=colvkptr%nlco,1,-1    !loop over averaging kernel levels 
-                 pob = colvkptr%prs(kk)
-                 k1=int(pob)
-                 k2=min(k1+1,nsig)
-                 w1=colvkptr%wij(1,kk)
-                 w2=colvkptr%wij(2,kk)
-                 w3=colvkptr%wij(3,kk)
-                 w4=colvkptr%wij(4,kk)
-                 w5=colvkptr%wij(5,kk)
-                 w6=colvkptr%wij(6,kk)
-                 w7=colvkptr%wij(7,kk) 
-                 w8=colvkptr%wij(8,kk) 
-                 rco(j1,k1)  =  rco(j1,k1) + coak(kk)*w1
-                 rco(j2,k1)  =  rco(j2,k1) + coak(kk)*w2
-                 rco(j3,k1)  =  rco(j3,k1) + coak(kk)*w3
-                 rco(j4,k1)  =  rco(j4,k1) + coak(kk)*w4
-                 rco(j1,k2)  =  rco(j1,k2) + coak(kk)*w5
-                 rco(j2,k2)  =  rco(j2,k2) + coak(kk)*w6
-                 rco(j3,k2)  =  rco(j3,k2) + coak(kk)*w7
-                 rco(j4,k2)  =  rco(j4,k2) + coak(kk)*w8
-              enddo  ! kk
+        do kk=colvkptr%nlco,1,-1    !loop over averaging kernel levels 
+           pob = colvkptr%prs(kk)
+           k1=int(pob)
+           k2=min(k1+1,nsig)
+           w1=colvkptr%wij(1,kk)
+           w2=colvkptr%wij(2,kk)
+           w3=colvkptr%wij(3,kk)
+           w4=colvkptr%wij(4,kk)
+           w5=colvkptr%wij(5,kk)
+           w6=colvkptr%wij(6,kk)
+           w7=colvkptr%wij(7,kk) 
+           w8=colvkptr%wij(8,kk) 
+           rco(j1,k1)  =  rco(j1,k1) + coak(kk)*w1
+           rco(j2,k1)  =  rco(j2,k1) + coak(kk)*w2
+           rco(j3,k1)  =  rco(j3,k1) + coak(kk)*w3
+           rco(j4,k1)  =  rco(j4,k1) + coak(kk)*w4
+           rco(j1,k2)  =  rco(j1,k2) + coak(kk)*w5
+           rco(j2,k2)  =  rco(j2,k2) + coak(kk)*w6
+           rco(j3,k2)  =  rco(j3,k2) + coak(kk)*w7
+           rco(j4,k2)  =  rco(j4,k2) + coak(kk)*w8
+        enddo  ! kk
 
 
         deallocate(coak,vali,val_ret)
 
-        endif ! l_do_adjoint
-        !colvkptr => colvkptr%llpoint
-        colvkptr => colvkNode_nextcast(colvkptr)
+     endif ! l_do_adjoint
+     !colvkptr => colvkptr%llpoint
+     colvkptr => colvknode_nextcast(colvkptr)
 
 ! End loop over observations
   enddo

@@ -59,26 +59,26 @@ subroutine inc2guess(sval)
   character(len=10),allocatable,dimension(:) :: guess
   integer(i_kind) i,j,k,it,ii,ic,id,ngases,nguess,ier,istatus
   real(r_kind) :: zt
-  real(r_kind),pointer,dimension(:,:  ) :: ptr2dinc=>NULL()
-  real(r_kind),pointer,dimension(:,:  ) :: ptr2dges=>NULL()
-  real(r_kind),pointer,dimension(:,:,:) :: ptr3dinc=>NULL()
-  real(r_kind),pointer,dimension(:,:,:) :: ptr3dges=>NULL()
-  real(r_kind),pointer,dimension(:,:,:) :: ges_div_it=>NULL()
-  real(r_kind),pointer,dimension(:,:,:) :: ges_vor_it=>NULL()
+  real(r_kind),pointer,dimension(:,:  ) :: ptr2dinc=>null()
+  real(r_kind),pointer,dimension(:,:  ) :: ptr2dges=>null()
+  real(r_kind),pointer,dimension(:,:,:) :: ptr3dinc=>null()
+  real(r_kind),pointer,dimension(:,:,:) :: ptr3dges=>null()
+  real(r_kind),pointer,dimension(:,:,:) :: ges_div_it=>null()
+  real(r_kind),pointer,dimension(:,:,:) :: ges_vor_it=>null()
 
 ! Inquire about guess fields
-call gsi_metguess_get('dim',nguess,istatus)
-if (nguess>0) then  
-    allocate(guess(nguess))
-    call gsi_metguess_get('gsinames',guess,istatus)
-endif
+  call gsi_metguess_get('dim',nguess,istatus)
+  if (nguess>0) then  
+     allocate(guess(nguess))
+     call gsi_metguess_get('gsinames',guess,istatus)
+  endif
 
 ! Inquire about chemistry fields
-call gsi_chemguess_get('dim',ngases,istatus)
-if (ngases>0) then  
-    allocate(gases(ngases))
-    call gsi_chemguess_get('gsinames',gases,istatus)
-endif
+  call gsi_chemguess_get('dim',ngases,istatus)
+  if (ngases>0) then  
+     allocate(gases(ngases))
+     call gsi_chemguess_get('gsinames',gases,istatus)
+  endif
 
 !*******************************************************************************
 
@@ -86,7 +86,7 @@ endif
   do it=1,nfldsig
      if (nobs_bins>1) then
         zt = hrdifsig(it)
-        ii = NINT(zt/hr_obsbin)+1
+        ii = nint(zt/hr_obsbin)+1
      else
         ii = 1
      endif
@@ -113,7 +113,7 @@ endif
            call gsi_bundlegetpointer (sval(ii),               guess(ic),ptr3dinc,istatus)
            call gsi_bundlegetpointer (gsi_metguess_bundle(it),guess(ic),ptr3dges,istatus)
            if (trim(guess(ic))=='oz'.or.trim(guess(ic))=='q') then
-               call copy_positive_fldr3_(ptr3dges,ptr3dinc)
+              call copy_positive_fldr3_(ptr3dges,ptr3dinc)
            else
               ptr3dges = ptr3dinc
            endif
@@ -146,7 +146,7 @@ endif
   end do
 
   if(ngases>0)then
-    deallocate(gases)
+     deallocate(gases)
   endif
 
   call gsi_bundlegetpointer (sval(ii),'sst',ptr2dinc,istatus)
@@ -164,8 +164,9 @@ endif
   return
   contains
   subroutine copy_positive_fldr2_(ges,xinc)
-  real(r_kind),pointer :: ges(:,:)
-  real(r_kind),pointer :: xinc(:,:)
+  implicit none
+  real(r_kind),pointer,intent(inout) :: ges(:,:)
+  real(r_kind),pointer,intent(in   ) :: xinc(:,:)
   real(r_kind) ana
   do j=1,lon2
      do i=1,lat2
@@ -175,8 +176,9 @@ endif
   end do
   end subroutine copy_positive_fldr2_
   subroutine copy_positive_fldr3_(ges,xinc)
-  real(r_kind),pointer :: ges(:,:,:)
-  real(r_kind),pointer :: xinc(:,:,:)
+  implicit none
+  real(r_kind),pointer,intent(inout) :: ges(:,:,:)
+  real(r_kind),pointer,intent(in   ) :: xinc(:,:,:)
   real(r_kind) ana
   do k=1,nsig
      do j=1,lon2

@@ -50,8 +50,9 @@ module insitu_info
  subroutine mbuoy_info(mype)
 !**************************************************************************
 !
-! assign the depth dependent moored buoy station ID
+! assign the depth dependent moored buoy station id
 !
+  implicit none
 
   integer(i_kind), intent(in) :: mype
   allocate(cid_mbuoy(n_3mdiscus))
@@ -60,13 +61,13 @@ module insitu_info
 !
   cid_mbuoy = '     '
 !
-! COMPS moored buoy (depth = 1.2m)
+! comps moored buoy (depth = 1.2m)
 !
   cid_mbuoy( 1) = '42022'
   cid_mbuoy( 2) = '42023'
   cid_mbuoy( 3) = '42024'
 !
-! SCRIPPS moored buoy (depth = 0.45m)
+! scripps moored buoy (depth = 0.45m)
 !
   cid_mbuoy( 4) = '31201'
   cid_mbuoy( 5) = '41112'
@@ -106,7 +107,7 @@ module insitu_info
   cid_mbuoy(39) = '51203'
   cid_mbuoy(40) = '52200'
 !
-! TRITON buoys (depth = 1.5m)
+! triton buoys (depth = 1.5m)
 !
   cid_mbuoy(41) = '52071'
   cid_mbuoy(42) = '52072'
@@ -133,7 +134,7 @@ module insitu_info
   cid_mbuoy(63) = '52045'
   cid_mbuoy(64) = '52046'
 !
-! NDBC 3-meter buoy (depth = 0.6m)
+! ndbc 3-meter buoy (depth = 0.6m)
 !
   cid_mbuoy(71) = '41004' 
   cid_mbuoy(72) = '41008' 
@@ -193,7 +194,7 @@ module insitu_info
   cid_mbuoy(126) = '51001' 
   cid_mbuoy(127) = '51028' 
 !
-! Canadian 3-meter buoy (depth = 0.6m)
+! canadian 3-meter buoy (depth = 0.6m)
 !
   cid_mbuoy(128) = '44258' 
   cid_mbuoy(129) = '45132' 
@@ -219,7 +220,7 @@ module insitu_info
   cid_mbuoy(149) = '46207' 
   cid_mbuoy(150) = '46208' 
 !
-! MBARI moored buoy (depth = 0.6m)
+! mbari moored buoy (depth = 0.6m)
 !
   cid_mbuoy(151) = '46091'
   cid_mbuoy(152) = '46092'
@@ -233,8 +234,9 @@ module insitu_info
  subroutine mbuoyb_info(mype)
 !**************************************************************************
 !
-! assign the depth dependent moored buoyb station ID
+! assign the depth dependent moored buoyb station id
 !
+  implicit none
 
   integer(i_kind), intent(in) :: mype
   allocate(cid_mbuoyb(n_3mdiscus))
@@ -243,13 +245,13 @@ module insitu_info
 !
   cid_mbuoyb = '     '
 !
-! COMPS moored buoy (depth = 1.2m)
+! comps moored buoy (depth = 1.2m)
 !
   cid_mbuoyb( 1) = '4200022'
   cid_mbuoyb( 2) = '4200023'
   cid_mbuoyb( 3) = '4200024'
 !
-! SCRIPPS moored buoy (depth = 0.45m)
+! scripps moored buoy (depth = 0.45m)
 !
   cid_mbuoyb( 4) = '3100201'
   cid_mbuoyb( 5) = '4100112'
@@ -289,7 +291,7 @@ module insitu_info
   cid_mbuoyb(39) = '5100203'
   cid_mbuoyb(40) = '5200200'
 !
-! TRITON buoys (depth = 1.5m)
+! triton buoys (depth = 1.5m)
 !
   cid_mbuoyb(41) = '5200071'
   cid_mbuoyb(42) = '5200072'
@@ -316,7 +318,7 @@ module insitu_info
   cid_mbuoyb(63) = '5200045'
   cid_mbuoyb(64) = '5200046'
 !
-! NDBC 3-meter buoy (depth = 0.6m)
+! ndbc 3-meter buoy (depth = 0.6m)
 !
   cid_mbuoyb(71) = '4100004' 
   cid_mbuoyb(72) = '4100008' 
@@ -376,7 +378,7 @@ module insitu_info
   cid_mbuoyb(126) = '5100001' 
   cid_mbuoyb(127) = '5100028' 
 !
-! Canadian 3-meter buoy (depth = 0.6m)
+! canadian 3-meter buoy (depth = 0.6m)
 !
   cid_mbuoyb(128) = '4400258' 
   cid_mbuoyb(129) = '4500132' 
@@ -402,7 +404,7 @@ module insitu_info
   cid_mbuoyb(149) = '4600207' 
   cid_mbuoyb(150) = '4600208' 
 !
-! MBARI moored buoy (depth = 0.6m)
+! mbari moored buoy (depth = 0.6m)
 !
   cid_mbuoyb(151) = '4600091'
   cid_mbuoyb(152) = '4600092'
@@ -418,26 +420,27 @@ module insitu_info
 !
 !  read ship info from an external file to determine the depth and instrument
 !
-   integer(i_kind), intent(in) :: mype
+  implicit none
+  integer(i_kind), intent(in) :: mype
 
-   integer(i_kind) ios
-   logical iexist
+  integer(i_kind) ios
+  logical iexist
 
-   filename='insituinfo'
-   inquire(file=trim(filename),exist=iexist)
-   if(iexist) then
-      open(lunship,file=filename,form='formatted',iostat=ios)
-      allocate (ship%id(n_ship),ship%depth(n_ship),ship%sensor(n_ship))
-      if(ios==0) then
-         do i = 1, n_ship
-            read(lunship,'(a10,f6.1,1x,a5)') ship%id(i),ship%depth(i),ship%sensor(i)
-         enddo
-      endif
-   else 
-      n_ship=0
-      allocate (ship%id(n_ship),ship%depth(n_ship),ship%sensor(n_ship))
-   endif
+  filename='insituinfo'
+  inquire(file=trim(filename),exist=iexist)
+  if(iexist) then
+     open(lunship,file=filename,form='formatted',iostat=ios)
+     allocate (ship%id(n_ship),ship%depth(n_ship),ship%sensor(n_ship))
+     if(ios==0) then
+        do i = 1, n_ship
+           read(lunship,'(a10,f6.1,1x,a5)') ship%id(i),ship%depth(i),ship%sensor(i)
+        enddo
+     endif
+  else 
+     n_ship=0
+     allocate (ship%id(n_ship),ship%depth(n_ship),ship%sensor(n_ship))
+  endif
   
-   if(mype == 0) write(6,*) ' in read_ship_info, n_ship = ', n_ship
+  if(mype == 0) write(6,*) ' in read_ship_info, n_ship = ', n_ship
  end subroutine read_ship_info
 end module insitu_info

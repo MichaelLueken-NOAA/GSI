@@ -8,7 +8,7 @@ module intcldchmod
 !
 ! program history log:
 !   2015-07-10  Manuel Pondeca
-!   2016-05-18  guo     - replaced ob_type with polymorphic obsNode through type casting
+!   2016-05-18  guo     - replaced ob_type with polymorphic obsnode through type casting
 !
 ! subroutines included:
 !   sub intcldch
@@ -21,15 +21,15 @@ module intcldchmod
 !
 !$$$ end documentation block
 
-use m_obsNode  , only: obsNode
-use m_cldchNode, only: cldchNode
-use m_cldchNode, only: cldchNode_typecast
-use m_cldchNode, only: cldchNode_nextcast
-use m_obsdiagNode, only: obsdiagNode_set
+use m_obsnode  , only: obsnode
+use m_cldchnode, only: cldchnode
+use m_cldchnode, only: cldchnode_typecast
+use m_cldchnode, only: cldchnode_nextcast
+use m_obsdiagnode, only: obsdiagnode_set
 implicit none
 
-PRIVATE
-PUBLIC intcldch
+private
+public intcldch
 
 contains
 
@@ -70,7 +70,7 @@ subroutine intcldch(cldchhead,rval,sval)
   implicit none
 
 ! Declare passed variables
-  class(obsNode),pointer,intent(in) :: cldchhead
+  class(obsnode),pointer,intent(in) :: cldchhead
   type(gsi_bundle),         intent(in   ) :: sval
   type(gsi_bundle),         intent(inout) :: rval
 
@@ -83,7 +83,7 @@ subroutine intcldch(cldchhead,rval,sval)
   real(r_kind) cg_cldch,p0,grad,wnotgross,wgross,pg_cldch
   real(r_kind),pointer,dimension(:) :: scldch
   real(r_kind),pointer,dimension(:) :: rcldch
-  type(cldchNode), pointer :: cldchptr
+  type(cldchnode), pointer :: cldchptr
 
 ! Retrieve pointers
 ! Simply return if any pointer not found
@@ -93,7 +93,7 @@ subroutine intcldch(cldchhead,rval,sval)
   if(ier/=0)return
 
   !cldchptr => cldchhead
-  cldchptr => cldchNode_typecast(cldchhead)
+  cldchptr => cldchnode_typecast(cldchhead)
   do while (associated(cldchptr))
      j1=cldchptr%ij(1)
      j2=cldchptr%ij(2)
@@ -112,10 +112,10 @@ subroutine intcldch(cldchhead,rval,sval)
         if (lsaveobsens) then
            grad = val*cldchptr%raterr2*cldchptr%err2
            !-- cldchptr%diags%obssen(jiter) = grad
-           call obsdiagNode_set(cldchptr%diags,jiter=jiter,obssen=grad)
+           call obsdiagnode_set(cldchptr%diags,jiter=jiter,obssen=grad)
         else
            !-- if (cldchptr%luse) cldchptr%diags%tldepart(jiter)=val
-           if (cldchptr%luse) call obsdiagNode_set(cldchptr%diags,jiter=jiter,tldepart=val)
+           if (cldchptr%luse) call obsdiagnode_set(cldchptr%diags,jiter=jiter,tldepart=val)
         endif
      endif
 
@@ -148,7 +148,7 @@ subroutine intcldch(cldchhead,rval,sval)
      endif
 
      !cldchptr => cldchptr%llpoint
-     cldchptr => cldchNode_nextcast(cldchptr)
+     cldchptr => cldchnode_nextcast(cldchptr)
 
   end do
 

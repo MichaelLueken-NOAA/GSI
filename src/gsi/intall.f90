@@ -14,10 +14,10 @@ module intallmod
 !   2009-08-13  lueken - update documentation
 !   2012-02-08  kleist - changes related to 4d-ensemble-var additions and consolidation of 
 !                   int... individual modules to one intjcmod
-!   2015-09-03  guo     - obsmod::yobs has been replaced with m_obsHeadBundle,
+!   2015-09-03  guo     - obsmod::yobs has been replaced with m_obsheadbundle,
 !                         where yobs is created and destroyed when and where it
 !                         is needed.
-!   2018-08-10  guo     - removed obsHeadBundle references.
+!   2018-08-10  guo     - removed obsheadbundle references.
 !                       - replaced intjo() related implementations with a new
 !                         polymorphic implementation of intjomod::intjo().
 !
@@ -35,8 +35,8 @@ module intallmod
 
 implicit none
 
-PRIVATE
-PUBLIC intall
+private
+public intall
 
 
 contains
@@ -44,36 +44,36 @@ contains
 subroutine intall(sval,sbias,rval,rbias)
 !$$$  subprogram documentation block
 !                .      .    .                                       .
-! subprogram:    intall      calculate RHS for analysis equation
+! subprogram:    intall      calculate rhs for analysis equation
 !   prgmmr: derber           org: np23                date: 2003-12-18
 !
-! abstract: calculate RHS for all variables (nonlinear qc version)
+! abstract: calculate rhs for all variables (nonlinear qc version)
 !
 !    A description of nonlinear qc follows:
 !
-!    The observation penalty Jo is defined as
+!    The observation penalty jo is defined as
 !
-!          Jo =  - (sum over obs) 2*log(Po)
+!          jo =  - (sum over obs) 2*log(Po)
 !
 !      where,
 !
-!          Po = Wnotgross*exp(-.5*(Hn(x+xb) - yo)**2 ) + Wgross
+!          po = wnotgross*exp(-.5*(hn(x+xb) - yo)**2 ) + wgross
 !            with
-!                Hn = the forward model (possibly non-linear) normalized by 
+!                hn = the forward model (possibly non-linear) normalized by 
 !                     observation error
 !                x  = the current estimate of the analysis increment
 !                xb = the background state
 !                yo = the observation normalized by observation error
 !
-!            Note:  The factor 2 in definition of Jo is present because the 
-!                   penalty Jo as used in this code is 2*(usual definition 
+!            Note:  The factor 2 in definition of jo is present because the 
+!                   penalty jo as used in this code is 2*(usual definition 
 !                   of penalty)
 !
-!          Wgross = Pgross*cg
+!          wgross = pgross*cg
 !
-!          Wnotgross = 1 - Wgross
+!          wnotgross = 1 - wgross
 !
-!          Pgross = probability of gross error for observation (assumed
+!          pgross = probability of gross error for observation (assumed
 !                   here to have uniform distribution over the possible
 !                   range of values)
 !
@@ -97,17 +97,17 @@ subroutine intall(sval,sbias,rval,rbias)
 !          pg_rad=.002    ! probability of gross error for radiances
 !
 !
-!    Given the above Jo, the gradient of Jo is as follows:
+!    Given the above jo, the gradient of jo is as follows:
 !
-!                                             T
-!        gradx(Jo) = - (sum over observations) 2*H (Hn(x+xb)-yo)*(Po - Wgross)/Po
+!                                             t
+!        gradx(jo) = - (sum over observations) 2*h (hn(x+xb)-yo)*(po - wgross)/po
 !
 !      where, 
 !
-!          H = tangent linear model of Hn about x+xb
+!          h = tangent linear model of hn about x+xb
 !
 ! 
-!    Note that if Pgross = 0.0, then Wnotgross=1.0 and Wgross=0.0.  That is,
+!    Note that if pgross = 0.0, then wnotgross=1.0 and wgross=0.0.  That is,
 !    the code runs as though nonlinear quality control were not present
 !    (which is indeed the case since the gross error probability is 0).  
 !
@@ -124,7 +124,7 @@ subroutine intall(sval,sbias,rval,rbias)
 !                         for wind components into int for st,vp
 !   2004-11-30  treadon - add brightness temperatures to nonlinear 
 !                         quality control
-!   2004-12-03  treadon - replace mpe_iallreduce (IBM extension) with
+!   2004-12-03  treadon - replace mpe_iallreduce (ibm extension) with
 !                         standard mpi_allreduce
 !   2005-01-20  okamoto - add u,v to intrad
 !   2005-02-23  wu      - changes related to normalized rh option
@@ -134,27 +134,27 @@ subroutine intall(sval,sbias,rval,rbias)
 !                         for 2dvar only surface analysis option
 !   2005-06-03  parrish - add horizontal derivatives
 !   2005-07-10  kleist  - add dynamic constraint term
-!   2005-09-29  kleist  - expand Jc term, include time derivatives vector
-!   2005-11-21  kleist  - separate tendencies from Jc term, add call to calctends adjoint
+!   2005-09-29  kleist  - expand jc term, include time derivatives vector
+!   2005-11-21  kleist  - separate tendencies from jc term, add call to calctends adjoint
 !   2005-12-01  cucurull - add code for GPS local bending angle, add use obsmod for ref_obs
 !   2005-12-20  parrish - add arguments to call to intt to allow for option of using boundary
 !                         layer forward tlm.
 !   2006-02-03  derber  - modify to increase reproducibility
 !   2006-03-17  park    - correct error in call to intt--rval,sval --> rvaluv,svaluv
 !                          in order to correctly pass wind variables.
-!   2006-04-06  kleist  - include both Jc formulations
+!   2006-04-06  kleist  - include both jc formulations
 !   2006-07-26  parrish - correct inconsistency in computation of space and time derivatives of q
 !                          currently, if derivatives computed, for q it is normalized q, but
 !                          should be mixing ratio.
 !   2006-07-26  parrish - add strong constraint initialization option
 !   2007-03-19  tremolet - binning of observations
-!   2007-04-13  tremolet - split Jo and 3dvar components into intjo and int3dvar
+!   2007-04-13  tremolet - split jo and 3dvar components into intjo and int3dvar
 !   2007-10-01  todling  - add timers
 !   2011-10-20  todling  - observation operators refer to state- not control-vec (cvars->svars)
-!   2014-03-19  pondeca -  Add RHS calculation for wspd10m constraint
-!   2014-05-07  pondeca -  Add RHS calculation for howv constraint
-!   2014-06-17  carley/zhu  - Add RHS calculation for lcbas constraint
-!   2015-07-10  pondeca - Add RHS calculation for cldch constraint
+!   2014-03-19  pondeca -  Add rhs calculation for wspd10m constraint
+!   2014-05-07  pondeca -  Add rhs calculation for howv constraint
+!   2014-06-17  carley/zhu  - Add rhs calculation for lcbas constraint
+!   2015-07-10  pondeca - Add rhs calculation for cldch constraint
 !   2019-03-13  eliu    - add precipitation component
 !
 !   input argument list:
@@ -164,7 +164,7 @@ subroutine intall(sval,sbias,rval,rbias)
 !     rbias
 !
 !   output argument list:      
-!     rval     - RHS on grid
+!     rval     - rhs on grid
 !     rbias
 !
 ! remarks:
@@ -219,11 +219,11 @@ subroutine intall(sval,sbias,rval,rbias)
 
   qpred=zero_quad
 
-! Compute RHS in physical space (rval,qpred)
+! Compute rhs in physical space (rval,qpred)
   call intjo(rval,qpred,sval,sbias)
 
   if(.not.ltlint)then
-! RHS for moisture constraint
+! rhs for moisture constraint
      if (.not.ljc4tlevs) then
         call intlimq(rval(ibin_anl),sval(ibin_anl),ntguessig)
      else
@@ -258,41 +258,41 @@ subroutine intall(sval,sbias,rval,rbias)
            end do
         end if
      end if  ! ljclimqc
-! RHS for gust constraint
+! rhs for gust constraint
      if (getindex(svars2d,'gust')>0)call intlimg(rval(1),sval(1))
 
-! RHS for vis constraint
+! rhs for vis constraint
      if (getindex(svars2d,'vis')>0) call intlimv(rval(1),sval(1))
 
-! RHS for pblh constraint
+! rhs for pblh constraint
      if (getindex(svars2d,'pblh')>0) call intlimp(rval(1),sval(1))
 
-! RHS for wspd10m constraint
+! rhs for wspd10m constraint
      if (getindex(svars2d,'wspd10m')>0) call intlimw10m(rval(1),sval(1))
 
-! RHS for howv constraint
+! rhs for howv constraint
      if (getindex(svars2d,'howv')>0) call intlimhowv(rval(1),sval(1))
 
-! RHS for lcbas constraint
+! rhs for lcbas constraint
      if (getindex(svars2d,'lcbas')>0) call intliml(rval(1),sval(1))
 
-! RHS for cldch constraint
+! rhs for cldch constraint
      if (getindex(svars2d,'cldch')>0) call intlimcldch(rval(1),sval(1))
 
   end if
 
-! RHS for dry ps constraint: part 1
+! rhs for dry ps constraint: part 1
   if(ljcpdry)then
 
-    if (.not.ljc4tlevs) then
-      call intjcpdry1(sval(ibin_anl),1,mass)
-    else 
-      call intjcpdry1(sval,nobs_bins,mass)
-    end if
+     if (.not.ljc4tlevs) then
+        call intjcpdry1(sval(ibin_anl),1,mass)
+     else 
+        call intjcpdry1(sval,nobs_bins,mass)
+     end if
 
-!   Put reduces together to minimize wait time
-!   First, use MPI to get global mean increment
-    call mpl_allreduce(2*nobs_bins,qpvals=mass)
+!    Put reduces together to minimize wait time
+!    First, use MPI to get global mean increment
+     call mpl_allreduce(2*nobs_bins,qpvals=mass)
 
   end if
 
@@ -301,16 +301,16 @@ subroutine intall(sval,sbias,rval,rbias)
   call mpl_allreduce(nrclen,qpvals=qpred)
 
 
-! RHS for dry ps constraint: part 2
+! rhs for dry ps constraint: part 2
   if(ljcpdry)then
-    if (.not.ljc4tlevs) then
-      call intjcpdry2(rval(ibin_anl),1,mass)
-    else 
-      call intjcpdry2(rval,nobs_bins,mass)
-    end if
+     if (.not.ljc4tlevs) then
+        call intjcpdry2(rval(ibin_anl),1,mass)
+     else 
+        call intjcpdry2(rval,nobs_bins,mass)
+     end if
   end if
 
-! RHS for Jc DFI
+! rhs for jc dfi
   if (ljcdfi .and. nobs_bins>1) call intjcdfi(rval,sval)
 
   if(nsclen > 0)then

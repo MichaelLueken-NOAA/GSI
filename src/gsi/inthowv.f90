@@ -7,8 +7,8 @@ module inthowvmod
 ! abstract: module for inthowv and its tangent linear inthowv_tl
 !
 ! program history log:
-!   2012-09-14  Syed RH Rizvi, NCAR/NESL/MMM/DAS  - implemented obs adjoint test  
-!   2016-05-18  guo     - replaced ob_type with polymorphic obsNode through type casting
+!   2012-09-14  Syed RH Rizvi, ncar/nesl/mmm/das  - implemented obs adjoint test  
+!   2016-05-18  guo     - replaced ob_type with polymorphic obsnode through type casting
 !
 ! subroutines included:
 !   sub inthowv
@@ -21,15 +21,15 @@ module inthowvmod
 !
 !$$$ end documentation block
 
-use m_obsNode , only: obsNode
-use m_howvNode, only: howvNode
-use m_howvNode, only: howvNode_typecast
-use m_howvNode, only: howvNode_nextcast
-use m_obsdiagNode, only: obsdiagNode_set
+use m_obsnode , only: obsnode
+use m_howvnode, only: howvnode
+use m_howvnode, only: howvnode_typecast
+use m_howvnode, only: howvnode_nextcast
+use m_obsdiagnode, only: obsdiagnode_set
 implicit none
 
-PRIVATE
-PUBLIC inthowv
+private
+public inthowv
 
 contains
 
@@ -71,7 +71,7 @@ subroutine inthowv(howvhead,rval,sval)
   implicit none
 
 ! Declare passed variables
-  class(obsNode)  , pointer,intent(in   ) :: howvhead
+  class(obsnode)  , pointer,intent(in   ) :: howvhead
   type(gsi_bundle),         intent(in   ) :: sval
   type(gsi_bundle),         intent(inout) :: rval
 
@@ -84,7 +84,7 @@ subroutine inthowv(howvhead,rval,sval)
   real(r_kind) cg_howv,p0,grad,wnotgross,wgross,pg_howv
   real(r_kind),pointer,dimension(:) :: showv
   real(r_kind),pointer,dimension(:) :: rhowv
-  type(howvNode), pointer :: howvptr
+  type(howvnode), pointer :: howvptr
 
 ! Retrieve pointers
 ! Simply return if any pointer not found
@@ -94,7 +94,7 @@ subroutine inthowv(howvhead,rval,sval)
   if(ier/=0)return
 
   !howvptr => howvhead
-  howvptr => howvNode_typecast(howvhead)
+  howvptr => howvnode_typecast(howvhead)
   do while (associated(howvptr))
      j1=howvptr%ij(1)
      j2=howvptr%ij(2)
@@ -113,10 +113,10 @@ subroutine inthowv(howvhead,rval,sval)
         if (lsaveobsens) then
            grad = val*howvptr%raterr2*howvptr%err2
            !-- howvptr%diags%obssen(jiter) = grad
-           call obsdiagNode_set(howvptr%diags,jiter=jiter,obssen=grad)
+           call obsdiagnode_set(howvptr%diags,jiter=jiter,obssen=grad)
         else
            !-- if (howvptr%luse) howvptr%diags%tldepart(jiter)=val
-           if (howvptr%luse) call obsdiagNode_set(howvptr%diags,jiter=jiter,tldepart=val)
+           if (howvptr%luse) call obsdiagnode_set(howvptr%diags,jiter=jiter,tldepart=val)
         endif
      endif
 
@@ -149,7 +149,7 @@ subroutine inthowv(howvhead,rval,sval)
      endif
 
      !howvptr => howvptr%llpoint
-     howvptr => howvNode_nextcast(howvptr)
+     howvptr => howvnode_nextcast(howvptr)
 
   end do
 
