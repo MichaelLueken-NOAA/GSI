@@ -11,8 +11,8 @@ module intrwmod
 !   2005-11-16  Derber - remove interfaces
 !   2008-11-26  Todling - remove intrw_tl; add interface back
 !   2009-08-13  lueken - update documentation
-!   2012-09-14  Syed RH Rizvi, NCAR/NESL/MMM/DAS  - implemented obs adjoint test  
-!   2016-05-18  guo     - replaced ob_type with polymorphic obsNode through type casting
+!   2012-09-14  Syed RH Rizvi, ncar/nesl/mmm/das  - implemented obs adjoint test  
+!   2016-05-18  guo     - replaced ob_type with polymorphic obsnode through type casting
 !
 ! subroutines included:
 !   sub intrw_
@@ -25,18 +25,18 @@ module intrwmod
 !
 !$$$ end documentation block
 
-use m_obsNode, only: obsNode
-use m_rwNode, only: rwNode
-use m_rwNode, only: rwNode_typecast
-use m_rwNode, only: rwNode_nextcast
-use m_obsdiagNode, only: obsdiagNode_set
+use m_obsnode, only: obsnode
+use m_rwnode, only: rwnode
+use m_rwnode, only: rwnode_typecast
+use m_rwnode, only: rwnode_nextcast
+use m_obsdiagnode, only: obsdiagnode_set
 implicit none
 
-PRIVATE
-PUBLIC intrw
+private
+public intrw
 
 interface intrw; module procedure &
-          intrw_
+   intrw_
 end interface
 
 contains
@@ -60,22 +60,21 @@ subroutine intrw_(rwhead,rval,sval)
 !   2005-08-02  derber  - modify for variational qc parameters for each ob
 !   2005-09-28  derber  - consolidate location and weight arrays
 !   2006-07-28  derber  - modify to use new inner loop obs data structure
-!                       - unify NL qc
+!                       - unify nl qc
 !   2007-02-15  rancic  - add foto
 !   2007-03-19  tremolet - binning of observations
 !   2007-06-05  tremolet - use observation diagnostics structure
 !   2007-07-09  tremolet - observation sensitivity
-!   2008-01-04  tremolet - Don't apply H^T if l_do_adjoint is false
-!   2008-11-28  todling  - turn FOTO optional; changed ptr%time handle
+!   2008-01-04  tremolet - Don't apply h^t if l_do_adjoint is false
+!   2008-11-28  todling  - turn foto optional; changed ptr%time handle
 !   2010-05-13  todlng   - update to use gsi_bundle; update interface
-!   2012-09-14  Syed RH Rizvi, NCAR/NESL/MMM/DAS  - introduced ladtest_obs         
+!   2012-09-14  Syed RH Rizvi, ncar/nesl/mmm/das  - introduced ladtest_obs         
 !   2014-12-03  derber  - modify so that use of obsdiags can be turned off
-!   2017-05-12  Y. Wang and X. Wang - include w into tangent linear of rw operator, 
-!                                     POC: xuguang.wang@ou.edu
 !   2016-06-23  lippi   - add terms for vertical velocity (w) in forward operator
 !                         and adjoint code (uses include_w to check if w is
 !                         being used). Now, the multiplications of costilt
 !                         is done in this code rather than factored in wij.
+!   2017-05-12  Y. Wang and X. Wang - include w into tangent linear of rw operator
 !
 ! usage: call intw(ru,rv,su,sv)
 !   input argument list:
@@ -105,7 +104,7 @@ subroutine intrw_(rwhead,rval,sval)
   implicit none
 
 ! Declare passed variables
-  class(obsNode), pointer, intent(in   ) :: rwhead
+  class(obsnode), pointer, intent(in   ) :: rwhead
   type(gsi_bundle),        intent(in   ) :: sval
   type(gsi_bundle),        intent(inout) :: rval
 
@@ -117,9 +116,9 @@ subroutine intrw_(rwhead,rval,sval)
   real(r_kind) cg_rw,p0,grad,wnotgross,wgross,pg_rw
   real(r_kind),pointer,dimension(:) :: su,sv,sw
   real(r_kind),pointer,dimension(:) :: ru,rv,rw
-  type(rwNode), pointer :: rwptr
+  type(rwnode), pointer :: rwptr
 
-!  If no rw data return
+! If no rw data return
   if(.not. associated(rwhead))return
 
 ! Retrieve pointers
@@ -146,7 +145,7 @@ subroutine intrw_(rwhead,rval,sval)
 
 
   !rwptr => rwhead
-  rwptr => rwNode_typecast(rwhead)
+  rwptr => rwnode_typecast(rwhead)
   do while (associated(rwptr))
      j1=rwptr%ij(1)
      j2=rwptr%ij(2)
@@ -165,8 +164,8 @@ subroutine intrw_(rwhead,rval,sval)
      w7=rwptr%wij(7)
      w8=rwptr%wij(8)
 
-!    Forward model (Tangent Linear; TL)
-!    TLVr  =  TLu*costilt*cosazm  +  TLv*costilt*sinazm  +  TLw*sintilt
+!    Forward model (tangent linear; tl)
+!    tlvr  =  tlu*costilt*cosazm  +  tlv*costilt*sinazm  +  tlw*sintilt
      val=(w1*su(j1)+ w2*su(j2)+ w3*su(j3)+ w4*su(j4)+ w5*su(j5)+    &
           w6*su(j6)+ w7*su(j7)+ w8*su(j8))*rwptr%cosazm_costilt+    &
          (w1*sv(j1)+ w2*sv(j2)+ w3*sv(j3)+ w4*sv(j4)+ w5*sv(j5)+    &
@@ -181,10 +180,10 @@ subroutine intrw_(rwhead,rval,sval)
         if (lsaveobsens) then
            grad = val*rwptr%raterr2*rwptr%err2
            !-- rwptr%diags%obssen(jiter) = grad
-           call obsdiagNode_set(rwptr%diags,jiter=jiter,obssen=grad)
+           call obsdiagnode_set(rwptr%diags,jiter=jiter,obssen=grad)
         else
            !-- if (rwptr%luse) rwptr%diags%tldepart(jiter)=val
-           if (rwptr%luse) call obsdiagNode_set(rwptr%diags,jiter=jiter,tldepart=val)
+           if (rwptr%luse) call obsdiagnode_set(rwptr%diags,jiter=jiter,tldepart=val)
         endif
      endif
 
@@ -211,11 +210,11 @@ subroutine intrw_(rwhead,rval,sval)
 
         endif
 
-!       Adjoint (AD)
-        valu=rwptr%cosazm_costilt*grad  ! ADVr_u = costilt*cosazm*ADVr
-        valv=rwptr%sinazm_costilt*grad  ! ADVr_v = costilt*sinazm*ADVr
-        if(include_w) valw=rwptr%sintilt*grad ! ADVr_w = sintilt*ADVr
-        ru(j1)=ru(j1)+w1*valu                 ! ADu = ADu + ADVr_u
+!       Adjoint (ad)
+        valu=rwptr%cosazm_costilt*grad  ! advr_u = costilt*cosazm*advr
+        valv=rwptr%sinazm_costilt*grad  ! advr_v = costilt*sinazm*advr
+        if(include_w) valw=rwptr%sintilt*grad ! advr_w = sintilt*advr
+        ru(j1)=ru(j1)+w1*valu                 ! adu = adu + advr_u
         ru(j2)=ru(j2)+w2*valu
         ru(j3)=ru(j3)+w3*valu
         ru(j4)=ru(j4)+w4*valu
@@ -223,7 +222,7 @@ subroutine intrw_(rwhead,rval,sval)
         ru(j6)=ru(j6)+w6*valu
         ru(j7)=ru(j7)+w7*valu
         ru(j8)=ru(j8)+w8*valu
-        rv(j1)=rv(j1)+w1*valv                 ! ADv = ADv + ADVr_v
+        rv(j1)=rv(j1)+w1*valv                 ! adv = adv + advr_v
         rv(j2)=rv(j2)+w2*valv
         rv(j3)=rv(j3)+w3*valv
         rv(j4)=rv(j4)+w4*valv
@@ -232,7 +231,7 @@ subroutine intrw_(rwhead,rval,sval)
         rv(j7)=rv(j7)+w7*valv
         rv(j8)=rv(j8)+w8*valv
         if(include_w) then 
-           rw(j1)=rw(j1)+w1*valw              ! ADw = ADw + ADVr_w
+           rw(j1)=rw(j1)+w1*valw              ! adw = adw + advr_w
            rw(j2)=rw(j2)+w2*valw
            rw(j3)=rw(j3)+w3*valw
            rw(j4)=rw(j4)+w4*valw
@@ -244,7 +243,7 @@ subroutine intrw_(rwhead,rval,sval)
      endif
 
      !rwptr => rwptr%llpoint
-     rwptr => rwNode_nextcast(rwptr)
+     rwptr => rwnode_nextcast(rwptr)
   end do
   return
 end subroutine intrw_

@@ -8,7 +8,7 @@ module intmitmmod
 !
 ! program history log:
 !   2014-04-10  pondeca
-!   2016-05-18  guo     - replaced ob_type with polymorphic obsNode through type casting
+!   2016-05-18  guo     - replaced ob_type with polymorphic obsnode through type casting
 !
 ! subroutines included:
 !   sub intmitm
@@ -21,15 +21,15 @@ module intmitmmod
 !
 !$$$ end documentation block
 
-use m_obsNode , only: obsNode
-use m_mitmNode, only: mitmNode
-use m_mitmNode, only: mitmNode_typecast
-use m_mitmNode, only: mitmNode_nextcast
-use m_obsdiagNode, only: obsdiagNode_set
+use m_obsnode , only: obsnode
+use m_mitmnode, only: mitmnode
+use m_mitmnode, only: mitmnode_typecast
+use m_mitmnode, only: mitmnode_nextcast
+use m_obsdiagnode, only: obsdiagnode_set
 implicit none
 
-PRIVATE
-PUBLIC intmitm
+private
+public intmitm
 
 contains
 
@@ -71,7 +71,7 @@ subroutine intmitm(mitmhead,rval,sval)
   implicit none
 
 ! Declare passed variables
-  class(obsNode)  , pointer,intent(in   ) :: mitmhead
+  class(obsnode)  , pointer,intent(in   ) :: mitmhead
   type(gsi_bundle),         intent(in   ) :: sval
   type(gsi_bundle),         intent(inout) :: rval
 
@@ -84,7 +84,7 @@ subroutine intmitm(mitmhead,rval,sval)
   real(r_kind) cg_mitm,p0,grad,wnotgross,wgross,pg_mitm
   real(r_kind),pointer,dimension(:) :: smitm
   real(r_kind),pointer,dimension(:) :: rmitm
-  type(mitmNode), pointer :: mitmptr
+  type(mitmnode), pointer :: mitmptr
 
 ! Retrieve pointers
 ! Simply return if any pointer not found
@@ -94,7 +94,7 @@ subroutine intmitm(mitmhead,rval,sval)
   if(ier/=0)return
 
   !mitmptr => mitmhead
-  mitmptr => mitmNode_typecast(mitmhead)
+  mitmptr => mitmnode_typecast(mitmhead)
   do while (associated(mitmptr))
      j1=mitmptr%ij(1)
      j2=mitmptr%ij(2)
@@ -113,10 +113,10 @@ subroutine intmitm(mitmhead,rval,sval)
         if (lsaveobsens) then
            grad = val*mitmptr%raterr2*mitmptr%err2
            !-- mitmptr%diags%obssen(jiter) = grad
-           call obsdiagNode_set(mitmptr%diags,jiter=jiter,obssen=grad)
+           call obsdiagnode_set(mitmptr%diags,jiter=jiter,obssen=grad)
         else
            !-- if (mitmptr%luse) mitmptr%diags%tldepart(jiter)=val
-           if (mitmptr%luse) call obsdiagNode_set(mitmptr%diags,jiter=jiter,tldepart=val)
+           if (mitmptr%luse) call obsdiagnode_set(mitmptr%diags,jiter=jiter,tldepart=val)
         endif
      endif
 
@@ -149,7 +149,7 @@ subroutine intmitm(mitmhead,rval,sval)
      endif
 
      !mitmptr => mitmptr%llpoint
-     mitmptr => mitmNode_nextcast(mitmptr)
+     mitmptr => mitmnode_nextcast(mitmptr)
 
   end do
 

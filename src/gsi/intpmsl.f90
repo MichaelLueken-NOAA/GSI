@@ -8,7 +8,7 @@ module intpmslmod
 !
 ! program history log:
 !   2014-04-10  pondeca
-!   2016-05-18  guo     - replaced ob_type with polymorphic obsNode through type casting
+!   2016-05-18  guo     - replaced ob_type with polymorphic obsnode through type casting
 !
 ! subroutines included:
 !   sub intpmsl
@@ -21,15 +21,15 @@ module intpmslmod
 !
 !$$$ end documentation block
 
-use m_obsNode , only: obsNode
-use m_pmslNode, only: pmslNode
-use m_pmslNode, only: pmslNode_typecast
-use m_pmslNode, only: pmslNode_nextcast
-use m_obsdiagNode, only: obsdiagNode_set
+use m_obsnode , only: obsnode
+use m_pmslnode, only: pmslnode
+use m_pmslnode, only: pmslnode_typecast
+use m_pmslnode, only: pmslnode_nextcast
+use m_obsdiagnode, only: obsdiagnode_set
 implicit none
 
-PRIVATE
-PUBLIC intpmsl
+private
+public intpmsl
 
 contains
 
@@ -71,7 +71,7 @@ subroutine intpmsl(pmslhead,rval,sval)
   implicit none
 
 ! Declare passed variables
-  class(obsNode)  , pointer,intent(in   ) :: pmslhead
+  class(obsnode)  , pointer,intent(in   ) :: pmslhead
   type(gsi_bundle),         intent(in   ) :: sval
   type(gsi_bundle),         intent(inout) :: rval
 
@@ -84,7 +84,7 @@ subroutine intpmsl(pmslhead,rval,sval)
   real(r_kind) cg_pmsl,p0,grad,wnotgross,wgross,pg_pmsl
   real(r_kind),pointer,dimension(:) :: spmsl
   real(r_kind),pointer,dimension(:) :: rpmsl
-  type(pmslNode), pointer :: pmslptr
+  type(pmslnode), pointer :: pmslptr
 
 ! Retrieve pointers
 ! Simply return if any pointer not found
@@ -94,7 +94,7 @@ subroutine intpmsl(pmslhead,rval,sval)
   if(ier/=0)return
 
   !pmslptr => pmslhead
-  pmslptr => pmslNode_typecast(pmslhead)
+  pmslptr => pmslnode_typecast(pmslhead)
   do while (associated(pmslptr))
      j1=pmslptr%ij(1)
      j2=pmslptr%ij(2)
@@ -113,10 +113,10 @@ subroutine intpmsl(pmslhead,rval,sval)
         if (lsaveobsens) then
            grad = val*pmslptr%raterr2*pmslptr%err2
            !-- pmslptr%diags%obssen(jiter) = grad
-           call obsdiagNode_set(pmslptr%diags,jiter=jiter,obssen=grad)
+           call obsdiagnode_set(pmslptr%diags,jiter=jiter,obssen=grad)
         else
            !-- if (pmslptr%luse) pmslptr%diags%tldepart(jiter)=val
-           if (pmslptr%luse) call obsdiagNode_set(pmslptr%diags,jiter=jiter,tldepart=val)
+           if (pmslptr%luse) call obsdiagnode_set(pmslptr%diags,jiter=jiter,tldepart=val)
         endif
      endif
 
@@ -149,7 +149,7 @@ subroutine intpmsl(pmslhead,rval,sval)
      endif
 
      !pmslptr => pmslptr%llpoint
-     pmslptr => pmslNode_nextcast(pmslptr)
+     pmslptr => pmslnode_nextcast(pmslptr)
 
   end do
 

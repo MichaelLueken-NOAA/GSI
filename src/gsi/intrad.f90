@@ -13,10 +13,10 @@ module intradmod
 !   2008-11-26  Todling - remove intrad_tl; add interface back
 !   2009-08-13  lueken - update documentation
 !   2011-05-17  todling - add internal routine set_
-!   2012-09-14  Syed RH Rizvi, NCAR/NESL/MMM/DAS  - implemented obs adjoint test  
+!   2012-09-14  Syed RH Rizvi, ncar/nesl/mmm/das  - implemented obs adjoint test  
 !   2014-12-03  derber  - modify so that use of obsdiags can be turned off and
 !                         add threading
-!   2016-05-18  guo     - replaced ob_type with polymorphic obsNode through type casting
+!   2016-05-18  guo     - replaced ob_type with polymorphic obsnode through type casting
 !
 ! subroutines included:
 !   sub intrad_
@@ -30,21 +30,21 @@ module intradmod
 !$$$ end documentation block
 
 use kinds, only: i_kind
-use m_obsNode, only: obsNode
-use m_radNode, only: radNode
-use m_radNode, only: radNode_typecast
-use m_radNode, only: radNode_nextcast
-use m_obsdiagNode, only: obsdiagNode_set
+use m_obsnode, only: obsnode
+use m_radnode, only: radnode
+use m_radnode, only: radnode_typecast
+use m_radnode, only: radnode_nextcast
+use m_obsdiagnode, only: obsdiagnode_set
 implicit none
 
-PRIVATE
-PUBLIC intrad,setrad
-PUBLIC itv,iqv,ioz,icw,ius,ivs,isst,iqg,iqh,iqi,iql,iqr,iqs,lgoback
-PUBLIC luseu,lusev,luset,luseq,lusecw,luseoz,luseqg,luseqh,luseqi,luseql, &
+private
+public intrad,setrad
+public itv,iqv,ioz,icw,ius,ivs,isst,iqg,iqh,iqi,iql,iqr,iqs,lgoback
+public luseu,lusev,luset,luseq,lusecw,luseoz,luseqg,luseqh,luseqi,luseql, &
        luseqr,luseqs,lusesst
 
 interface intrad; module procedure &
-          intrad_
+   intrad_
 end interface
 
 integer(i_kind) :: itv,iqv,ioz,icw,ius,ivs,isst
@@ -63,7 +63,7 @@ subroutine setrad(sval)
 !   prgmmr: todling          org: np22                date: 2011-05-18
 !
 ! abstract: sets parameters required for intrad.
-!           This routine is NEVER to be make public.
+!           This routine is never to be make public.
 !
 ! program history log:
 !   2011-05-18  todling
@@ -225,17 +225,17 @@ subroutine intrad_(radhead,rval,sval,rpred,spred)
 !   2005-09-28  derber  - modify var qc and change location and weight arrays
 !   2006-04-03  derber  - clean up code
 !   2006-07-28  derber  - modify to use new inner loop obs data structure
-!                       - unify NL qc
+!                       - unify nl qc
 !   2007-03-19  tremolet - binning of observations
 !   2007-06-04  derber  - use quad precision to get reproducability over number of processors
 !   2007-06-05  tremolet - use observation diagnostics structure
 !   2007-07-09  tremolet - observation sensitivity
-!   2008-01-04  tremolet - Don't apply H^T if l_do_adjoint is false
+!   2008-01-04  tremolet - don't apply h^t if l_do_adjoint is false
 !   2008-05-31  safford - rm unused vars and uses
 !   2008-09-05  lueken  - merged ed's changes into q1fy09 code
 !   2008-10-10  derber  - flip indices for spred and rpred
 !   2008-11-28  todling  - remove quad precision; mpi_allgather is reproducible
-!                        - turn FOTO optional; changed ptr%time handle
+!                        - turn foto optional; changed ptr%time handle
 !                        - internal copy of pred's to avoid reshape in calling program
 !   2010-03-25  zhu - use state_vector in the interface for generalizing control variable
 !                   - add treatment when sst and oz are not control variables
@@ -243,13 +243,13 @@ subroutine intrad_(radhead,rval,sval,rpred,spred)
 !   2010-05-05  derber - omp commands removed
 !   2010-05-13  todling - update to use gsi_bundle; 
 !                       - on-the-spot handling of non-essential vars
-!   2011-05-04  todling - merge in Min-Jeong Kim's cloud clear assimilation (connect to Metguess)
+!   2011-05-04  todling - merge in min-jeong kim's cloud clear assimilation (connect to metguess)
 !   2011-05-16  todling - generalize entries in radiance jacobian
 !   2011-05-17  auligne/todling - add hydrometeors
-!   2012-09-14  Syed RH Rizvi, NCAR/NESL/MMM/DAS  - introduced ladtest_obs         
+!   2012-09-14  Syed RH Rizvi, ncar/nesl/mmm/das  - introduced ladtest_obs         
 !   2015-04-01  W. Gu   - scale the bias correction term to handle the
 !                       - inter-channel correlated obs errors.
-!   2019-04-22  kbathmann/W. Gu - use of Cholesky factoriztion of R to update the bias correction term
+!   2019-04-22  kbathmann/W. Gu - use of cholesky factoriztion of r to update the bias correction term
 !   2019-08-14  W. Gu/guo- speed up bias correction term in the case of the correlated obs
 !
 !   input argument list:
@@ -300,7 +300,7 @@ subroutine intrad_(radhead,rval,sval,rpred,spred)
   implicit none
 
 ! Declare passed variables
-  class(obsNode),pointer,intent(in) :: radhead
+  class(obsnode),pointer,intent(in) :: radhead
   type(gsi_bundle), intent(in   ) :: sval
   type(gsi_bundle), intent(inout) :: rval
   real(r_kind),dimension(npred*jpch_rad),intent(in   ) :: spred
@@ -314,7 +314,7 @@ subroutine intrad_(radhead,rval,sval,rpred,spred)
   real(r_kind) w1,w2,w3,w4
   real(r_kind),dimension(nsigradjac):: tval,tdir
   real(r_kind) cg_rad,p0,wnotgross,wgross
-  type(radNode), pointer :: radptr
+  type(radnode), pointer :: radptr
   real(r_kind),allocatable,dimension(:) :: biasvect 
   integer(i_kind) :: ic1,ix1
   real(r_kind),pointer,dimension(:) :: st,sq,scw,soz,su,sv,sqg,sqh,sqi,sql,sqr,sqs
@@ -323,7 +323,7 @@ subroutine intrad_(radhead,rval,sval,rpred,spred)
   real(r_kind),pointer,dimension(:) :: rst
   real(r_quad) :: val_quad
 
-!  If no rad observations return
+! If no rad observations return
   if(.not.associated(radhead)) return
 ! Set required parameters
   if(lgoback) return
@@ -386,7 +386,7 @@ subroutine intrad_(radhead,rval,sval,rpred,spred)
   end if
 
   !radptr => radhead
-  radptr => radNode_typecast(radhead)
+  radptr => radnode_typecast(radhead)
   do while (associated(radptr))
      j1=radptr%ij(1)
      j2=radptr%ij(2)
@@ -396,7 +396,7 @@ subroutine intrad_(radhead,rval,sval,rpred,spred)
      w2=radptr%wij(2)
      w3=radptr%wij(3)
      w4=radptr%wij(4)
-!  Begin Forward model
+!  Begin forward model
 !  calculate temperature, q, ozone, sst vector at observation location
      i1n(1) = j1
      i2n(1) = j2
@@ -477,13 +477,13 @@ subroutine intrad_(radhead,rval,sval,rpred,spred)
      if (.not. ladtest_obs) then
         allocate(biasvect(radptr%nchan))
         do nn=1,radptr%nchan
-          ic1=radptr%icx(nn)
-          ix1=(ic1-1)*npred
-          val_quad = zero_quad
-          do n=1,npred
-            val_quad = val_quad + spred(ix1+n)*radptr%pred(n,nn)
-          end do
-          biasvect(nn) = val_quad
+           ic1=radptr%icx(nn)
+           ix1=(ic1-1)*npred
+           val_quad = zero_quad
+           do n=1,npred
+              val_quad = val_quad + spred(ix1+n)*radptr%pred(n,nn)
+           end do
+           biasvect(nn) = val_quad
         end do
      end if
      ncr1=0
@@ -518,10 +518,10 @@ subroutine intrad_(radhead,rval,sval,rpred,spred)
            if (lsaveobsens) then
               val(nn)=val(nn)*radptr%err2(nn)*radptr%raterr2(nn)
               !-- radptr%diags(nn)%ptr%obssen(jiter) = val(nn)
-              call obsdiagNode_set(radptr%diags(nn)%ptr,jiter=jiter,obssen=val(nn))
+              call obsdiagnode_set(radptr%diags(nn)%ptr,jiter=jiter,obssen=val(nn))
            else
               !-- if (radptr%luse) radptr%diags(nn)%ptr%tldepart(jiter) = val(nn)
-              if (radptr%luse) call obsdiagNode_set(radptr%diags(nn)%ptr,jiter=jiter,tldepart=val(nn))
+              if (radptr%luse) call obsdiagnode_set(radptr%diags(nn)%ptr,jiter=jiter,tldepart=val(nn))
            endif
         endif
      end do
@@ -551,37 +551,37 @@ subroutine intrad_(radhead,rval,sval,rpred,spred)
 
         if( .not. ladtest_obs) then
            if (radptr%use_corr_obs) then
-             ncr2 = 0 
-             ncr1 = 0
-             do mm=1,radptr%nchan
-               ncr1 = ncr1 + mm
-               ncr2 = ncr1
-               biasvect(mm) = zero
-               do nn=mm,radptr%nchan
-                 biasvect(mm)=biasvect(mm)+radptr%rsqrtinv(ncr2)*val(nn)
-                 ncr2 = ncr2 + nn
-               enddo
-             end do
+              ncr2 = 0 
+              ncr1 = 0
+              do mm=1,radptr%nchan
+                 ncr1 = ncr1 + mm
+                 ncr2 = ncr1
+                 biasvect(mm) = zero
+                 do nn=mm,radptr%nchan
+                    biasvect(mm)=biasvect(mm)+radptr%rsqrtinv(ncr2)*val(nn)
+                    ncr2 = ncr2 + nn
+                 enddo
+              end do
            endif
 
            if(radptr%luse)then
-             if(radptr%use_corr_obs)then
-                do mm=1,radptr%nchan
-                   ic1=radptr%icx(mm)
-                   ix1=(ic1-1)*npred
-                   do n=1,npred
-                      rpred(ix1+n)=rpred(ix1+n)+biasvect(mm)*radptr%pred(n,mm)
-                   enddo
-                enddo
-             else
-                do nn=1,radptr%nchan
-                   ic=radptr%icx(nn)
-                   ix=(ic-1)*npred
-                   do n=1,npred
-                      rpred(ix+n)=rpred(ix+n)+radptr%pred(n,nn)*val(nn)
-                   end do
-                end do
-             end if
+              if(radptr%use_corr_obs)then
+                 do mm=1,radptr%nchan
+                    ic1=radptr%icx(mm)
+                    ix1=(ic1-1)*npred
+                    do n=1,npred
+                       rpred(ix1+n)=rpred(ix1+n)+biasvect(mm)*radptr%pred(n,mm)
+                    enddo
+                 enddo
+              else
+                 do nn=1,radptr%nchan
+                    ic=radptr%icx(nn)
+                    ix=(ic-1)*npred
+                    do n=1,npred
+                       rpred(ix+n)=rpred(ix+n)+radptr%pred(n,nn)*val(nn)
+                    end do
+                 end do
+              end if
            end if
 
            deallocate(biasvect)
@@ -705,7 +705,7 @@ subroutine intrad_(radhead,rval,sval,rpred,spred)
      deallocate(val)
 
      !radptr => radptr%llpoint
-     radptr => radNode_nextcast(radptr)
+     radptr => radnode_nextcast(radptr)
   end do
 
   call timer_fnl('intrad')

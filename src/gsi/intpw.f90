@@ -12,8 +12,8 @@ module intpwmod
 !   2005-11-16  Derber - remove interfaces
 !   2008-11-26  Todling - remove intpw_tl; add interface back
 !   2009-08-13  lueken - update documentation
-!   2012-09-14  Syed RH Rizvi, NCAR/NESL/MMM/DAS  - implemented obs adjoint test  
-!   2016-05-18  guo     - replaced ob_type with polymorphic obsNode through type casting
+!   2012-09-14  Syed RH Rizvi, ncar/nesl/mmm/das  - implemented obs adjoint test  
+!   2016-05-18  guo     - replaced ob_type with polymorphic obsnode through type casting
 !
 ! subroutines included:
 !   sub intpw_
@@ -26,18 +26,18 @@ module intpwmod
 !
 !$$$ end documentation block
 
-use m_obsNode, only: obsNode
-use m_pwNode, only: pwNode
-use m_pwNode, only: pwNode_typecast
-use m_pwNode, only: pwNode_nextcast
-use m_obsdiagNode, only: obsdiagNode_set
+use m_obsnode, only: obsnode
+use m_pwnode, only: pwnode
+use m_pwnode, only: pwnode_typecast
+use m_pwnode, only: pwnode_nextcast
+use m_obsdiagnode, only: obsdiagnode_set
 implicit none
 
-PRIVATE
-PUBLIC intpw
+private
+public intpw
 
 interface intpw; module procedure &
-          intpw_
+   intpw_
 end interface
 
 contains
@@ -65,15 +65,15 @@ subroutine intpw_(pwhead,rval,sval)
 !   2005-09-28  derber  - consolidate location and weight arrays
 !   2006-03-30  wu - add vertical index k to i1,i2,i3,i4 in adjoint (bug fix)
 !   2006-07-28  derber  - modify to use new inner loop obs data structure
-!                       - unify NL qc
+!                       - unify nl qc
 !   2007-03-19  tremolet - binning of observations
 !   2007-06-05  tremolet - use observation diagnostics structure
 !   2007-07-09  tremolet - observation sensitivity
 !   2008-06-02  safford - rm unused vars
-!   2008-01-04  tremolet - Don't apply H^T if l_do_adjoint is false
-!   2008-11-28  todling  - turn FOTO optional; changed ptr%time handle
+!   2008-01-04  tremolet - Don't apply h^t if l_do_adjoint is false
+!   2008-11-28  todling  - turn foto optional; changed ptr%time handle
 !   2010-05-13  todling  - update to use gsi_bundle; update interface
-!   2012-09-14  Syed RH Rizvi, NCAR/NESL/MMM/DAS  - introduced ladtest_obs         
+!   2012-09-14  Syed RH Rizvi, ncar/nesl/mmm/das  - introduced ladtest_obs         
 !   2014-12-03  derber  - modify so that use of obsdiags can be turned off
 !
 !   input argument list:
@@ -103,7 +103,7 @@ subroutine intpw_(pwhead,rval,sval)
   implicit none
 
 ! Declare passed variables
-  class(obsNode), pointer, intent(in   ) :: pwhead
+  class(obsnode), pointer, intent(in   ) :: pwhead
   type(gsi_bundle)        ,intent(in   ) :: sval
   type(gsi_bundle)        ,intent(inout) :: rval
 
@@ -115,9 +115,9 @@ subroutine intpw_(pwhead,rval,sval)
   real(r_kind) cg_pw,grad,p0,wnotgross,wgross,pg_pw
   real(r_kind),pointer,dimension(:) :: sq
   real(r_kind),pointer,dimension(:) :: rq
-  type(pwNode), pointer :: pwptr
+  type(pwnode), pointer :: pwptr
 
-!  If no pw data return
+! If no pw data return
   if(.not. associated(pwhead))return
 ! Retrieve pointers
 ! Simply return if any pointer not found
@@ -126,11 +126,11 @@ subroutine intpw_(pwhead,rval,sval)
   call gsi_bundlegetpointer(rval,'q',rq,istatus);ier=istatus+ier
 
   if(ier/=0)return
-   
+
   time_pw = zero
 
   !pwptr => pwhead
-  pwptr => pwNode_typecast(pwhead)
+  pwptr => pwnode_typecast(pwhead)
   do while (associated(pwptr))
      w1=pwptr%wij(1)
      w2=pwptr%wij(2)
@@ -146,7 +146,7 @@ subroutine intpw_(pwhead,rval,sval)
         i3(k)=i3(k-1)+latlon11
         i4(k)=i4(k-1)+latlon11
      end do
-     
+
      val=zero
 !    Forward model
      do k=1,nsig
@@ -159,10 +159,10 @@ subroutine intpw_(pwhead,rval,sval)
         if (lsaveobsens) then
            grad = val*pwptr%raterr2*pwptr%err2
            !-- pwptr%diags%obssen(jiter) = grad
-           call obsdiagNode_set(pwptr%diags,jiter=jiter,obssen=grad)
+           call obsdiagnode_set(pwptr%diags,jiter=jiter,obssen=grad)
         else
            !-- if (pwptr%luse) pwptr%diags%tldepart(jiter)=val
-           if (pwptr%luse) call obsdiagNode_set(pwptr%diags,jiter=jiter,tldepart=val)
+           if (pwptr%luse) call obsdiagnode_set(pwptr%diags,jiter=jiter,tldepart=val)
         endif
      end if
 
@@ -198,7 +198,7 @@ subroutine intpw_(pwhead,rval,sval)
      endif
 
      !pwptr => pwptr%llpoint
-     pwptr => pwNode_nextcast(pwptr)
+     pwptr => pwnode_nextcast(pwptr)
 
   end do
 

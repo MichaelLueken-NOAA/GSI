@@ -12,8 +12,8 @@ module intozmod
 !   2005-11-16  Derber - remove interfaces
 !   2008-11-26  Todling - remove intoz_tl; add interface back
 !   2009-08-13  lueken - update documentation
-!   2012-09-14  Syed RH Rizvi, NCAR/NESL/MMM/DAS  - implemented obs adjoint test
-!   2016-05-18  guo     - replaced ob_type with polymorphic obsNode through type casting
+!   2012-09-14  Syed RH Rizvi, ncar/nesl/mmm/das  - implemented obs adjoint test
+!   2016-05-18  guo     - replaced ob_type with polymorphic obsnode through type casting
 !   2016-08-29  J. Guo  - added individual interfaces, intozlay() and intozlev()
 !   2018-07-13  J. Guo  - splitted original module intozmod into this intozmod with
 !                         subroutine intozlay() only, and module into3lmod below.
@@ -29,10 +29,10 @@ module intozmod
 !
 !$$$ end documentation block
 
-use m_obsNode, only: obsNode
+use m_obsnode, only: obsnode
 implicit none
 
-PRIVATE
+private
 public:: intozlay
 
 interface intozlay; module procedure intozlay_; end interface
@@ -57,22 +57,22 @@ subroutine intozlay_(ozhead,rval,sval)
 !   2004-10-08  parrish - add nonlinear qc
 !   2005-03-01  parrish - nonlinear qc change to account for inflated obs error
 !   2005-04-11  treadon - merge intoz and intoz_qc into single routine
-!   2005-06-14  wu      - add OMI total ozone
+!   2005-06-14  wu      - add omi total ozone
 !   2005-09-28  derber  - consolidate location and weight arrays
 !   2006-07-28  derber  - modify to use new inner loop obs data structure
-!                       - unify NL qc
+!                       - unify nl qc
 !   2007-02-16  sienkiewicz - add call to routine for level ozone contrib.
 !   2007-03-19  tremolet - binning of observations
 !   2007-05-30  h.liu   - move interpolation weights w1-w4 inside k loop
 !   2007-06-05  tremolet - use observation diagnostics structure
 !   2007-07-09  tremolet - observation sensitivity
-!   2008-01-04  tremolet - Don't apply H^T if l_do_adjoint is false
-!   2008-??-??  ??????   - remove nonlinear qc gradient; folded OMI within layer O3
-!   2008-11-28  todling  - turn FOTO optional; changed ptr%time handle
+!   2008-01-04  tremolet - Don't apply h^t if l_do_adjoint is false
+!   2008-??-??  ??????   - remove nonlinear qc gradient; folded omi within layer o3
+!   2008-11-28  todling  - turn foto optional; changed ptr%time handle
 !   2009-01-18  todling  - treat val in quad precision (revisit later)
 !   2010-05-13  todling  - update to use gsi_bundle; update interface
-!   2012-09-08  wargan   - add OMI with efficiency factors
-!   2012-09-14  Syed RH Rizvi, NCAR/NESL/MMM/DAS  - introduced ladtest_obs         
+!   2012-09-08  wargan   - add omi with efficiency factors
+!   2012-09-14  Syed RH Rizvi, ncar/nesl/mmm/das  - introduced ladtest_obs         
 !   2014-12-03  derber  - modify so that use of obsdiags can be turned off
 !
 !   input argument list:
@@ -97,15 +97,15 @@ subroutine intozlay_(ozhead,rval,sval)
   use gsi_bundlemod, only: gsi_bundle
   use gsi_bundlemod, only: gsi_bundlegetpointer
   use gsi_4dvar, only: ladtest_obs
-  use m_ozNode , only:  ozNode
-  use m_ozNode , only:  ozNode_typecast
-  use m_ozNode , only:  ozNode_nextcast
-  use m_obsdiagNode, only: obsdiagNode_get
-  use m_obsdiagNode, only: obsdiagNode_set
+  use m_oznode , only:  oznode
+  use m_oznode , only:  oznode_typecast
+  use m_oznode , only:  oznode_nextcast
+  use m_obsdiagnode, only: obsdiagnode_get
+  use m_obsdiagnode, only: obsdiagnode_set
   implicit none
 
 ! Declare passed variables
-  class(obsNode)  ,pointer, intent(in   ) :: ozhead
+  class(obsnode)  ,pointer, intent(in   ) :: ozhead
   type(gsi_bundle),         intent(in   ) :: sval
   type(gsi_bundle),         intent(inout) :: rval
 
@@ -120,7 +120,7 @@ subroutine intozlay_(ozhead,rval,sval)
   real(r_kind),pointer,dimension(:,:,:)  :: rozp
   real(r_kind),allocatable,dimension(:,:) :: soz
   real(r_kind),allocatable,dimension(:,:) :: roz
-  type(ozNode), pointer :: ozptr
+  type(oznode), pointer :: ozptr
   real(r_kind),dimension(nloz_omi):: val_lay
 
 !  If no data, return
@@ -146,10 +146,10 @@ subroutine intozlay_(ozhead,rval,sval)
      enddo
   enddo
 !
-! SBUV OZONE: LAYER O3 and TOTAL O3
+! sbuv ozone: layer o3 and total o3
 !
 ! Loop over ozone observations.
-  ozptr => ozNode_typecast(ozhead)
+  ozptr => oznode_typecast(ozhead)
   do while (associated(ozptr))
 
 !    Set location
@@ -188,10 +188,10 @@ subroutine intozlay_(ozhead,rval,sval)
               if (lsaveobsens) then
                  valx=val1*ozptr%err2(k)*ozptr%raterr2(k)
                  !-- ozptr%diags(k)%ptr%obssen(jiter)=valx
-                 call obsdiagNode_set(ozptr%diags(k)%ptr,jiter=jiter,obssen=real(valx,r_kind))
+                 call obsdiagnode_set(ozptr%diags(k)%ptr,jiter=jiter,obssen=real(valx,r_kind))
               else
                  !-- if (ozptr%luse) ozptr%diags(k)%ptr%tldepart(jiter)=val1
-                 if (ozptr%luse) call obsdiagNode_set(ozptr%diags(k)%ptr,jiter=jiter,tldepart=real(val1,r_kind))
+                 if (ozptr%luse) call obsdiagnode_set(ozptr%diags(k)%ptr,jiter=jiter,tldepart=real(val1,r_kind))
               endif
            endif
 
@@ -228,7 +228,7 @@ subroutine intozlay_(ozhead,rval,sval)
 
 !    Add contribution from total column observation
      k=ozptr%nloz+1
-     if (ozptr%apriori(1) .lt. zero) then ! non-OMIEFF ozone
+     if (ozptr%apriori(1) < zero) then ! non-omieff ozone
         val1= zero
         do kk=nsig,1,-1
            w1=ozptr%wij(1,kk)
@@ -241,7 +241,7 @@ subroutine intozlay_(ozhead,rval,sval)
                 w3* soz(j3,kk)+ &
                 w4* soz(j4,kk)
         enddo
-     else  ! OMI ozone with efficiency factor
+     else  ! omi ozone with efficiency factor
 ! Integrate ozone within each layer
         dz1=nsig+1
         do kl=1,nloz_omi
@@ -272,22 +272,22 @@ subroutine intozlay_(ozhead,rval,sval)
         do j=1,nloz_omi 
            val1=val1+ozptr%efficiency(j)*val_lay(j)
         enddo    
-     endif ! OMI ozone with efficiency factor
+     endif ! omi ozone with efficiency factor
      
 
      if(luse_obsdiag)then
         if (lsaveobsens) then
            valx=val1*ozptr%err2(k)*ozptr%raterr2(k)
            !-- ozptr%diags(k)%ptr%obssen(jiter)=valx
-           call obsdiagNode_set(ozptr%diags(k)%ptr,jiter=jiter,obssen=real(valx,r_kind))
+           call obsdiagnode_set(ozptr%diags(k)%ptr,jiter=jiter,obssen=real(valx,r_kind))
         else
            !-- if (ozptr%luse) ozptr%diags(k)%ptr%tldepart(jiter)=val1
-           if (ozptr%luse) call obsdiagNode_set(ozptr%diags(k)%ptr,jiter=jiter,tldepart=real(val1,r_kind))
+           if (ozptr%luse) call obsdiagnode_set(ozptr%diags(k)%ptr,jiter=jiter,tldepart=real(val1,r_kind))
         endif
      endif
 
      if (l_do_adjoint) then
-        if (ozptr%apriori(1) .lt. zero) then ! non-OMI ozone
+        if (ozptr%apriori(1) < zero) then ! non-omi ozone
            if (.not. lsaveobsens) then
               if(ladtest_obs) then
                  valx=val1
@@ -309,7 +309,7 @@ subroutine intozlay_(ozhead,rval,sval)
               roz(j3,kk)  = roz(j3,kk) + valx*w3
               roz(j4,kk)  = roz(j4,kk) + valx*w4
            enddo
-        else  ! OMI ozone with efficiency factor
+        else  ! omi ozone with efficiency factor
            if (lsaveobsens) then
                 ! Precondition: luse_obsdiag .or. .not.lsaveobsens
                 ! -------------------------------------------------
@@ -319,7 +319,7 @@ subroutine intozlay_(ozhead,rval,sval)
                 ! result an accuracy lost due to the kind difference between valx and
                 ! %obssen(:).
               !-- valx = ozptr%diags(k)%ptr%obssen(jiter)       ! or ...
-              !-- call obsdiagNode_get(ozptr%diags(k)%ptr,jiter=jiter,obssen=valx_)
+              !-- call obsdiagnode_get(ozptr%diags(k)%ptr,jiter=jiter,obssen=valx_)
               !-- valx=valx_    ! see vlax_ declaration on the top)
            else
               if(ladtest_obs) then
@@ -334,7 +334,7 @@ subroutine intozlay_(ozhead,rval,sval)
            do j=1,nloz_omi 
               val_lay(j)=ozptr%efficiency(j)*valx
            enddo
-! spread the info over GSI levels
+! spread the info over gsi levels
            do kl=1,nloz_omi
               pob = ozptr%prs(kl)
               iz1=dz1
@@ -355,10 +355,10 @@ subroutine intozlay_(ozhead,rval,sval)
               enddo
               dz1=pob 
            end do
-        endif  ! OMI
+        endif  ! omi
      endif   ! do adjoint
 
-     ozptr => ozNode_nextcast(ozptr)
+     ozptr => oznode_nextcast(ozptr)
 
 ! End loop over observations
   enddo
@@ -405,10 +405,10 @@ module into3lmod
 !
 !$$$ end documentation block
 
-use m_obsNode, only: obsNode
+use m_obsnode, only: obsnode
 implicit none
 
-PRIVATE
+private
 public:: intozlev
 
 interface intozlev; module procedure intozlev_; end interface
@@ -434,7 +434,7 @@ subroutine intozlev_(o3lhead,rval,sval)
 !   2009-01-08  todling - remove nonlinear qc
 !   2009-01-22  sienkiewicz - add time derivative
 !   2010-05-13  todling  - update to use gsi_bundle; update interface
-!   2012-09-14  Syed RH Rizvi, NCAR/NESL/MMM/DAS  - introduced ladtest_obs         
+!   2012-09-14  Syed RH Rizvi, ncar/nesl/mmm/das  - introduced ladtest_obs         
 !   2014-12-03  derber  - modify so that use of obsdiags can be turned off
 !   2015-12-01  todling - modify so that use of obsdiags can be turned off
 !
@@ -460,14 +460,14 @@ subroutine intozlev_(o3lhead,rval,sval)
   use gsi_bundlemod, only: gsi_bundle
   use gsi_bundlemod, only: gsi_bundlegetpointer
   use gsi_4dvar, only: ladtest_obs
-  use m_o3lNode, only: o3lNode
-  use m_o3lNode, only: o3lNode_typecast
-  use m_o3lNode, only: o3lNode_nextcast
-  use m_obsdiagNode, only: obsdiagNode_set
+  use m_o3lnode, only: o3lnode
+  use m_o3lnode, only: o3lnode_typecast
+  use m_o3lnode, only: o3lnode_nextcast
+  use m_obsdiagnode, only: obsdiagnode_set
   implicit none
 
 ! Declare passed variables
-  class(obsNode)  ,pointer, intent(in   ) :: o3lhead
+  class(obsnode)  ,pointer, intent(in   ) :: o3lhead
   type(gsi_bundle),         intent(in   ) :: sval
   type(gsi_bundle),         intent(inout) :: rval
 
@@ -478,9 +478,9 @@ subroutine intozlev_(o3lhead,rval,sval)
   real(r_kind) w1,w2,w3,w4,w5,w6,w7,w8
   real(r_kind),pointer,dimension(:) :: soz1d
   real(r_kind),pointer,dimension(:) :: roz1d
-  type(o3lNode), pointer :: o3lptr
+  type(o3lnode), pointer :: o3lptr
 
-!  If no data, return
+! If no data, return
   if(.not. associated(o3lhead))return
 
 ! Retrieve pointers
@@ -490,11 +490,11 @@ subroutine intozlev_(o3lhead,rval,sval)
   call gsi_bundlegetpointer(rval,'oz',roz1d,istatus);ier=istatus+ier
   if(ier/=0)return
 
-! LEVEL-OZONE OBSERVATIONS
+! Level-ozone observations
 
 ! Loop over ozone observations.
 
-  o3lptr => o3lNode_typecast(o3lhead)
+  o3lptr => o3lnode_typecast(o3lhead)
 
   do while (associated(o3lptr))
      j1=o3lptr%ij(1)
@@ -523,10 +523,10 @@ subroutine intozlev_(o3lhead,rval,sval)
         if (lsaveobsens) then
            grad = val*o3lptr%raterr2*o3lptr%err2
            !-- o3lptr%diags%obssen(jiter) = grad
-           call obsdiagNode_set(o3lptr%diags,jiter=jiter,obssen=grad)
+           call obsdiagnode_set(o3lptr%diags,jiter=jiter,obssen=grad)
         else
            !-- if (o3lptr%luse) o3lptr%diags%tldepart(jiter)=val
-           if (o3lptr%luse) call obsdiagNode_set(o3lptr%diags,jiter=jiter,tldepart=val)
+           if (o3lptr%luse) call obsdiagnode_set(o3lptr%diags,jiter=jiter,tldepart=val)
         endif
      endif
 
@@ -553,7 +553,7 @@ subroutine intozlev_(o3lhead,rval,sval)
 
      endif
 
-     o3lptr => o3lNode_nextcast(o3lptr)
+     o3lptr => o3lnode_nextcast(o3lptr)
 
   end do
 

@@ -56,8 +56,8 @@ subroutine intrp2a(f,g,dx,dy,n,nlevs,mype)
      ix1=int(dx(i))
      iy1=int(dy(i))
      ix1=max(1,min(ix1,nlat))
-     delx=dx(i)-float(ix1)
-     dely=dy(i)-float(iy1)
+     delx=dx(i)-real(ix1,r_kind)
+     dely=dy(i)-real(iy1,r_kind)
      delx=max(zero,min(delx,one))
      ix=ix1-istart(mm1)+2
      iy=iy1-jstart(mm1)+2
@@ -93,7 +93,7 @@ subroutine intrp2a1(f,g,dx,dy,nlevs,mype)
 !
 ! abstract: same as intrp2a but for special case n=1, with n argument removed.
 !            This has been created to solve problem of type mismatch debug compile
-!            error on WCOSS.
+!            error on wcoss.
 !
 ! program history log:
 !   2013-01-26  parrish
@@ -135,8 +135,8 @@ subroutine intrp2a1(f,g,dx,dy,nlevs,mype)
   ix1=int(dx)
   iy1=int(dy)
   ix1=max(1,min(ix1,nlat))
-  delx=dx-float(ix1)
-  dely=dy-float(iy1)
+  delx=dx-real(ix1,r_kind)
+  dely=dy-real(iy1,r_kind)
   delx=max(zero,min(delx,one))
   ix=ix1-istart(mm1)+2
   iy=iy1-jstart(mm1)+2
@@ -155,8 +155,8 @@ subroutine intrp2a1(f,g,dx,dy,nlevs,mype)
   delxp=one-delx; delyp=one-dely
  
   do k=1,nlevs
-       g(k)=f(ix,iy,k)*delxp*delyp+f(ixp,iy,k)*delx*delyp&
-           +f(ix,iyp,k)*delxp*dely+f(ixp,iyp,k)*delx*dely
+     g(k)=f(ix,iy,k)*delxp*delyp+f(ixp,iy,k)*delx*delyp&
+         +f(ix,iyp,k)*delxp*dely+f(ixp,iyp,k)*delx*dely
 
   end do
 
@@ -171,7 +171,7 @@ subroutine intrp2a11(f,g,dx,dy,mype)
 !
 ! abstract: same as intrp2a but for special case n=1 and nlevs=1, with n,nlevs arguments removed.
 !            This has been created to solve problem of type mismatch debug compile
-!            error on WCOSS.
+!            error on wcoss.
 !
 ! program history log:
 !   2013-01-26  parrish
@@ -211,8 +211,8 @@ subroutine intrp2a11(f,g,dx,dy,mype)
   ix1=int(dx)
   iy1=int(dy)
   ix1=max(1,min(ix1,nlat))
-  delx=dx-float(ix1)
-  dely=dy-float(iy1)
+  delx=dx-real(ix1,r_kind)
+  dely=dy-real(iy1,r_kind)
   delx=max(zero,min(delx,one))
   ix=ix1-istart(mm1)+2
   iy=iy1-jstart(mm1)+2
@@ -227,11 +227,11 @@ subroutine intrp2a11(f,g,dx,dy,mype)
   ixp=ix+1; iyp=iy+1
   if(ix1==nlat) then
      ixp=ix
-    end if
+  end if
   delxp=one-delx; delyp=one-dely
  
-       g=f(ix,iy)*delxp*delyp+f(ixp,iy)*delx*delyp&
-           +f(ix,iyp)*delxp*dely+f(ixp,iyp)*delx*dely
+  g=f(ix,iy)*delxp*delyp+f(ixp,iy)*delx*delyp&
+      +f(ix,iyp)*delxp*dely+f(ixp,iyp)*delx*dely
 
 
   return

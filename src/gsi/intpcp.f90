@@ -12,7 +12,7 @@ module intpcpmod
 !   2005-11-16  Derber - remove interfaces
 !   2008-11-26  Todling - remove intpcp_tl
 !   2009-08-13  lueken - update documentation
-!   2016-05-18  guo     - replaced ob_type with polymorphic obsNode through type casting
+!   2016-05-18  guo     - replaced ob_type with polymorphic obsnode through type casting
 !
 ! subroutines included:
 !   sub intpcp_
@@ -25,18 +25,18 @@ module intpcpmod
 !
 !$$$ end documentation block
 
-use m_obsNode, only: obsNode
-use m_pcpNode, only: pcpNode
-use m_pcpNode, only: pcpNode_typecast
-use m_pcpNode, only: pcpNode_nextcast
-use m_obsdiagNode, only: obsdiagNode_set
+use m_obsnode, only: obsnode
+use m_pcpnode, only: pcpnode
+use m_pcpnode, only: pcpnode_typecast
+use m_pcpnode, only: pcpnode_nextcast
+use m_obsdiagnode, only: obsdiagnode_set
 implicit none
 
-PRIVATE
-PUBLIC intpcp
+private
+public intpcp
 
 interface intpcp; module procedure &
-          intpcp_
+   intpcp_
 end interface
 
 contains
@@ -60,17 +60,17 @@ subroutine intpcp_(pcphead,rval,sval)
 !   2005-04-11  treadon - merge intpcp and intpcp_qc into single routine
 !   2005-09-28  derber  - modify var qc and change location and weight arrays
 !   2006-07-28  derber  - modify to use new inner loop obs data structure
-!                       - unify NL qc
+!                       - unify nl qc
 !   2007-01-19  derber  - limit pcp_ges* > zero
 !   2007-03-19  tremolet - binning of observations
 !   2007-06-04  derber  - use quad precision to get reproducability over number of processors
 !   2007-06-05  tremolet - use observation diagnostics structure
 !   2007-07-09  tremolet - observation sensitivity
 !   2008-06-02  safford - rm unused vars
-!   2008-01-04  tremolet - Don't apply H^T if l_do_adjoint is false
-!   2008-11-28  todling  - adapt Tremolet linearization of inner loop to May-2008 version
+!   2008-01-04  tremolet - Don't apply h^t if l_do_adjoint is false
+!   2008-11-28  todling  - adapt tremolet linearization of inner loop to may-2008 version
 !                        - remove quad precision; mpi_allgather is reproducible
-!                        - turn FOTO optional; changed ptr%time handle
+!                        - turn foto optional; changed ptr%time handle
 !                        - internal copy of pred's to avoid reshape in calling program
 !   2009-01-26 todling   - bug fix in linearlization 
 !   2010-03-25 zhu       - use state_vector in the interface for generalizing control variable
@@ -121,7 +121,7 @@ subroutine intpcp_(pcphead,rval,sval)
   implicit none
 
 ! Declare passed variables
-  class(obsNode  ),pointer, intent(in   ) :: pcphead
+  class(obsnode  ),pointer, intent(in   ) :: pcphead
   type(gsi_bundle),         intent(in   ) :: sval
   type(gsi_bundle),         intent(inout) :: rval
 
@@ -132,7 +132,7 @@ subroutine intpcp_(pcphead,rval,sval)
   real(r_kind) pcp_ges_ad,dq_ad,dt_ad,dv_ad,du_ad,pcp_ges
   real(r_kind) obsges,termges,termges_tl,pcp_ges_tl,pcp_cur,termcur
   real(r_kind) cg_pcp,p0,wnotgross,wgross
-  type(pcpNode), pointer :: pcpptr
+  type(pcpnode), pointer :: pcpptr
 
   real(r_kind),pointer,dimension(:):: st,sq,su,sv
   real(r_kind),pointer,dimension(:):: sql,sqi,scwm   
@@ -168,7 +168,7 @@ subroutine intpcp_(pcphead,rval,sval)
   lcld = (icw==0 .or. (iql+iqi)==0)
 
   !pcpptr => pcphead
-  pcpptr => pcpNode_typecast(pcphead)
+  pcpptr => pcpnode_typecast(pcphead)
   do while(associated(pcpptr))
      j1=pcpptr%ij(1)
      j2=pcpptr%ij(2)
@@ -241,10 +241,10 @@ subroutine intpcp_(pcphead,rval,sval)
         if (lsaveobsens) then
            termges_ad = termges_tl*pcpptr%err2*pcpptr%raterr2
            !-- pcpptr%diags%obssen(jiter) = termges_ad
-           call obsdiagNode_set(pcpptr%diags,jiter=jiter,obssen=termges_ad)
+           call obsdiagnode_set(pcpptr%diags,jiter=jiter,obssen=termges_ad)
         else
            !-- if (pcpptr%luse) pcpptr%diags%tldepart(jiter)=termges_tl
-           if (pcpptr%luse) call obsdiagNode_set(pcpptr%diags,jiter=jiter,tldepart=termges_tl)
+           if (pcpptr%luse) call obsdiagnode_set(pcpptr%diags,jiter=jiter,tldepart=termges_tl)
         endif
      endif
 
@@ -336,7 +336,7 @@ subroutine intpcp_(pcphead,rval,sval)
         end do
      endif
      !pcpptr => pcpptr%llpoint 
-     pcpptr => pcpNode_nextcast(pcpptr)
+     pcpptr => pcpnode_nextcast(pcpptr)
   end do
 
   return

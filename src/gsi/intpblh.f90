@@ -8,8 +8,8 @@ module intpblhmod
 !
 ! program history log:
 !
-!   2012-09-14  Syed RH Rizvi, NCAR/NESL/MMM/DAS  - implemented obs adjoint test  
-!   2016-05-18  guo     - replaced ob_type with polymorphic obsNode through type casting
+!   2012-09-14  Syed RH Rizvi, ncar/nesl/mmm/das  - implemented obs adjoint test  
+!   2016-05-18  guo     - replaced ob_type with polymorphic obsnode through type casting
 !
 ! subroutines included:
 !   sub intpblh
@@ -22,15 +22,15 @@ module intpblhmod
 !
 !$$$ end documentation block
 
-use m_obsNode, only: obsNode
-use m_pblhNode, only: pblhNode
-use m_pblhNode, only: pblhNode_typecast
-use m_pblhNode, only: pblhNode_nextcast
-use m_obsdiagNode, only: obsdiagNode_set
+use m_obsnode, only: obsnode
+use m_pblhnode, only: pblhnode
+use m_pblhnode, only: pblhnode_typecast
+use m_pblhnode, only: pblhnode_nextcast
+use m_obsdiagnode, only: obsdiagnode_set
 implicit none
 
-PRIVATE
-PUBLIC intpblh
+private
+public intpblh
 
 contains
 
@@ -45,7 +45,7 @@ subroutine intpblh(pblhhead,rval,sval)
 !
 ! program history log:
 !
-!   2012-09-14  Syed RH Rizvi, NCAR/NESL/MMM/DAS  - introduced ladtest_obs         
+!   2012-09-14  Syed RH Rizvi, ncar/nesl/mmm/das  - introduced ladtest_obs         
 !   2014-12-03  derber  - modify so that use of obsdiags can be turned off
 !
 !   input argument list:
@@ -72,7 +72,7 @@ subroutine intpblh(pblhhead,rval,sval)
   implicit none
 
 ! Declare passed variables
-  class(obsNode  ),pointer, intent(in   ) :: pblhhead
+  class(obsnode  ),pointer, intent(in   ) :: pblhhead
   type(gsi_bundle),         intent(in   ) :: sval
   type(gsi_bundle),         intent(inout) :: rval
 
@@ -85,7 +85,7 @@ subroutine intpblh(pblhhead,rval,sval)
   real(r_kind) cg_pblh,p0,grad,wnotgross,wgross,pg_pblh
   real(r_kind),pointer,dimension(:) :: spblh
   real(r_kind),pointer,dimension(:) :: rpblh
-  type(pblhNode), pointer :: pblhptr
+  type(pblhnode), pointer :: pblhptr
 
 ! Retrieve pointers
 ! Simply return if any pointer not found
@@ -95,7 +95,7 @@ subroutine intpblh(pblhhead,rval,sval)
   if(ier/=0)return
 
   !pblhptr => pblhhead
-  pblhptr => pblhNode_typecast(pblhhead)
+  pblhptr => pblhnode_typecast(pblhhead)
   do while (associated(pblhptr))
      j1=pblhptr%ij(1)
      j2=pblhptr%ij(2)
@@ -114,10 +114,10 @@ subroutine intpblh(pblhhead,rval,sval)
         if (lsaveobsens) then
            grad = val*pblhptr%raterr2*pblhptr%err2
            !-- pblhptr%diags%obssen(jiter) = grad
-           call obsdiagNode_set(pblhptr%diags,jiter=jiter,obssen=grad)
+           call obsdiagnode_set(pblhptr%diags,jiter=jiter,obssen=grad)
         else
            !-- if (pblhptr%luse) pblhptr%diags%tldepart(jiter)=val
-           if (pblhptr%luse) call obsdiagNode_set(pblhptr%diags,jiter=jiter,tldepart=val)
+           if (pblhptr%luse) call obsdiagnode_set(pblhptr%diags,jiter=jiter,tldepart=val)
         endif
      endif
 
@@ -136,9 +136,9 @@ subroutine intpblh(pblhhead,rval,sval)
               val = val*(one-p0)
            endif
            if( ladtest_obs ) then
-           grad = val
+              grad = val
            else
-           grad = val*pblhptr%raterr2*pblhptr%err2
+              grad = val*pblhptr%raterr2*pblhptr%err2
            end if
         endif
 
@@ -150,7 +150,7 @@ subroutine intpblh(pblhhead,rval,sval)
      endif
 
      !pblhptr => pblhptr%llpoint
-     pblhptr => pblhNode_nextcast(pblhptr)
+     pblhptr => pblhnode_nextcast(pblhptr)
 
   end do
 

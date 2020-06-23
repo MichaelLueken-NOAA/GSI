@@ -8,7 +8,7 @@ module intmxtmmod
 !
 ! program history log:
 !   2014-04-10  pondeca
-!   2016-05-18  guo     - replaced ob_type with polymorphic obsNode through type casting
+!   2016-05-18  guo     - replaced ob_type with polymorphic obsnode through type casting
 !
 ! subroutines included:
 !   sub intmxtm
@@ -21,15 +21,15 @@ module intmxtmmod
 !
 !$$$ end documentation block
 
-use m_obsNode , only: obsNode
-use m_mxtmNode, only: mxtmNode
-use m_mxtmNode, only: mxtmNode_typecast
-use m_mxtmNode, only: mxtmNode_nextcast
-use m_obsdiagNode, only: obsdiagNode_set
+use m_obsnode , only: obsnode
+use m_mxtmnode, only: mxtmnode
+use m_mxtmnode, only: mxtmnode_typecast
+use m_mxtmnode, only: mxtmnode_nextcast
+use m_obsdiagnode, only: obsdiagnode_set
 implicit none
 
-PRIVATE
-PUBLIC intmxtm
+private
+public intmxtm
 
 contains
 
@@ -71,7 +71,7 @@ subroutine intmxtm(mxtmhead,rval,sval)
   implicit none
 
 ! Declare passed variables
-  class(obsNode)  , pointer,intent(in   ) :: mxtmhead
+  class(obsnode)  , pointer,intent(in   ) :: mxtmhead
   type(gsi_bundle),         intent(in   ) :: sval
   type(gsi_bundle),         intent(inout) :: rval
 
@@ -84,7 +84,7 @@ subroutine intmxtm(mxtmhead,rval,sval)
   real(r_kind) cg_mxtm,p0,grad,wnotgross,wgross,pg_mxtm
   real(r_kind),pointer,dimension(:) :: smxtm
   real(r_kind),pointer,dimension(:) :: rmxtm
-  type(mxtmNode), pointer :: mxtmptr
+  type(mxtmnode), pointer :: mxtmptr
 
 ! Retrieve pointers
 ! Simply return if any pointer not found
@@ -94,7 +94,7 @@ subroutine intmxtm(mxtmhead,rval,sval)
   if(ier/=0)return
 
   !mxtmptr => mxtmhead
-  mxtmptr => mxtmNode_typecast(mxtmhead)
+  mxtmptr => mxtmnode_typecast(mxtmhead)
   do while (associated(mxtmptr))
      j1=mxtmptr%ij(1)
      j2=mxtmptr%ij(2)
@@ -113,10 +113,10 @@ subroutine intmxtm(mxtmhead,rval,sval)
         if (lsaveobsens) then
            grad = val*mxtmptr%raterr2*mxtmptr%err2
            !-- mxtmptr%diags%obssen(jiter) = grad
-           call obsdiagNode_set(mxtmptr%diags,jiter=jiter,obssen=grad)
+           call obsdiagnode_set(mxtmptr%diags,jiter=jiter,obssen=grad)
         else
            !-- if (mxtmptr%luse) mxtmptr%diags%tldepart(jiter)=val
-           if (mxtmptr%luse) call obsdiagNode_set(mxtmptr%diags,jiter=jiter,tldepart=val)
+           if (mxtmptr%luse) call obsdiagnode_set(mxtmptr%diags,jiter=jiter,tldepart=val)
         endif
      endif
 
@@ -149,7 +149,7 @@ subroutine intmxtm(mxtmhead,rval,sval)
      endif
 
      !mxtmptr => mxtmptr%llpoint
-     mxtmptr => mxtmNode_nextcast(mxtmptr)
+     mxtmptr => mxtmnode_nextcast(mxtmptr)
 
   end do
 

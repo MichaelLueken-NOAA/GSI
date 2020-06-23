@@ -15,7 +15,7 @@ subroutine intrp3oz(f,g,dx,dy,dz,obstime,n,nlevs,mype)
 !   1999-03-01  wu - port cray90 code to ibm-sp (mpi version)
 !   2004-06-16  treadon - update documentation
 !   2004-08-02  treadon - add only to module use, add intent in/out
-!   2005-05-18  wu - add obstype for use of OMI total ozone
+!   2005-05-18  wu - add obstype for use of omi total ozone
 !   2005-09-23  derber - modify to handle total column cleaner
 !   2005-12-23  treadon - remove unused nix* and niy* variables
 !   2007-05-30  h.liu - include unit conversion with interpolation weights
@@ -186,11 +186,11 @@ subroutine intrp3oz1(f,g,dx,dy,dz,obstime,nlevs,mype,dg_dz)
 ! abstract: same as intrp3oz but for special case n=1, with n argument removed.
 !            This has been created to solve problem of type mismatch debug
 !            compile
-!            error on WCOSS.
+!            error on wcoss.
 !
 ! program history log:
 !   2013-01-26  parrish
-!   2016-11-29  shlyaeva - save dg/dz for linearized H(x) for EnKF
+!   2016-11-29  shlyaeva - save dg/dz for linearized h(x) for enkf
 !
 !   input argument list:
 !     f        - input interpolator (gridded guess ozone fields)

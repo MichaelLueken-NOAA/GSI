@@ -12,10 +12,10 @@ module intqmod
 !   2005-11-16  Derber - remove interfaces
 !   2008-11-26  Todling - remove intq_tl; add interface back
 !   2009-08-13  lueken - update documentation
-!   2012-09-14  Syed RH Rizvi, NCAR/NESL/MMM/DAS  - implemented obs adjoint test  
+!   2012-09-14  Syed RH Rizvi, ncar/nesl/mmm/das  - implemented obs adjoint test  
 !   2014-04-14      Su   -  add another non linear qc(purser's scheme) 
-!   2015-02-26      Su   -  add njqc as an option to choose Purser's varqc
-!   2016-05-18  guo     - replaced ob_type with polymorphic obsNode through type casting
+!   2015-02-26      Su   -  add njqc as an option to choose purser's varqc
+!   2016-05-18  guo     - replaced ob_type with polymorphic obsnode through type casting
 !
 ! subroutines included:
 !   sub intq_
@@ -28,18 +28,18 @@ module intqmod
 !
 !$$$ end documentation block
 
-use m_obsNode, only: obsNode
-use m_qNode, only: qNode
-use m_qNode, only: qNode_typecast
-use m_qNode, only: qNode_nextcast
-use m_obsdiagNode, only: obsdiagNode_set
+use m_obsnode, only: obsnode
+use m_qnode, only: qnode
+use m_qnode, only: qnode_typecast
+use m_qnode, only: qnode_nextcast
+use m_obsdiagnode, only: obsdiagnode_set
 implicit none
 
-PRIVATE
-PUBLIC intq
+private
+public intq
 
 interface intq; module procedure &
-          intq_
+   intq_
 end interface
 
 contains
@@ -70,13 +70,13 @@ subroutine intq_(qhead,rval,sval)
 !   2007-06-05  tremolet - use observation diagnostics structure
 !   2007-07-09  tremolet - observation sensitivity
 !   2008-05-31  safford - rm unused vars
-!   2008-01-04  tremolet - Don't apply H^T if l_do_adjoint is false
-!   2008-11-28  todling  - turn FOTO optional; changed ptr%time handle
+!   2008-01-04  tremolet - Don't apply h^t if l_do_adjoint is false
+!   2008-11-28  todling  - turn foto optional; changed ptr%time handle
 !   2010-05-13  todling  - update to use gsi_bundle; update interface 
-!   2012-09-14  Syed RH Rizvi, NCAR/NESL/MMM/DAS  - introduced ladtest_obs         
+!   2012-09-14  Syed RH Rizvi, ncar/nesl/mmm/das  - introduced ladtest_obs         
 !   2014-12-03  derber  - modify so that use of obsdiags can be turned off
-!   2015-12-21  yang    - Parrish's correction to the previous code in new varqc.
-!   2019-09-20  Su      - remove current VQC part and add VQC subroutine call
+!   2015-12-21  yang    - parrish's correction to the previous code in new varqc.
+!   2019-09-20  Su      - remove current vqc part and add vqc subroutine call
 !
 !   input argument list:
 !     qhead    - obs type pointer to obs structure
@@ -102,7 +102,7 @@ subroutine intq_(qhead,rval,sval)
   implicit none
 
 ! Declare passed variables
-  class(obsNode),pointer ,intent(in   ) :: qhead
+  class(obsnode),pointer ,intent(in   ) :: qhead
   type(gsi_bundle)       ,intent(in   ) :: sval
   type(gsi_bundle)       ,intent(inout) :: rval
 
@@ -113,9 +113,9 @@ subroutine intq_(qhead,rval,sval)
   real(r_kind) cg_t,val,grad,t_pg,var_jb,error2,rat_error2
   real(r_kind),pointer,dimension(:) :: sq
   real(r_kind),pointer,dimension(:) :: rq
-  type(qNode), pointer :: qptr
+  type(qnode), pointer :: qptr
 
-!  If no q data return
+! If no q data return
   if(.not. associated(qhead))return
 ! Retrieve pointers
 ! Simply return if any pointer not found
@@ -125,7 +125,7 @@ subroutine intq_(qhead,rval,sval)
   if(ier/=0) return
 
   !qptr => qhead
-  qptr => qNode_typecast(qhead)
+  qptr => qnode_typecast(qhead)
   do while (associated(qptr))
      j1=qptr%ij(1)
      j2=qptr%ij(2)
@@ -143,7 +143,7 @@ subroutine intq_(qhead,rval,sval)
      w6=qptr%wij(6)
      w7=qptr%wij(7)
      w8=qptr%wij(8)
-     
+
 !    Forward model
      val=w1* sq(j1)+w2* sq(j2)+w3* sq(j3)+w4* sq(j4)+ &
          w5* sq(j5)+w6* sq(j6)+w7* sq(j7)+w8* sq(j8)
@@ -152,10 +152,10 @@ subroutine intq_(qhead,rval,sval)
         if (lsaveobsens) then
            grad = val*qptr%raterr2*qptr%err2
            !-- qptr%diags%obssen(jiter) = grad
-           call obsdiagNode_set(qptr%diags,jiter=jiter,obssen=grad)
+           call obsdiagnode_set(qptr%diags,jiter=jiter,obssen=grad)
         else
            !-- if (qptr%luse) qptr%diags%tldepart(jiter)=val
-           if (qptr%luse) call obsdiagNode_set(qptr%diags,jiter=jiter,tldepart=val)
+           if (qptr%luse) call obsdiagnode_set(qptr%diags,jiter=jiter,tldepart=val)
         endif
      endif
 
@@ -168,7 +168,7 @@ subroutine intq_(qhead,rval,sval)
            error2=qptr%err2
 
            if (vqc .and. nlnqc_iter .and. qptr%pg > tiny_r_kind .and.  &
-                                qptr%b  > tiny_r_kind) then
+                                          qptr%b  > tiny_r_kind) then
               t_pg=qptr%pg*varqc_iter
               cg_t=cg_term/qptr%b                           ! b is d in Enderson
            else
@@ -208,7 +208,7 @@ subroutine intq_(qhead,rval,sval)
      endif
 
      !qptr => qptr%llpoint
-     qptr => qNode_nextcast(qptr)
+     qptr => qnode_nextcast(qptr)
 
   end do
   return
