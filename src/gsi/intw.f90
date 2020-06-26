@@ -11,10 +11,10 @@ module intwmod
 !   2005-11-16  Derber - remove interfaces
 !   2008-11-26  Todling - remove intw_tl; add interface back
 !   2009-08-13  lueken - update documentation
-!   2012-09-14  Syed RH Rizvi, NCAR/NESL/MMM/DAS  - implemented obs adjoint test  
-!   2014-04-12       su - add non linear qc from Purser's scheme
+!   2012-09-14  Syed RH Rizvi, ncar/nesl/mmm/das  - implemented obs adjoint test  
+!   2014-04-12       su - add non linear qc from purser's scheme
 !   2015-02-26       su - add njqc as an option to chose new non linear qc
-!   2016-05-18  guo     - replaced ob_type with polymorphic obsNode through type casting
+!   2016-05-18  guo     - replaced ob_type with polymorphic obsnode through type casting
 !
 ! subroutines included:
 !   sub intw_
@@ -27,18 +27,18 @@ module intwmod
 !
 !$$$ end documentation block
 
-use m_obsNode, only: obsNode
-use m_wNode, only: wNode
-use m_wNode, only: wNode_typecast
-use m_wNode, only: wNode_nextcast
-use m_obsdiagNode, only: obsdiagNode_set
+use m_obsnode, only: obsnode
+use m_wnode, only: wnode
+use m_wnode, only: wnode_typecast
+use m_wnode, only: wnode_nextcast
+use m_obsdiagnode, only: obsdiagnode_set
 implicit none
 
-PRIVATE
-PUBLIC intw
+private
+public intw
 
 interface intw; module procedure &
-          intw_
+   intw_
 end interface
 
 contains
@@ -64,17 +64,17 @@ subroutine intw_(whead,rval,sval)
 !   2005-09-28  derber  - consolidate location and weight arrays
 !   2005-10-21  su      - modify for variational qc
 !   2006-07-28  derber  - modify to use new inner loop obs data structure
-!                       - unify NL qc
+!                       - unify nl qc
 !   2007-03-19  tremolet - binning of observations
 !   2007-06-05  tremolet - use observation diagnostics structure
 !   2007-07-09  tremolet - observation sensitivity
-!   2008-01-04  tremolet - Don't apply H^T if l_do_adjoint is false
-!   2008-11-28  todling  - turn FOTO optional; changed ptr%time handle
+!   2008-01-04  tremolet - Don't apply h^t if l_do_adjoint is false
+!   2008-11-28  todling  - turn foto optional; changed ptr%time handle
 !   2010-03-13  todling  - update to use gsi_bundle; update interface
-!   2012-09-14  Syed RH Rizvi, NCAR/NESL/MMM/DAS  - introduced ladtest_obs         
-!   2014-04-12       su - add non linear qc from Purser's scheme
+!   2012-09-14  Syed RH Rizvi, ncar/nesl/mmm/das  - introduced ladtest_obs         
+!   2014-04-12       su - add non linear qc from purser's scheme
 !   2014-12-03  derber  - modify so that use of obsdiags can be turned off
-!   2015-12-21  yang    - Parrish's correction to the previous code in new varqc.
+!   2015-12-21  yang    - parrish's correction to the previous code in new varqc.
 !   2019-09-20  Su      - add new variational scheme
 !
 !   input argument list:
@@ -105,7 +105,7 @@ subroutine intw_(whead,rval,sval)
   implicit none
 
 ! Declare passed variables
-  class(obsNode), pointer,intent(in   ) :: whead
+  class(obsnode), pointer,intent(in   ) :: whead
   type(gsi_bundle),       intent(in   ) :: sval
   type(gsi_bundle),       intent(inout) :: rval
 
@@ -118,9 +118,9 @@ subroutine intw_(whead,rval,sval)
   real(r_kind) cg_w,p0,gradu,gradv,wnotgross,wgross,term,w_pg
   real(r_kind),pointer,dimension(:) :: su,sv
   real(r_kind),pointer,dimension(:) :: ru,rv
-  type(wNode), pointer :: wptr
+  type(wnode), pointer :: wptr
 
-!  If no w data return
+! If no w data return
   if(.not. associated(whead))return
 
   ier=0
@@ -131,7 +131,7 @@ subroutine intw_(whead,rval,sval)
   if(ier/=0)return
 
   !wptr => whead
-  wptr => wNode_typecast(whead)
+  wptr => wnode_typecast(whead)
   do while(associated(wptr))
      i1=wptr%ij(1)
      i2=wptr%ij(2)
@@ -162,14 +162,14 @@ subroutine intw_(whead,rval,sval)
            gradv = valv*wptr%raterr2*wptr%err2
            !-- wptr%diagu%obssen(jiter) = gradu
            !-- wptr%diagv%obssen(jiter) = gradv
-           call obsdiagNode_set(wptr%diagu,jiter=jiter,obssen=gradu)
-           call obsdiagNode_set(wptr%diagv,jiter=jiter,obssen=gradv)
+           call obsdiagnode_set(wptr%diagu,jiter=jiter,obssen=gradu)
+           call obsdiagnode_set(wptr%diagv,jiter=jiter,obssen=gradv)
         else
            if (wptr%luse) then
               !-- wptr%diagu%tldepart(jiter)=valu
               !-- wptr%diagv%tldepart(jiter)=valv
-              call obsdiagNode_set(wptr%diagu,jiter=jiter,tldepart=valu)
-              call obsdiagNode_set(wptr%diagv,jiter=jiter,tldepart=valv)
+              call obsdiagnode_set(wptr%diagu,jiter=jiter,tldepart=valu)
+              call obsdiagnode_set(wptr%diagv,jiter=jiter,tldepart=valv)
            endif
         endif
      endif
@@ -185,19 +185,19 @@ subroutine intw_(whead,rval,sval)
 
  
            if (vqc .and. nlnqc_iter .and. wptr%pg > tiny_r_kind .and.  &
-                                wptr%b  > tiny_r_kind) then
+                                          wptr%b  > tiny_r_kind) then
               w_pg=wptr%pg*varqc_iter
               cg_w=cg_term/wptr%b
               wnotgross= one-w_pg
-              wgross =w_pg*cg_w/wnotgross                ! wgross is gama in Enderson
-              p0=wgross/(wgross+                      &  ! p0 is P in Enderson
+              wgross =w_pg*cg_w/wnotgross                ! wgross is gama in enderson
+              p0=wgross/(wgross+                      &  ! p0 is p in enderson
               exp(-half*wptr%err2*(valu**2+valv**2))) 
-              term=one-p0                                !  term is Wqc in Enderson
+              term=one-p0                                !  term is wqc in enderson
               valu = valu*term
               valv = valv*term
               gradu = valu*wptr%raterr2*wptr%err2
               gradv = valv*wptr%raterr2*wptr%err2
-            else if (njqc .and. wptr%jb  > tiny_r_kind .and. wptr%jb <10.0_r_kind) then
+           else if (njqc .and. wptr%jb  > tiny_r_kind .and. wptr%jb <10.0_r_kind) then
               valu=sqrt(two*wptr%jb)*tanh(sqrt(wptr%err2)*valu/sqrt(two*wptr%jb))
               valv=sqrt(two*wptr%jb)*tanh(sqrt(wptr%err2)*valv/sqrt(two*wptr%jb))
               gradu = valu*wptr%raterr2*sqrt(wptr%err2)
@@ -253,7 +253,7 @@ subroutine intw_(whead,rval,sval)
      endif
 
      !wptr => wptr%llpoint
-     wptr => wNode_nextcast(wptr)
+     wptr => wnode_nextcast(wptr)
 
   end do
   return

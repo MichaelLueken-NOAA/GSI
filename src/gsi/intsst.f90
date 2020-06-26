@@ -11,9 +11,9 @@ module intsstmod
 !   2005-11-16  Derber - remove interfaces
 !   2008-11-26  Todling - remove intsst_tl
 !   2009-08-13  lueken - update documentation
-!   2012-09-14  Syed RH Rizvi, NCAR/NESL/MMM/DAS  - implemented obs adjoint test  
+!   2012-09-14  Syed RH Rizvi, ncar/nesl/mmm/das  - implemented obs adjoint test  
 !   2014-12-03  derber  - modify so that use of obsdiags can be turned off
-!   2016-05-18  guo     - replaced ob_type with polymorphic obsNode through type casting
+!   2016-05-18  guo     - replaced ob_type with polymorphic obsnode through type casting
 !
 ! subroutines included:
 !   sub intsst
@@ -26,15 +26,15 @@ module intsstmod
 !
 !$$$ end documentation block
 
-use m_obsNode, only: obsNode
-use m_sstNode, only: sstNode
-use m_sstNode, only: sstNode_typecast
-use m_sstNode, only: sstNode_nextcast
-use m_obsdiagNode, only: obsdiagNode_set
+use m_obsnode, only: obsnode
+use m_sstnode, only: sstnode
+use m_sstnode, only: sstnode_typecast
+use m_sstnode, only: sstnode_nextcast
+use m_obsdiagnode, only: obsdiagnode_set
 implicit none
 
-PRIVATE
-PUBLIC intsst
+private
+public intsst
 
 contains
 
@@ -56,14 +56,14 @@ subroutine intsst(ssthead,rval,sval)
 !   2005-08-02  derber  - modify for variational qc parameters for each ob
 !   2005-09-28  derber  - consolidate location and weight arrays
 !   2006-07-28  derber  - modify to use new inner loop obs data structure
-!                       - unify NL qc
+!                       - unify nl qc
 !   2007-03-19  tremolet - binning of observations
 !   2007-06-05  tremolet - use observation diagnostics structure
 !   2007-07-09  tremolet - observation sensitivity
-!   2008-01-04  tremolet - Don't apply H^T if l_do_adjoint is false
+!   2008-01-04  tremolet - Don't apply h^t if l_do_adjoint is false
 !   2010-05-13  todling  - update to use gsi_bundle; update interface
-!   2011-04-01  li       - modify to include Tr analysis
-!   2012-09-14  Syed RH Rizvi, NCAR/NESL/MMM/DAS  - introduced ladtest_obs         
+!   2011-04-01  li       - modify to include tr analysis
+!   2012-09-14  Syed RH Rizvi, ncar/nesl/mmm/das  - introduced ladtest_obs         
 !
 !   input argument list:
 !     ssthead
@@ -90,7 +90,7 @@ subroutine intsst(ssthead,rval,sval)
   implicit none
 
 ! Declare passed variables
-  class(obsNode),  pointer, intent(in   ) :: ssthead
+  class(obsnode),  pointer, intent(in   ) :: ssthead
   type(gsi_bundle),         intent(in   ) :: sval
   type(gsi_bundle),         intent(inout) :: rval
 
@@ -104,9 +104,9 @@ subroutine intsst(ssthead,rval,sval)
   real(r_kind) cg_sst,p0,grad,wnotgross,wgross,pg_sst
   real(r_kind),pointer,dimension(:) :: ssst
   real(r_kind),pointer,dimension(:) :: rsst
-  type(sstNode), pointer :: sstptr
+  type(sstnode), pointer :: sstptr
 
-!  If no sst data return
+! If no sst data return
   if(.not. associated(ssthead))return
 
 ! Retrieve pointers
@@ -117,7 +117,7 @@ subroutine intsst(ssthead,rval,sval)
   if(ier/=0)return
 
   !sstptr => ssthead
-  sstptr => sstNode_typecast(ssthead)
+  sstptr => sstnode_typecast(ssthead)
   do while (associated(sstptr))
      j1=sstptr%ij(1)
      j2=sstptr%ij(2)
@@ -133,10 +133,10 @@ subroutine intsst(ssthead,rval,sval)
         +w3*ssst(j3)+w4*ssst(j4)
 
      if ( nst_gsi > 2 ) then
-       tdir = w1*ssst(j1)+w2*ssst(j2)+w3*ssst(j3)+w4*ssst(j4)         ! Forward
-       val  = tdir*sstptr%tz_tr                                       ! Include contributions from Tz jacobian
+        tdir = w1*ssst(j1)+w2*ssst(j2)+w3*ssst(j3)+w4*ssst(j4)         ! Forward
+        val  = tdir*sstptr%tz_tr                                       ! Include contributions from tz jacobian
      else
-       val = w1*ssst(j1)+w2*ssst(j2)+w3*ssst(j3)+w4*ssst(j4)          ! Forward
+        val = w1*ssst(j1)+w2*ssst(j2)+w3*ssst(j3)+w4*ssst(j4)          ! Forward
      endif
 
 
@@ -144,10 +144,10 @@ subroutine intsst(ssthead,rval,sval)
         if (lsaveobsens) then
            grad = val*sstptr%raterr2*sstptr%err2
            !-- sstptr%diags%obssen(jiter) = grad
-           call obsdiagNode_set(sstptr%diags,jiter=jiter,obssen=grad)
+           call obsdiagnode_set(sstptr%diags,jiter=jiter,obssen=grad)
         else
            !-- if (sstptr%luse) sstptr%diags%tldepart(jiter)=val
-           if (sstptr%luse) call obsdiagNode_set(sstptr%diags,jiter=jiter,tldepart=val)
+           if (sstptr%luse) call obsdiagnode_set(sstptr%diags,jiter=jiter,tldepart=val)
         endif
      endif
 
@@ -172,24 +172,24 @@ subroutine intsst(ssthead,rval,sval)
            end if
         endif
 
-!      Adjoint
-       if ( nst_gsi > 2 ) then
-         tval = sstptr%tz_tr*grad                     ! Extract contributions from surface jacobian
-         rsst(j1)=rsst(j1)+w1*tval                    ! Distribute adjoint contributions over surrounding grid points
-         rsst(j2)=rsst(j2)+w2*tval
-         rsst(j3)=rsst(j3)+w3*tval
-         rsst(j4)=rsst(j4)+w4*tval
-       else
-         rsst(j1)=rsst(j1)+w1*grad
-         rsst(j2)=rsst(j2)+w2*grad
-         rsst(j3)=rsst(j3)+w3*grad
-         rsst(j4)=rsst(j4)+w4*grad
-       endif
+!       Adjoint
+        if ( nst_gsi > 2 ) then
+           tval = sstptr%tz_tr*grad                     ! Extract contributions from surface jacobian
+           rsst(j1)=rsst(j1)+w1*tval                    ! Distribute adjoint contributions over surrounding grid points
+           rsst(j2)=rsst(j2)+w2*tval
+           rsst(j3)=rsst(j3)+w3*tval
+           rsst(j4)=rsst(j4)+w4*tval
+        else
+           rsst(j1)=rsst(j1)+w1*grad
+           rsst(j2)=rsst(j2)+w2*grad
+           rsst(j3)=rsst(j3)+w3*grad
+           rsst(j4)=rsst(j4)+w4*grad
+        endif
 
      endif                           ! if (l_do_adjoint) then
 
      !sstptr => sstptr%llpoint
-     sstptr => sstNode_nextcast(sstptr)
+     sstptr => sstnode_nextcast(sstptr)
 
   end do
 

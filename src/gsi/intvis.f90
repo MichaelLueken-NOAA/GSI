@@ -7,8 +7,8 @@ module intvismod
 ! abstract: module for intvis and its tangent linear intvis_tl
 !
 ! program history log:
-!   2012-09-14  Syed RH Rizvi, NCAR/NESL/MMM/DAS  - implemented obs adjoint test  
-!   2016-05-18  guo     - replaced ob_type with polymorphic obsNode through type casting
+!   2012-09-14  Syed RH Rizvi, ncar/nesl/mmm/das  - implemented obs adjoint test  
+!   2016-05-18  guo     - replaced ob_type with polymorphic obsnode through type casting
 !
 ! subroutines included:
 !   sub intvis
@@ -21,15 +21,15 @@ module intvismod
 !
 !$$$ end documentation block
 
-use m_obsNode, only: obsNode
-use m_visNode, only: visNode
-use m_visNode, only: visNode_typecast
-use m_visNode, only: visNode_nextcast
-use m_obsdiagNode, only: obsdiagNode_set
+use m_obsnode, only: obsnode
+use m_visnode, only: visnode
+use m_visnode, only: visnode_typecast
+use m_visnode, only: visnode_nextcast
+use m_obsdiagnode, only: obsdiagnode_set
 implicit none
 
-PRIVATE
-PUBLIC intvis
+private
+public intvis
 
 contains
 
@@ -44,7 +44,7 @@ subroutine intvis(vishead,rval,sval)
 !
 ! program history log:
 !
-!   2012-09-14  Syed RH Rizvi, NCAR/NESL/MMM/DAS  - introduced ladtest_obs         
+!   2012-09-14  Syed RH Rizvi, ncar/nesl/mmm/das  - introduced ladtest_obs         
 !   2014-12-03  derber  - modify so that use of obsdiags can be turned off
 !
 !   input argument list:
@@ -71,7 +71,7 @@ subroutine intvis(vishead,rval,sval)
   implicit none
 
 ! Declare passed variables
-  class(obsNode),  pointer, intent(in   ) :: vishead
+  class(obsnode),  pointer, intent(in   ) :: vishead
   type(gsi_bundle),         intent(in   ) :: sval
   type(gsi_bundle),         intent(inout) :: rval
 
@@ -84,7 +84,7 @@ subroutine intvis(vishead,rval,sval)
   real(r_kind) cg_vis,p0,grad,wnotgross,wgross,pg_vis
   real(r_kind),pointer,dimension(:) :: svis
   real(r_kind),pointer,dimension(:) :: rvis
-  type(visNode), pointer :: visptr
+  type(visnode), pointer :: visptr
 
 ! Retrieve pointers
 ! Simply return if any pointer not found
@@ -94,7 +94,7 @@ subroutine intvis(vishead,rval,sval)
   if(ier/=0)return
 
   !visptr => vishead
-  visptr => visNode_typecast(vishead)
+  visptr => visnode_typecast(vishead)
   do while (associated(visptr))
      j1=visptr%ij(1)
      j2=visptr%ij(2)
@@ -113,10 +113,10 @@ subroutine intvis(vishead,rval,sval)
         if (lsaveobsens) then
            grad = val*visptr%raterr2*visptr%err2
            !-- visptr%diags%obssen(jiter) = grad
-           call obsdiagNode_set(visptr%diags,jiter=jiter,obssen=grad)
+           call obsdiagnode_set(visptr%diags,jiter=jiter,obssen=grad)
         else
            !-- if (visptr%luse) visptr%diags%tldepart(jiter)=val
-           if (visptr%luse) call obsdiagNode_set(visptr%diags,jiter=jiter,tldepart=val)
+           if (visptr%luse) call obsdiagnode_set(visptr%diags,jiter=jiter,tldepart=val)
         endif
      endif
 
@@ -149,7 +149,7 @@ subroutine intvis(vishead,rval,sval)
      endif
 
      !visptr => visptr%llpoint
-     visptr => visNode_nextcast(visptr)
+     visptr => visnode_nextcast(visptr)
 
   end do
 

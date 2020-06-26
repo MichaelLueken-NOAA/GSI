@@ -1,7 +1,7 @@
 module inttcpmod
 !$$$ module documentation block
 !           .      .    .                                       .
-! module:   inttcpmod    module for intps and its tangent linear intps_tl
+! module:   inttcpmod    module for inttcp and its tangent linear inttcp_tl
 !   prgmmr:
 !
 ! abstract: module for inttcp 
@@ -11,9 +11,9 @@ module inttcpmod
 !   2005-11-16  Derber - remove interfaces
 !   2008-11-26  Todling - remove intps_tl; add interface back
 !   2009-08-13  lueken - update documentation
-!   2012-09-14  Syed RH Rizvi, NCAR/NESL/MMM/DAS  - introduced ladtest_obs         
+!   2012-09-14  Syed RH Rizvi, ncar/nesl/mmm/das  - introduced ladtest_obs         
 !   2013-10-28  todling - rename p3d to prse
-!   2016-05-18  guo     - replaced ob_type with polymorphic obsNode through type casting
+!   2016-05-18  guo     - replaced ob_type with polymorphic obsnode through type casting
 !
 ! subroutines included:
 !   sub inttcp_
@@ -26,18 +26,18 @@ module inttcpmod
 !
 !$$$ end documentation block
 
-use m_obsNode, only: obsNode
-use m_tcpNode, only: tcpNode
-use m_tcpNode, only: tcpNode_typecast
-use m_tcpNode, only: tcpNode_nextcast
-use m_obsdiagNode, only: obsdiagNode_set
+use m_obsnode, only: obsnode
+use m_tcpnode, only: tcpnode
+use m_tcpnode, only: tcpnode_typecast
+use m_tcpnode, only: tcpnode_nextcast
+use m_obsdiagnode, only: obsdiagnode_set
 implicit none
 
-PRIVATE
-PUBLIC inttcp
+private
+public inttcp
 
 interface inttcp; module procedure &
-          inttcp_
+   inttcp_
 end interface
 
 contains
@@ -80,7 +80,7 @@ subroutine inttcp_(tcphead,rval,sval)
   implicit none
 
 ! Declare passed variables
-  class(obsNode),  pointer, intent(in   ) :: tcphead
+  class(obsnode),  pointer, intent(in   ) :: tcphead
   type(gsi_bundle),         intent(in   ) :: sval
   type(gsi_bundle),         intent(inout) :: rval
 
@@ -91,9 +91,9 @@ subroutine inttcp_(tcphead,rval,sval)
   real(r_kind) w1,w2,w3,w4
   real(r_kind),pointer,dimension(:) :: sp
   real(r_kind),pointer,dimension(:) :: rp
-  type(tcpNode), pointer :: tcpptr
+  type(tcpnode), pointer :: tcpptr
 
-!  If no tcp data return
+! If no tcp data return
   if(.not. associated(tcphead))return
 
 ! Retrieve pointers
@@ -104,7 +104,7 @@ subroutine inttcp_(tcphead,rval,sval)
   if(ier/=0)return
 
   !tcpptr => tcphead
-  tcpptr => tcpNode_typecast(tcphead)
+  tcpptr => tcpnode_typecast(tcphead)
   do while (associated(tcpptr))
      j1=tcpptr%ij(1)
      j2=tcpptr%ij(2)
@@ -122,10 +122,10 @@ subroutine inttcp_(tcphead,rval,sval)
         if (lsaveobsens) then
            grad = val*tcpptr%raterr2*tcpptr%err2
            !-- tcpptr%diags%obssen(jiter) = grad
-           call obsdiagNode_set(tcpptr%diags,jiter=jiter,obssen=grad)
+           call obsdiagnode_set(tcpptr%diags,jiter=jiter,obssen=grad)
         else
            !-- if (tcpptr%luse) tcpptr%diags%tldepart(jiter)=val
-           if (tcpptr%luse) call obsdiagNode_set(tcpptr%diags,jiter=jiter,tldepart=val)
+           if (tcpptr%luse) call obsdiagnode_set(tcpptr%diags,jiter=jiter,tldepart=val)
         endif
      endif
 
@@ -159,7 +159,7 @@ subroutine inttcp_(tcphead,rval,sval)
    
      end if
      !tcpptr => tcpptr%llpoint
-     tcpptr => tcpNode_nextcast(tcpptr)
+     tcpptr => tcpnode_nextcast(tcpptr)
   end do
   return
 end subroutine inttcp_

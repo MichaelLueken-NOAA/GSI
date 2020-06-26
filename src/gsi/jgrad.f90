@@ -7,7 +7,7 @@ subroutine jgrad(xhat,yhat,fjcost,gradx,lupdfgs,nprt,calledby)
 ! program history log:
 !   2009-08-15  tremolet - initial code
 !   2010-09-31  el akkraoui - re-examine and update gradient calculation
-!   2012-07-09  todling - update to use Kleist changes to 4d-hybrid-ensemble
+!   2012-07-09  todling - update to use kleist changes to 4d-hybrid-ensemble
 !                       - also revisit handling of state vectors
 !   2012-12-06  todling - add adjoint gradient update (for backward analysis)
 !   2013-05-05  todling - add dry mass constraint (also used in pcgsoi)
@@ -17,12 +17,12 @@ subroutine jgrad(xhat,yhat,fjcost,gradx,lupdfgs,nprt,calledby)
 !   2014-09-17  todling - handle output of 4d-inc more carefully to allow for
 !                         update of state in non-convensional 4d (ie, 4densvar)
 !   2014-10-14  todling - write-all only called at last outer iteration
-!   2015-09-03  guo     - obsmod::yobs has been replaced with m_obsHeadBundle,
+!   2015-09-03  guo     - obsmod::yobs has been replaced with m_obsheadbundle,
 !                         where yobs is created and destroyed when and where it
 !                         is needed.
 !   2015-12-01  todling - add setrad to init pointers in intrad
 !   2016-05-09  todling - allow increment to be written out at end of outer iter
-!   2018-08-10  guo     - removed obsHeadBundle references.
+!   2018-08-10  guo     - removed obsheadbundle references.
 !                       - replaced intjo() related implementations to a new
 !                         polymorphic implementation of intjpmod::intjo().
 !
@@ -116,36 +116,36 @@ zjl=zero_quad  ! Moisture constraint???
 call control2state(xhat,mval,sbias)
 
 if (l4dvar) then
-  if (l_hyb_ens) then
-     call ensctl2state(xhat,mval(1),eval)
-     mval(1)=eval(1)
-  end if
+   if (l_hyb_ens) then
+      call ensctl2state(xhat,mval(1),eval)
+      mval(1)=eval(1)
+   end if
 
-! Perform test of AGCM TLM and ADM
-  call gsi_4dcoupler_grtests(mval,sval,nsubwin,nobs_bins)
+!  Perform test of agcm tlm and adm
+   call gsi_4dcoupler_grtests(mval,sval,nsubwin,nobs_bins)
 
-! Run TL model to fill sval
-  call model_tl(mval,sval,llprt)
+!  Run tl model to fill sval
+   call model_tl(mval,sval,llprt)
 
 else
 
-! Get copy state-vector for comparison with observations
-  if (l_hyb_ens) then
-!    Convert ensemble control variable to state space
-     call ensctl2state(xhat,mval(1),eval)
-     do ii=1,nobs_bins
-        sval(ii)=eval(ii)
-     end do
-  else
-     do ii=1,nobs_bins
-        sval(ii)=mval(1)
-     end do
-  endif
+!  Get copy state-vector for comparison with observations
+   if (l_hyb_ens) then
+!     Convert ensemble control variable to state space
+      call ensctl2state(xhat,mval(1),eval)
+      do ii=1,nobs_bins
+         sval(ii)=eval(ii)
+      end do
+   else
+      do ii=1,nobs_bins
+         sval(ii)=mval(1)
+      end do
+   endif
 end if
 
 if (.not.l_do_adjoint) then
    if(lsaveobsens.and.l_hyb_ens.and.efsoi_order==2) then
-     call efsoi_o2_update(sval)
+      call efsoi_o2_update(sval)
    end if
 end if
 
@@ -165,7 +165,7 @@ do ii=1,nsubwin
 end do
 
 qpred=zero_quad
-! Compare obs to solution and transpose back to grid (H^T R^{-1} H)
+! Compare obs to solution and transpose back to grid (h^t r^{-1} h)
 call intjo(rval,qpred,sval,sbias)
 
 ! Take care of background error for bias correction terms
@@ -184,20 +184,20 @@ if (ntclen>0) then
    end do
 end if
 
-! Evaluate Jo
+! Evaluate jo
 call evaljo(zjo,iobs,nprt,llouter)
 
 if (l_do_adjoint) then
-  if (lsaveobsens) then
-!   Observation sensitivity right hand side
-     do ii=1,gradx%lencv
-        gradx%values(ii) = - fcsens%values(ii)
-     enddo
-  else
-    gradx=zero
-  endif
+   if (lsaveobsens) then
+!     Observation sensitivity right hand side
+      do ii=1,gradx%lencv
+         gradx%values(ii) = - fcsens%values(ii)
+      enddo
+   else
+      gradx=zero
+   endif
 
-! Moisture constraint
+!  Moisture constraint
    zjl=zero_quad
    if (.not.ltlint) then
       do ibin=1,nobs_bins
@@ -214,8 +214,8 @@ if (l_do_adjoint) then
    if (ljcdfi) then
       call intjcdfi(rval,sval,pjc=zjc)
    else
-! Jc and other 3D-Var terms
-! Don't know how to deal with Jc term so comment for now...
+! jc and other 3d-var terms
+! Don't know how to deal with jc term so comment for now...
 !     call eval3dvar(sval,zjc,rval,zdummy)
       zjc=zero_quad
    endif
@@ -226,61 +226,61 @@ if (l_do_adjoint) then
       enddo
    endif
 
-  if (l4dvar) then
-!   Run adjoint model
-    call model_ad(mval,rval,llprt)
-    if (l_hyb_ens) then
-       eval(1)=mval(1)
-       call ensctl2state_ad(eval,mval(1),gradx)
-    end if
+   if (l4dvar) then
+!     Run adjoint model
+      call model_ad(mval,rval,llprt)
+      if (l_hyb_ens) then
+         eval(1)=mval(1)
+         call ensctl2state_ad(eval,mval(1),gradx)
+      end if
 
-  else
+   else
 
-!   Adjoint of copy of state-vector for observation comparison
-    if (l_hyb_ens) then
-       do ii=1,nobs_bins
-          eval(ii)=rval(ii)
-       end do
-       call ensctl2state_ad(eval,mval(1),gradx)
-    else
-       mval(1)=rval(1)
-       if (nobs_bins>1) then
-          do ii=2,nobs_bins
-             call self_add(mval(1),rval(ii))
-          enddo
-       end if
-    end if
-  end if
+!     Adjoint of copy of state-vector for observation comparison
+      if (l_hyb_ens) then
+         do ii=1,nobs_bins
+            eval(ii)=rval(ii)
+         end do
+         call ensctl2state_ad(eval,mval(1),gradx)
+      else
+         mval(1)=rval(1)
+         if (nobs_bins>1) then
+            do ii=2,nobs_bins
+               call self_add(mval(1),rval(ii))
+            enddo
+         end if
+      end if
+   end if
 
-! Adjoint of convert control var to state space
-  call control2state_ad(mval,rbias,gradx)
+!  Adjoint of convert control var to state space
+   call control2state_ad(mval,rbias,gradx)
  
-! Contribution from current and previous backgroun term
-  do i=1,nclen
-    xnew%values(i) = xhat%values(i)+ xhatsave%values(i)
-    ynew%values(i) = yhat%values(i)+ yhatsave%values(i)
-  end do
-  zjb=dot_product(xnew,ynew,r_quad)
+!  Contribution from current and previous backgroun term
+   do i=1,nclen
+      xnew%values(i) = xhat%values(i)+ xhatsave%values(i)
+      ynew%values(i) = yhat%values(i)+ yhatsave%values(i)
+   end do
+   zjb=dot_product(xnew,ynew,r_quad)
 !$omp parallel do
-  do i=1,nclen
-    gradx%values(i)=gradx%values(i)+yhat%values(i)+ yhatsave%values(i)
-  end do
+   do i=1,nclen
+      gradx%values(i)=gradx%values(i)+yhat%values(i)+ yhatsave%values(i)
+   end do
 !$omp end parallel do
 
 ! Cost function
-  fjcost=zjb+zjo+zjc+zjl+zjd
+   fjcost=zjb+zjo+zjc+zjl+zjd
 
-! Print diagnostics
-  if (nprt>=2) then
-    if (l4dvar) then
-      do ii=1,nsubwin
-         call prt_state_norms(mval(ii),'mval')
-      enddo
-    endif
-    call prt_control_norms(gradx,'gradx')
-  endif
-  if (nprt>=1.and.mype==0) write(6,999)trim(seqcalls),': grepcost J,Jb,Jo,Jc,Jl,Jd,Jq=',&
-                              fjcost,zjb,zjo,zjc,zjl,zjd
+!  Print diagnostics
+   if (nprt>=2) then
+      if (l4dvar) then
+         do ii=1,nsubwin
+            call prt_state_norms(mval(ii),'mval')
+         enddo
+      endif
+      call prt_control_norms(gradx,'gradx')
+   endif
+   if (nprt>=1.and.mype==0) write(6,999)trim(seqcalls),': grepcost J,Jb,Jo,Jc,Jl,Jd,Jq=',&
+                               fjcost,zjb,zjo,zjc,zjl,zjd
 endif
 
 ! Produce diagnostic when applying strong constraint
@@ -293,37 +293,37 @@ if (lupdfgs) then
    call xhat_vordiv_calc(sval)
 
 ! Overwrite guess with increment (4d-var only, for now)
-  if (iwrtinc>0) then
-    if (mype==0) write(6,*)trim(seqcalls),': Saving increment to file'
-    if (miter==1) then
-        xincfile='xinc'
-    else
-        xincfile='xinc.ZZZ'
-        write(xincfile(6:8),'(i3.3)') jiter
-    endif
-    call view_st (sval,trim(xincfile))
-    if ((.not.l4densvar).and.l4dvar)then
-       call inc2guess(sval)
-       call write_all(iwrtinc)
-       call prt_guess('increment')
-      ! NOTE: presently in 4dvar, we handle the biases in a slightly inconsistent when
+   if (iwrtinc>0) then
+      if (mype==0) write(6,*)trim(seqcalls),': Saving increment to file'
+      if (miter==1) then
+         xincfile='xinc'
+      else
+         xincfile='xinc.ZZZ'
+         write(xincfile(6:8),'(i3.3)') jiter
+      endif
+      call view_st (sval,trim(xincfile))
+      if ((.not.l4densvar).and.l4dvar)then
+         call inc2guess(sval)
+         call write_all(iwrtinc)
+         call prt_guess('increment')
+      ! Note: presently in 4dvar, we handle the biases in a slightly inconsistent when
       ! as when in 3dvar - that is, the state is not updated, but the biases are.
-      ! This assumes GSI handles a single iteration of the outer loop at a time
+      ! This assumes gsi handles a single iteration of the outer loop at a time
       ! when doing 4dvar (that is, multiple iterations require stop-and-go).
-      call update_bias_preds(twodvar_regional,sbias)
-    else
-       if (mype==0) write(6,*)trim(seqcalls),': Updating guess'
-       call update_guess(sval,sbias)
-    endif
-  else ! Update guess (model background, bias correction) fields
-     if (mype==0) write(6,*)trim(seqcalls),': Updating guess'
-     call update_guess(sval,sbias)
-     if(jiter == miter)call write_all(iwrtinc)
-     call prt_guess('analysis')
-  endif
+         call update_bias_preds(twodvar_regional,sbias)
+      else
+         if (mype==0) write(6,*)trim(seqcalls),': Updating guess'
+         call update_guess(sval,sbias)
+      endif
+   else ! Update guess (model background, bias correction) fields
+      if (mype==0) write(6,*)trim(seqcalls),': Updating guess'
+      call update_guess(sval,sbias)
+      if(jiter == miter)call write_all(iwrtinc)
+      call prt_guess('analysis')
+   endif
 
-! Clean up increments of vorticity/divergence
-  call xhat_vordiv_clean
+!  Clean up increments of vorticity/divergence
+   call xhat_vordiv_clean
 endif
 
 ! Release memory

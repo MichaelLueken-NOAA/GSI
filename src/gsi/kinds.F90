@@ -5,7 +5,7 @@ module kinds
 !   prgmmr: treadon          org: np23                date: 2004-08-15
 !
 ! abstract:  Module to hold specification kinds for variable declaration.
-!            This module is based on (copied from) Paul vanDelst's 
+!            This module is based on (copied from) paul vandelst's 
 !            type_kinds module found in the community radiative transfer
 !            model
 !
@@ -63,7 +63,7 @@ module kinds
        num_bytes_for_i_long, num_bytes_for_i_llong  /)
 
 ! Default values
-! **** CHANGE THE FOLLOWING TO CHANGE THE DEFAULT INTEGER TYPE KIND ***
+! **** Change the following to change the default integer type kind ***
   integer, parameter, private :: default_integer = 3  ! 1=byte, 
                                                       ! 2=short, 
                                                       ! 3=long, 
@@ -95,7 +95,7 @@ module kinds
        num_bytes_for_r_quad    /)
 
 ! Default values
-! **** CHANGE THE FOLLOWING TO CHANGE THE DEFAULT REAL TYPE KIND ***
+! **** Change the following to change the default real type kind ***
 #ifdef _REAL4_
   integer, parameter, private :: default_real = 1  ! 1=single, 
 #endif

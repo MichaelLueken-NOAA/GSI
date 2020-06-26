@@ -1,7 +1,7 @@
 module jcmod
 !$$$   module documentation block
 !                .      .    .                                       .
-! module:    jcmod           contains stuff for Jc penalty
+! module:    jcmod           contains stuff for jc penalty
 !
 !   prgmmr: kleist           org: np20                date: 2005-07-01
 !
@@ -12,23 +12,23 @@ module jcmod
 !   2005-07-01
 !   2005-09-29  kleist, expand to include variables for more terms
 !   2005-11-21  kleist, remove tendency arrays
-!   2006-04-06  kleist, expand and redefine Jc term for two formulations
-!   2007-10-18  tremolet - added Jc DFI option
+!   2006-04-06  kleist, expand and redefine jc term for two formulations
+!   2007-10-18  tremolet - added jc dfi option
 !   2012-02-08  kleist - add parameter ljc4tlevs 
 !   2013-05-15  todling - add knobs to control constraint on total water
 !   2018-05-19  eliu - add logic (ljclimqc) for limiting negative hydrometeors 
 !                      as a weak constraint
 !
 ! subroutines included:
-!   sub init_jcvars          - initialize Jc related variables
+!   sub init_jcvars          - initialize jc related variables
 !
 ! Variable Definitions:
-!   def ljcdfi               - if true, use digital filter Jc
-!   def alphajc              - multiplying factor for Jc DFI
-!   def ljc4tlevs            - if true, apply jc (limq, pdry) over all time levels if in 4D mode
+!   def ljcdfi               - if true, use digital filter jc
+!   def alphajc              - multiplying factor for jc dfi
+!   def ljc4tlevs            - if true, apply jc (limq, pdry) over all time levels if in 4d mode
 !
 !   The z_* arrays are used to accumulate information from previous outer loops regarding
-!      congributions to the Jc term
+!      congributions to the jc term
 !      Their definitions depend on formulation:
 !
 ! attributes:
@@ -58,7 +58,7 @@ contains
   subroutine init_jcvars
 !$$$  subprogram documentation block
 !                .      .    .                                       .
-! subprogram:    init_jcvars     initial Jc related variables
+! subprogram:    init_jcvars     initial jc related variables
 !   prgmmr: kleist          org: np20                date: 2005-07-01
 !
 ! abstract: initialize dynamic constraint term variables
@@ -67,7 +67,7 @@ contains
 !   2005-07-01  kleist
 !   2005-09-29  kleist, expanded for new terms
 !   2006-04-06  kleist, include both formulations
-!   2010-09-06  todling, add Errico-Ehrendorfer parameter for E-norm
+!   2010-09-06  todling, add errico-ehrendorfer parameter for e-norm
 !
 !   input argument list:
 !

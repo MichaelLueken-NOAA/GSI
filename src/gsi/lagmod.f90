@@ -15,14 +15,14 @@ module lagmod
 ! 
 ! subroutines included:
 !   setq
-!   setq_TL
-!   setq_AD
+!   setq_tl
+!   setq_ad
 !   lagdw
-!   lagdw_TL
-!   lagdw_AD
+!   lagdw_tl
+!   lagdw_ad
 !   slagdw
-!   slagdw_TL
-!   slagdw_AD
+!   slagdw_tl
+!   slagdw_ad
 !
 ! variables defined:
 !
@@ -38,17 +38,17 @@ use constants, only: zero,one
 implicit none
 
 ! set default to private
-  private
+private
 ! set subroutines to public
-  public :: setq
-  public :: setq_TL
-  public :: setq_AD
-  public :: lagdw
-  public :: lagdw_TL
-  public :: lagdw_AD
-  public :: slagdw
-  public :: slagdw_TL
-  public :: slagdw_AD
+public :: setq
+public :: setq_tl
+public :: setq_ad
+public :: lagdw
+public :: lagdw_tl
+public :: lagdw_ad
+public :: slagdw
+public :: slagdw_tl
+public :: slagdw_ad
 
 contains
 
@@ -60,18 +60,18 @@ subroutine setq(q,x,n)
 !
 !   prgrmmr:
 !
-! abstract:      Precompute the N constant denominator factors of the N-point 
+! abstract:      Precompute the n constant denominator factors of the n-point 
 !                Lagrange polynomial interpolation formula.
 !
 ! program history log:
 !   2008-05-09  safford - add subprogram doc block, rm unused uses
 !
 !   input argument list:
-!     X -    The N abscissae.
-!     N -    The number of points involved.
+!     x -    The n abscissae.
+!     n -    The number of points involved.
 !
 !   output argument list:
-!     Q -    The N denominator constants.
+!     q -    The n denominator constants.
 !
 ! attributes:
 !   language:  f90
@@ -79,28 +79,28 @@ subroutine setq(q,x,n)
 !
 !$$$ end documentation block
 
-IMPLICIT NONE
+implicit none
 
-INTEGER(i_kind)          ,INTENT(in   ) :: n
-REAL(r_kind),DIMENSION(n),INTENT(  out) :: q
-REAL(r_kind),DIMENSION(n),INTENT(in   ) :: x
+integer(i_kind)          ,intent(in   ) :: n
+real(r_kind),dimension(n),intent(  out) :: q
+real(r_kind),dimension(n),intent(in   ) :: x
 !-----------------------------------------------------------------------------
-INTEGER(i_kind)                      :: i,j
+integer(i_kind)                      :: i,j
 !=============================================================================
-DO i=1,n
+do i=1,n
    q(i)=one
-   DO j=1,n
-      IF(j /= i)q(i)=q(i)/(x(i)-x(j))
-   ENDDO
-ENDDO
+   do j=1,n
+      if(j /= i)q(i)=q(i)/(x(i)-x(j))
+   enddo
+enddo
 end subroutine setq
 
 
 !============================================================================
-subroutine setq_TL(q,q_TL,x,x_TL,n)
+subroutine setq_tl(q,q_tl,x,x_tl,n)
 !$$$  subprogram documentation block
 !                .      .    .
-! subprogram:    setq_TL
+! subprogram:    setq_tl
 !
 !   prgrmmr:
 !
@@ -111,12 +111,12 @@ subroutine setq_TL(q,q_TL,x,x_TL,n)
 !
 !   input argument list:
 !     x     - 
-!     x_TL  - 
+!     x_tl  - 
 !     n     -    The number of points involved.
 !
 !   output argument list:
 !     q    -   
-!     Q_TL
+!     q_tl
 !
 ! attributes:
 !   language:  f90
@@ -125,34 +125,34 @@ subroutine setq_TL(q,q_TL,x,x_TL,n)
 !$$$ end documentation block
 
 !============================================================================
-IMPLICIT NONE
+implicit none
 
-INTEGER(i_kind)          ,INTENT(in   ) :: n
-REAL(r_kind),DIMENSION(n),INTENT(  out) :: q,q_TL
-REAL(r_kind),DIMENSION(n),INTENT(in   ) :: x,x_TL
+integer(i_kind)          ,intent(in   ) :: n
+real(r_kind),dimension(n),intent(  out) :: q,q_tl
+real(r_kind),dimension(n),intent(in   ) :: x,x_tl
 !-----------------------------------------------------------------------------
-INTEGER(i_kind)                      :: i,j
-REAL(r_kind)                         :: rat
+integer(i_kind)                      :: i,j
+real(r_kind)                         :: rat
 !=============================================================================
-DO i=1,n
+do i=1,n
    q(i)=one
-   q_TL(i)=zero
-   DO j=1,n
-      IF(j /= i) THEN
+   q_tl(i)=zero
+   do j=1,n
+      if(j /= i) then
          rat=one/(x(i)-x(j))
-         q_TL(i)=(q_TL(i)-q(i)*(x_TL(i)-x_TL(j))*rat)*rat
+         q_tl(i)=(q_tl(i)-q(i)*(x_tl(i)-x_tl(j))*rat)*rat
          q(i)=q(i)*rat
-      ENDIF
-   ENDDO
-ENDDO
-end subroutine setq_TL
+      endif
+   enddo
+enddo
+end subroutine setq_tl
 
 
 !============================================================================
-subroutine setq_AD(q_AD,x,x_AD,n)
+subroutine setq_ad(q_ad,x,x_ad,n)
 !$$$  subprogram documentation block
 !                .      .    .
-! subprogram:    setq_AD
+! subprogram:    setq_ad
 !
 !   prgrmmr:
 !
@@ -162,14 +162,14 @@ subroutine setq_AD(q_AD,x,x_AD,n)
 !   2008-05-09  safford - add subprogram doc block, rm unused uses
 !
 !   input argument list:
-!     q_AD - 
+!     q_ad - 
 !     x    -
-!     x_AD -
+!     x_ad -
 !     n    -    The number of points involved.
 !
 !   output argument list:
-!     x_AD -
-!     q_AD - 
+!     x_ad -
+!     q_ad - 
 !
 ! attributes:
 !   language:  f90
@@ -178,29 +178,29 @@ subroutine setq_AD(q_AD,x,x_AD,n)
 !$$$ end documentation block
 
 !============================================================================
-IMPLICIT NONE
+implicit none
 
-INTEGER(i_kind)          ,INTENT(in   ) :: n
-REAL(r_kind),DIMENSION(n),INTENT(in   ) :: x
-REAL(r_kind),DIMENSION(n),INTENT(inout) :: x_AD
-REAL(r_kind),DIMENSION(n),INTENT(inout) :: q_AD
+integer(i_kind)          ,intent(in   ) :: n
+real(r_kind),dimension(n),intent(in   ) :: x
+real(r_kind),dimension(n),intent(inout) :: x_ad
+real(r_kind),dimension(n),intent(inout) :: q_ad
 !-----------------------------------------------------------------------------
-INTEGER(i_kind)                      :: i,j
-REAL(r_kind),DIMENSION(n)            :: q
-REAL(r_kind),DIMENSION(n,n)          :: jac
+integer(i_kind)                      :: i,j
+real(r_kind),dimension(n)            :: q
+real(r_kind),dimension(n,n)          :: jac
 !=============================================================================
 call setq(q,x,n)
 jac=zero
-DO i=1,n
-   DO j=1,n
-      IF(j /= i) THEN
+do i=1,n
+   do j=1,n
+      if(j /= i) then
          jac(j,i)=q(i)/(x(i)-x(j))
          jac(i,i)=jac(i,i)-jac(j,i)
-      ENDIF
-   ENDDO
-ENDDO
-x_AD=x_AD+matmul(jac,q_AD)
-end subroutine setq_AD
+      endif
+   enddo
+enddo
+x_ad=x_ad+matmul(jac,q_ad)
+end subroutine setq_ad
 
 
 !============================================================================
@@ -211,22 +211,22 @@ subroutine lagdw(x,xt,q,w,dw,n)
 !
 !   prgrmmr:
 !
-! abstract:      Construct the Lagrange weights and their derivatives when 
-!                target abscissa is known and denominators Q have already 
+! abstract:      Construct the lagrange weights and their derivatives when 
+!                target abscissa is known and denominators q have already 
 !                been precomputed
 !
 ! program history log:
 !   2008-05-09  safford - add subprogram doc block, rm unused uses
 !
 !   input argument list:
-!     X   - Grid abscissae
-!     XT  - Target abscissa
-!     Q   - Q factors (denominators of the Lagrange weight formula)
-!     N   - Number of grid points involved in the interpolation
+!     x   - Grid abscissae
+!     xt  - Target abscissa
+!     q   - Q factors (denominators of the lagrange weight formula)
+!     n   - Number of grid points involved in the interpolation
 !
 !   output argument list:
-!     W   - Lagrange weights
-!     DW  - Derivatives, dW/dX, of Lagrange weights W
+!     w   - Lagrange weights
+!     dw  - Derivatives, dw/dx, of Lagrange weights w
 !
 ! attributes:
 !   language:  f90
@@ -235,15 +235,15 @@ subroutine lagdw(x,xt,q,w,dw,n)
 !$$$ end documentation block
 
 !============================================================================
-IMPLICIT NONE
+implicit none
 
-INTEGER(i_kind)          ,INTENT(IN   ) :: n
-REAL(r_kind)             ,INTENT(IN   ) :: xt
-REAL(r_kind),DIMENSION(n),INTENT(IN   ) :: x,q
-REAL(r_kind),DIMENSION(n),INTENT(  OUT) :: w,dw
+integer(i_kind)          ,intent(in   ) :: n
+real(r_kind)             ,intent(in   ) :: xt
+real(r_kind),dimension(n),intent(in   ) :: x,q
+real(r_kind),dimension(n),intent(  out) :: w,dw
 !-----------------------------------------------------------------------------
-REAL(r_kind),DIMENSION(n)            :: d,pa,pb,dpa,dpb
-INTEGER(i_kind)                      :: j
+real(r_kind),dimension(n)            :: d,pa,pb,dpa,dpb
+integer(i_kind)                      :: j
 !============================================================================
 pa(1)=one
 dpa(1)=zero
@@ -268,10 +268,10 @@ end subroutine lagdw
 
 
 !============================================================================
-subroutine lagdw_TL(x,x_TL,xt,q,q_TL,w,w_TL,dw,dw_TL,n)
+subroutine lagdw_tl(x,x_tl,xt,q,q_tl,w,w_tl,dw,dw_tl,n)
 !$$$  subprogram documentation block
 !                .      .    .
-! subprogram:    lagdw_TL
+! subprogram:    lagdw_tl
 !
 !   prgrmmr:
 !
@@ -284,14 +284,14 @@ subroutine lagdw_TL(x,x_TL,xt,q,q_TL,w,w_TL,dw,dw_TL,n)
 !     x     -
 !     xt    - 
 !     q     -
-!     q_TL  -
+!     q_tl  -
 !     n     - The number of points involved.
 !
 !   output argument list:
 !     w     - 
 !     dw    -
-!     w_TL  -
-!     dw_TL -
+!     w_tl  -
+!     dw_tl -
 !
 ! attributes:
 !   language:  f90
@@ -300,58 +300,58 @@ subroutine lagdw_TL(x,x_TL,xt,q,q_TL,w,w_TL,dw,dw_TL,n)
 !$$$ end documentation block
 
 !============================================================================
-IMPLICIT NONE
+implicit none
 
-INTEGER(i_kind)          ,INTENT(IN   ) :: n
-REAL(r_kind)             ,INTENT(IN   ) :: xt
-REAL(r_kind),DIMENSION(n),INTENT(IN   ) :: x,q,x_TL,q_TL
-REAL(r_kind),DIMENSION(n),INTENT(  OUT) :: w,dw,w_TL,dw_TL
+integer(i_kind)          ,intent(in   ) :: n
+real(r_kind)             ,intent(in   ) :: xt
+real(r_kind),dimension(n),intent(in   ) :: x,q,x_tl,q_tl
+real(r_kind),dimension(n),intent(  out) :: w,dw,w_tl,dw_tl
 !-----------------------------------------------------------------------------
-REAL(r_kind),DIMENSION(n)            :: d,pa,pb,dpa,dpb
-REAL(r_kind),DIMENSION(n)            :: d_TL,pa_TL,pb_TL,dpa_TL,dpb_TL
-INTEGER(i_kind)                      :: j
+real(r_kind),dimension(n)            :: d,pa,pb,dpa,dpb
+real(r_kind),dimension(n)            :: d_tl,pa_tl,pb_tl,dpa_tl,dpb_tl
+integer(i_kind)                      :: j
 !============================================================================
 pa(1)=one
 dpa(1)=zero
-pa_TL(1)=zero
-dpa_TL(1)=zero
+pa_tl(1)=zero
+dpa_tl(1)=zero
 
 do j=1,n-1
    d(j)=xt-x(j)
-   d_TL(j)=-x_TL(j)
+   d_tl(j)=-x_tl(j)
    pa    (j+1)=pa    (j)*d(j)
-   pa_TL (j+1)=pa_TL (j)*d(j)+pa(j)*d_TL(j)
+   pa_tl (j+1)=pa_tl (j)*d(j)+pa(j)*d_tl(j)
    dpa   (j+1)=dpa   (j)*d(j)+pa(j)
-   dpa_TL(j+1)=dpa_TL(j)*d(j)+dpa(j)*d_TL(j)+pa_TL(j)
+   dpa_tl(j+1)=dpa_tl(j)*d(j)+dpa(j)*d_tl(j)+pa_tl(j)
 enddo
 d(n)=xt-x(n)
-d_TL(n)=-x_TL(n)
+d_tl(n)=-x_tl(n)
 
 pb(n)=one
 dpb(n)=zero
-pb_TL(n)=zero
-dpb_TL(n)=zero
+pb_tl(n)=zero
+dpb_tl(n)=zero
 do j=n,2,-1
    pb    (j-1)=pb    (j)*d(j)
-   pb_TL (j-1)=pb_TL (j)*d(j)+pb (j)*d_TL(j)
+   pb_tl (j-1)=pb_tl (j)*d(j)+pb (j)*d_tl(j)
    dpb   (j-1)=dpb   (j)*d(j)+pb (j)
-   dpb_TL(j-1)=dpb_TL(j)*d(j)+dpb(j)*d_TL(j)+pb_TL(j)
+   dpb_tl(j-1)=dpb_tl(j)*d(j)+dpb(j)*d_tl(j)+pb_tl(j)
 enddo
 do j=1,n
    w    (j)= pa   (j)*pb (j)*q(j)
    dw   (j)=(pa   (j)*dpb(j)+dpa(j)*pb    (j))*q(j)
-   w_TL (j)=(pa_TL(j)*pb (j)+pa (j)*pb_TL (j))*q(j)+pa(j)*pb(j)*q_TL(j)
-   dw_TL(j)=(pa_TL(j)*dpb(j)+pa (j)*dpb_TL(j)+dpa_TL(j)*pb(j)+dpa(j)*pb_TL(j))*q(j)+ &
-            (pa   (j)*dpb(j)+dpa(j)*pb    (j))*q_TL(j)
+   w_tl (j)=(pa_tl(j)*pb (j)+pa (j)*pb_tl (j))*q(j)+pa(j)*pb(j)*q_tl(j)
+   dw_tl(j)=(pa_tl(j)*dpb(j)+pa (j)*dpb_tl(j)+dpa_tl(j)*pb(j)+dpa(j)*pb_tl(j))*q(j)+ &
+            (pa   (j)*dpb(j)+dpa(j)*pb    (j))*q_tl(j)
 enddo
-end subroutine lagdw_TL
+end subroutine lagdw_tl
 
 
 !============================================================================
-subroutine lagdw_AD(x,x_AD,xt,q,q_AD,w_AD,dw_AD,n)
+subroutine lagdw_ad(x,x_ad,xt,q,q_ad,w_ad,dw_ad,n)
 !$$$  subprogram documentation block
 !                .      .    .
-! subprogram:    lagdw_AD
+! subprogram:    lagdw_ad
 !
 !   prgrmmr:
 !
@@ -365,16 +365,16 @@ subroutine lagdw_AD(x,x_AD,xt,q,q_AD,w_AD,dw_AD,n)
 !     xt    -
 !     x     -
 !     q     -
-!     q_AD  -
-!     x_AD  -
-!     w_AD  -
-!     dw_AD -
+!     q_ad  -
+!     x_ad  -
+!     w_ad  -
+!     dw_ad -
 !
 !   output argument list:
-!     q_AD  -
-!     x_AD  -
-!     w_AD  -
-!     dw_AD -
+!     q_ad  -
+!     x_ad  -
+!     w_ad  -
+!     dw_ad -
 !
 ! attributes:
 !   language:  f90
@@ -383,20 +383,20 @@ subroutine lagdw_AD(x,x_AD,xt,q,q_AD,w_AD,dw_AD,n)
 !$$$ end documentation block
 
 !============================================================================
-IMPLICIT NONE
+implicit none
 
-INTEGER(i_kind)          ,INTENT(IN   ) :: n
-REAL(r_kind)             ,INTENT(IN   ) :: xt
-REAL(r_kind),DIMENSION(n),INTENT(IN   ) :: x,q
-REAL(r_kind),DIMENSION(n),INTENT(INOUT) :: q_AD,x_AD,w_AD,dw_AD
+integer(i_kind)          ,intent(in   ) :: n
+real(r_kind)             ,intent(in   ) :: xt
+real(r_kind),dimension(n),intent(in   ) :: x,q
+real(r_kind),dimension(n),intent(inout) :: q_ad,x_ad,w_ad,dw_ad
 !-----------------------------------------------------------------------------
-REAL(r_kind),DIMENSION(n)            :: d,pa,pb,dpa,dpb
-REAL(r_kind),DIMENSION(n)            :: d_AD,pa_AD,pb_AD,dpa_AD,dpb_AD
-INTEGER(i_kind)                      :: j
+real(r_kind),dimension(n)            :: d,pa,pb,dpa,dpb
+real(r_kind),dimension(n)            :: d_ad,pa_ad,pb_ad,dpa_ad,dpb_ad
+integer(i_kind)                      :: j
 !============================================================================
 
-pa_AD=zero; dpb_AD=zero; dpa_AD=zero; pb_AD=zero
-d_AD=zero
+pa_ad=zero; dpb_ad=zero; dpa_ad=zero; pb_ad=zero
+d_ad=zero
 
 ! passive variables
 pa(1)=one
@@ -415,37 +415,37 @@ do j=n,2,-1
 enddo
 !
 do j=n,1,-1
-   pa_AD (j)=pa_AD (j)+ dpb(j)*q  (j)*dw_AD(j)
-   dpb_AD(j)=dpb_AD(j)+ pa (j)*q  (j)*dw_AD(j)
-   dpa_AD(j)=dpa_AD(j)+ pb (j)*q  (j)*dw_AD(j)
-   pb_AD (j)=pb_AD (j)+ dpa(j)*q  (j)*dw_AD(j)
-   q_AD  (j)=q_AD  (j)+(pa (j)*dpb(j)+dpa  (j)*pb(j))*dw_AD(j)
-   pa_AD (j)=pa_AD (j)+ pb (j)*q  (j)*w_AD (j)
-   pb_AD (j)=pb_AD (j)+ pa (j)*q  (j)*w_AD (j)
-   q_AD  (j)=q_AD  (j)+ pa (j)*pb (j)*w_AD (j)
+   pa_ad (j)=pa_ad (j)+ dpb(j)*q  (j)*dw_ad(j)
+   dpb_ad(j)=dpb_ad(j)+ pa (j)*q  (j)*dw_ad(j)
+   dpa_ad(j)=dpa_ad(j)+ pb (j)*q  (j)*dw_ad(j)
+   pb_ad (j)=pb_ad (j)+ dpa(j)*q  (j)*dw_ad(j)
+   q_ad  (j)=q_ad  (j)+(pa (j)*dpb(j)+dpa  (j)*pb(j))*dw_ad(j)
+   pa_ad (j)=pa_ad (j)+ pb (j)*q  (j)*w_ad (j)
+   pb_ad (j)=pb_ad (j)+ pa (j)*q  (j)*w_ad (j)
+   q_ad  (j)=q_ad  (j)+ pa (j)*pb (j)*w_ad (j)
 end do
 do j=2,n
-   dpb_AD(j)=dpb_AD(j)+d  (j)*dpb_AD(j-1)
-   d_AD  (j)=d_AD  (j)+dpb(j)*dpb_AD(j-1)
-   pb_AD (j)=pb_AD (j)       +dpb_AD(j-1)
-   pb_AD (j)=pb_AD (j)+d  (j)*pb_AD (j-1)
-   d_AD  (j)=d_AD  (j)+pb (j)*pb_AD (j-1)
+   dpb_ad(j)=dpb_ad(j)+d  (j)*dpb_ad(j-1)
+   d_ad  (j)=d_ad  (j)+dpb(j)*dpb_ad(j-1)
+   pb_ad (j)=pb_ad (j)       +dpb_ad(j-1)
+   pb_ad (j)=pb_ad (j)+d  (j)*pb_ad (j-1)
+   d_ad  (j)=d_ad  (j)+pb (j)*pb_ad (j-1)
 enddo
 
-dpb_AD(n)=zero ! not sure about it
-pb_AD(n) =zero ! not sure about it
+dpb_ad(n)=zero ! not sure about it
+pb_ad(n) =zero ! not sure about it
 
-x_AD(n)=x_AD(n)-d_AD(n)
+x_ad(n)=x_ad(n)-d_ad(n)
 do j=n-1,1,-1
-   dpa_AD(j)=dpa_AD(j)+d  (j)*dpa_AD(j+1)
-   d_AD  (j)=d_AD  (j)+dpa(j)*dpa_AD(j+1)
-   pa_AD (j)=pa_AD (j)       +dpa_AD(j+1)
-   pa_AD (j)=pa_AD (j)+d  (j)*pa_AD (j+1)
-   d_AD  (j)=d_AD  (j)+pa (j)*pa_AD (j+1)
-   x_AD  (j)=x_AD  (j)       -d_AD  (j  )
+   dpa_ad(j)=dpa_ad(j)+d  (j)*dpa_ad(j+1)
+   d_ad  (j)=d_ad  (j)+dpa(j)*dpa_ad(j+1)
+   pa_ad (j)=pa_ad (j)       +dpa_ad(j+1)
+   pa_ad (j)=pa_ad (j)+d  (j)*pa_ad (j+1)
+   d_ad  (j)=d_ad  (j)+pa (j)*pa_ad (j+1)
+   x_ad  (j)=x_ad  (j)       -d_ad  (j  )
 enddo
 
-end subroutine lagdw_AD
+end subroutine lagdw_ad
 
 
 !============================================================================
@@ -458,7 +458,7 @@ subroutine slagdw(x,xt,aq,bq,w,dw,n)
 !
 ! abstract:      Construct weights and their derivatives for interpolation 
 !                to a given target based on a linearly weighted mixture of 
-!                the pair of Lagrange interpolators which omit the respective 
+!                the pair of lagrange interpolators which omit the respective 
 !                end points of the source nodes provided. The number of source 
 !                points provided must be even and the nominal target interval 
 !                is the unique central one. The linear weighting pair is 
@@ -471,15 +471,15 @@ subroutine slagdw(x,xt,aq,bq,w,dw,n)
 !   2008-05-09  safford - add subprogram doc block, rm unused uses
 !
 !   input argument list:
-!     X     - Grid abscissae (N points)
-!     XT    - Target abscissa
-!     AQ,BQ - Q factors (denominators of the Lagrange weight formula for
-!             the two respective consecutive subsets of N-1 grid points)
-!     N     - Even number of grid points involved in the interpolation
+!     x     - Grid abscissae (n points)
+!     xt    - Target abscissa
+!     aq,bq - Q factors (denominators of the lagrange weight formula for
+!             the two respective consecutive subsets of n-1 grid points)
+!     n     - Even number of grid points involved in the interpolation
 !
 !   output argument list:
-!     W     - Final weights (N values)
-!     DW    - Final derivatives, dW/dX, of weights W (N values)
+!     w     - Final weights (n values)
+!     dw    - Final derivatives, dw/dx, of weights w (n values)
 !
 ! attributes:
 !   language:  f90
@@ -488,37 +488,37 @@ subroutine slagdw(x,xt,aq,bq,w,dw,n)
 !$$$ end documentation block
 
 !============================================================================
-IMPLICIT NONE
+implicit none
 
-INTEGER(i_kind)            ,INTENT(IN   ) :: n
-REAL(r_kind)               ,INTENT(IN   ) :: xt
-REAL(r_kind),DIMENSION(n)  ,INTENT(IN   ) :: x
-REAL(r_kind),DIMENSION(n-1),INTENT(IN   ) :: aq,bq
-REAL(r_kind),DIMENSION(n)  ,INTENT(  OUT) :: w,dw
+integer(i_kind)            ,intent(in   ) :: n
+real(r_kind)               ,intent(in   ) :: xt
+real(r_kind),dimension(n)  ,intent(in   ) :: x
+real(r_kind),dimension(n-1),intent(in   ) :: aq,bq
+real(r_kind),dimension(n)  ,intent(  out) :: w,dw
 !-----------------------------------------------------------------------------
-REAL(r_kind),DIMENSION(n)               :: aw,bw,daw,dbw
-REAL(r_kind)                            :: xa,xb,dwb,wb
-INTEGER(i_kind)                         :: na
+real(r_kind),dimension(n)               :: aw,bw,daw,dbw
+real(r_kind)                            :: xa,xb,dwb,wb
+integer(i_kind)                         :: na
 !============================================================================
-CALL lagdw(x(1:n-1),xt,aq,aw(1:n-1),daw(1:n-1),n-1)
-CALL lagdw(x(2:n  ),xt,bq,bw(2:n  ),dbw(2:n  ),n-1)
+call lagdw(x(1:n-1),xt,aq,aw(1:n-1),daw(1:n-1),n-1)
+call lagdw(x(2:n  ),xt,bq,bw(2:n  ),dbw(2:n  ),n-1)
 aw(n)=zero
 daw(n)=zero
 bw(1)=zero
 dbw(1)=zero
 na=n/2
-IF(na*2 /= n)STOP 'In slagdw; n must be even'
+if(na*2 /= n)stop 'In slagdw; n must be even'
 xa =x(na     )
 xb =x(na+1)
 dwb=one/(xb-xa)
 wb =(xt-xa)*dwb
-IF    (wb>one )THEN
+if    (wb>one )then
    wb =one
    dwb=zero
-ELSEIF(wb<zero)THEN
+elseif(wb<zero)then
    wb =zero
    dwb=zero
-ENDIF
+endif
 bw =bw -aw
 dbw=dbw-daw
 
@@ -528,10 +528,10 @@ end subroutine slagdw
 
 
 !============================================================================
-subroutine slagdw_TL(x,x_TL,xt,aq,aq_TL,bq,bq_TL,dw,dw_TL,n)
+subroutine slagdw_tl(x,x_tl,xt,aq,aq_tl,bq,bq_tl,dw,dw_tl,n)
 !$$$  subprogram documentation block
 !                .      .    .
-! subprogram:    slagdw_TL
+! subprogram:    slagdw_tl
 !
 !   prgrmmr:
 !
@@ -543,12 +543,12 @@ subroutine slagdw_TL(x,x_TL,xt,aq,aq_TL,bq,bq_TL,dw,dw_TL,n)
 !   input argument list:
 !     n
 !     xt
-!     x,x_TL
-!     aq,bq,aq_TL,bq_TL
-!     dw_TL,dw
+!     x,x_tl
+!     aq,bq,aq_tl,bq_tl
+!     dw_tl,dw
 !
 !   output argument list:
-!     dw_TL,dw
+!     dw_tl,dw
 !
 ! attributes:
 !   language:  f90
@@ -557,72 +557,72 @@ subroutine slagdw_TL(x,x_TL,xt,aq,aq_TL,bq,bq_TL,dw,dw_TL,n)
 !$$$ end documentation block
 
 !============================================================================
-IMPLICIT NONE
+implicit none
 
-INTEGER(i_kind)            ,INTENT(IN   ) :: n
-REAL(r_kind)               ,INTENT(IN   ) :: xt
-REAL(r_kind),DIMENSION(n)  ,INTENT(IN   ) :: x,x_TL
-REAL(r_kind),DIMENSION(n-1),INTENT(IN   ) :: aq,bq,aq_TL,bq_TL
-REAL(r_kind),DIMENSION(n)  ,INTENT(  OUT) :: dw_TL,dw
+integer(i_kind)            ,intent(in   ) :: n
+real(r_kind)               ,intent(in   ) :: xt
+real(r_kind),dimension(n)  ,intent(in   ) :: x,x_tl
+real(r_kind),dimension(n-1),intent(in   ) :: aq,bq,aq_tl,bq_tl
+real(r_kind),dimension(n)  ,intent(  out) :: dw_tl,dw
 !-----------------------------------------------------------------------------
-REAL(r_kind),DIMENSION(n)               :: aw,bw,daw,dbw
-REAL(r_kind),DIMENSION(n)               :: aw_TL,bw_TL,daw_TL,dbw_TL
-REAL(r_kind)                            :: xa,xb,dwb,wb
-REAL(r_kind)                            :: xa_TL,xb_TL,dwb_TL,wb_TL
-INTEGER(i_kind)                         :: na
+real(r_kind),dimension(n)               :: aw,bw,daw,dbw
+real(r_kind),dimension(n)               :: aw_tl,bw_tl,daw_tl,dbw_tl
+real(r_kind)                            :: xa,xb,dwb,wb
+real(r_kind)                            :: xa_tl,xb_tl,dwb_tl,wb_tl
+integer(i_kind)                         :: na
 !============================================================================
-CALL lagdw_TL(x(1:n-1),x_TL(1:n-1),xt,aq,aq_TL,aw(1:n-1),aw_TL(1:n-1),&
-             daw(1:n-1),daw_TL(1:n-1),n-1)
-CALL lagdw_TL(x(2:n     ),x_TL(2:n     ),xt,bq,bq_TL,bw(2:n     ),bw_TL(2:n     ),&
-             dbw(2:n     ),dbw_TL(2:n     ),n-1)
+call lagdw_tl(x(1:n-1),x_tl(1:n-1),xt,aq,aq_tl,aw(1:n-1),aw_tl(1:n-1),&
+             daw(1:n-1),daw_tl(1:n-1),n-1)
+call lagdw_tl(x(2:n  ),x_tl(2:n  ),xt,bq,bq_tl,bw(2:n  ),bw_tl(2:n  ),&
+             dbw(2:n  ),dbw_tl(2:n  ),n-1)
 aw(n) =zero
 daw(n)=zero
 bw(1) =zero
 dbw(1)=zero
 !
-aw_TL(n) =zero
-daw_TL(n)=zero
-bw_TL(1) =zero
-dbw_TL(1)=zero
+aw_tl(n) =zero
+daw_tl(n)=zero
+bw_tl(1) =zero
+dbw_tl(1)=zero
 na=n/2
-IF(na*2 /= n)STOP 'In slagdw; n must be even'
+if(na*2 /= n)stop 'In slagdw; n must be even'
 xa   =x   (na)
-xa_TL=x_TL(na)
+xa_tl=x_tl(na)
 xb   =x   (na+1)
-xb_TL=x_TL(na+1)
+xb_tl=x_tl(na+1)
 dwb   = one          /(xb-xa)
-dwb_TL=-(xb_TL-xa_TL)/(xb-xa)**2
+dwb_tl=-(xb_tl-xa_tl)/(xb-xa)**2
 wb   =             (xt-xa)*dwb
-wb_TL=(-xa_TL)*dwb+(xt-xa)*dwb_TL
-IF    (wb > one)THEN
+wb_tl=(-xa_tl)*dwb+(xt-xa)*dwb_tl
+if    (wb > one)then
    wb    =one
    dwb   =zero
-   wb_TL =zero
-   dwb_TL=zero
-ELSEIF(wb < zero)THEN
+   wb_tl =zero
+   dwb_tl=zero
+elseif(wb < zero)then
    wb    =zero
    dwb   =zero
-   wb_TL =zero
-   dwb_TL=zero
+   wb_tl =zero
+   dwb_tl=zero
 
-ENDIF
+endif
 
 bw    =bw    -aw
-bw_TL =bw_TL -aw_TL
+bw_tl =bw_tl -aw_tl
 dbw   =dbw   -daw
-dbw_TL=dbw_TL-daw_TL
+dbw_tl=dbw_tl-daw_tl
 
 !w=aw+wb*bw
 dw   =daw   + wb   *dbw           + dwb   *bw
-dw_TL=daw_TL+(wb_TL*dbw+wb*dbw_TL)+(dwb_TL*bw+dwb*bw_TL)
-end subroutine slagdw_TL
+dw_tl=daw_tl+(wb_tl*dbw+wb*dbw_tl)+(dwb_tl*bw+dwb*bw_tl)
+end subroutine slagdw_tl
 
 
 !============================================================================
-SUBROUTINE slagdw_AD(x,x_AD,xt,aq,aq_AD,bq,bq_AD,w_AD,dw,dw_AD,n)
+subroutine slagdw_ad(x,x_ad,xt,aq,aq_ad,bq,bq_ad,w_ad,dw,dw_ad,n)
 !$$$  subprogram documentation block
 !                .      .    .
-! subprogram:    slagdw_AD
+! subprogram:    slagdw_ad
 !
 !   prgrmmr:
 !
@@ -636,13 +636,13 @@ SUBROUTINE slagdw_AD(x,x_AD,xt,aq,aq_AD,bq,bq_AD,w_AD,dw,dw_AD,n)
 !     xt
 !     x
 !     aq,bq
-!     aq_AD,bq_AD
-!     x_AD,dw_AD,w_AD
+!     aq_ad,bq_ad
+!     x_ad,dw_ad,w_ad
 !
 !   output argument list:
-!     aq_AD,bq_AD
+!     aq_ad,bq_ad
 !     dw
-!     x_AD,dw_AD,w_AD
+!     x_ad,dw_ad,w_ad
 !
 ! attributes:
 !   language:  f90
@@ -651,89 +651,89 @@ SUBROUTINE slagdw_AD(x,x_AD,xt,aq,aq_AD,bq,bq_AD,w_AD,dw,dw_AD,n)
 !$$$ end documentation block
 
 !============================================================================
-IMPLICIT NONE
-INTEGER(i_kind)            ,INTENT(IN   ) :: n
-REAL(r_kind)               ,INTENT(IN   ) :: xt
-REAL(r_kind),DIMENSION(n)  ,INTENT(IN   ) :: x
-REAL(r_kind),DIMENSION(n-1),INTENT(IN   ) :: aq,bq
-REAL(r_kind),DIMENSION(n-1),INTENT(INOUT) :: aq_AD,bq_AD
-REAL(r_kind),DIMENSION(n)  ,INTENT(  OUT) :: dw
-REAL(r_kind),DIMENSION(n)  ,INTENT(INOUT) :: x_AD,dw_AD,w_AD
+implicit none
+integer(i_kind)            ,intent(in   ) :: n
+real(r_kind)               ,intent(in   ) :: xt
+real(r_kind),dimension(n)  ,intent(in   ) :: x
+real(r_kind),dimension(n-1),intent(in   ) :: aq,bq
+real(r_kind),dimension(n-1),intent(inout) :: aq_ad,bq_ad
+real(r_kind),dimension(n)  ,intent(  out) :: dw
+real(r_kind),dimension(n)  ,intent(inout) :: x_ad,dw_ad,w_ad
 !-----------------------------------------------------------------------------
-REAL(r_kind),DIMENSION(n)                 :: aw,bw,daw,dbw
-REAL(r_kind),DIMENSION(n)                 :: aw_AD,bw_AD,daw_AD,dbw_AD
-REAL(r_kind)                              :: xa,xb,dwb,wb
-REAL(r_kind)                              :: xa_AD,xb_AD,wb_AD,dwb_AD
-INTEGER(i_kind)                           :: na
+real(r_kind),dimension(n)                 :: aw,bw,daw,dbw
+real(r_kind),dimension(n)                 :: aw_ad,bw_ad,daw_ad,dbw_ad
+real(r_kind)                              :: xa,xb,dwb,wb
+real(r_kind)                              :: xa_ad,xb_ad,wb_ad,dwb_ad
+integer(i_kind)                           :: na
 !============================================================================
-daw_AD=zero;wb_AD=zero;dbw_AD=zero;dwb_AD=zero;bw_AD=zero
-aw_AD =zero;xb_AD=zero;xa_AD =zero
+daw_ad=zero;wb_ad=zero;dbw_ad=zero;dwb_ad=zero;bw_ad=zero
+aw_ad =zero;xb_ad=zero;xa_ad =zero
 
 ! passive variables needed (from forward code)
-CALL lagdw(x(1:n-1),xt,aq,aw(1:n-1),daw(1:n-1),n-1)
-CALL lagdw(x(2:n  ),xt,bq,bw(2:n  ),dbw(2:n  ),n-1)
+call lagdw(x(1:n-1),xt,aq,aw(1:n-1),daw(1:n-1),n-1)
+call lagdw(x(2:n  ),xt,bq,bw(2:n  ),dbw(2:n  ),n-1)
 
 aw(n) =zero
 daw(n)=zero
 bw(1) =zero
 dbw(1)=zero
 na=n/2
-IF(na*2 /= n)STOP 'In slagdw; n must be even'
+if(na*2 /= n)stop 'In slagdw; n must be even'
 xa =x(na     )
 xb =x(na+1)
 dwb=one/(xb-xa)
 wb =(xt-xa)*dwb
-IF    (wb>one)THEN
+if    (wb>one)then
    wb =one
    dwb=zero
-ELSEIF(wb<zero)THEN
+elseif(wb<zero)then
    wb =zero
    dwb=zero
-ENDIF
+endif
 bw =bw -aw
 dbw=dbw-daw
 !w=aw+wb*bw ! not needed
 dw=daw+wb*dbw+dwb*bw ! not needed
 !
 !
-daw_AD=daw_AD+dw_AD
-wb_AD =wb_AD +dot_product(dbw,dw_AD)
-dbw_AD=dbw_AD+wb*dw_AD
-dwb_AD=dwb_AD+dot_product(bw,dw_AD)
-bw_AD =bw_AD +dwb*dw_AD
+daw_ad=daw_ad+dw_ad
+wb_ad =wb_ad +dot_product(dbw,dw_ad)
+dbw_ad=dbw_ad+wb*dw_ad
+dwb_ad=dwb_ad+dot_product(bw,dw_ad)
+bw_ad =bw_ad +dwb*dw_ad
 
-aw_AD=aw_AD+w_AD
-wb_AD=wb_AD+dot_product(bw,w_AD)
-bw_AD=bw_AD+wb*w_AD
+aw_ad=aw_ad+w_ad
+wb_ad=wb_ad+dot_product(bw,w_ad)
+bw_ad=bw_ad+wb*w_ad
 
-daw_AD=daw_AD-dbw_AD
-aw_AD =aw_AD -bw_AD
+daw_ad=daw_ad-dbw_ad
+aw_ad =aw_ad -bw_ad
 
-IF(wb>one)THEN
-   wb_AD =zero
-   dwb_AD=zero
-ELSEIF(wb<zero)THEN
-   wb_AD =zero
-   dwb_AD=zero
-ENDIF
+if(wb>one)then
+   wb_ad =zero
+   dwb_ad=zero
+elseif(wb<zero)then
+   wb_ad =zero
+   dwb_ad=zero
+endif
 
-xa_AD        =xa_AD-wb_AD*dwb
-dwb_AD       =dwb_AD+(xt-xa)*wb_AD
-xb_AD        =xb_AD-(dwb_AD/(xb-xa)**2)
-xa_AD        =xa_AD+(dwb_AD/(xb-xa)**2)
-x_AD(na+1)=x_AD(na+1)+xb_AD
-x_AD(na  )=x_AD(na  )+xa_AD
+xa_ad     =xa_ad-wb_ad*dwb
+dwb_ad    =dwb_ad+(xt-xa)*wb_ad
+xb_ad     =xb_ad-(dwb_ad/(xb-xa)**2)
+xa_ad     =xa_ad+(dwb_ad/(xb-xa)**2)
+x_ad(na+1)=x_ad(na+1)+xb_aD
+x_ad(na  )=x_ad(na  )+xa_ad
 
-dbw_AD(1)=zero;bw_AD(1)=zero
-daw_AD(n)=zero;aw_AD(n)=zero
+dbw_ad(1)=zero;bw_ad(1)=zero
+daw_ad(n)=zero;aw_ad(n)=zero
 
-CALL lagdw_AD(x(2:n     ),x_AD(2:n     ),xt,bq,bq_AD,bw_AD(2:n     ),&
-             dbw_AD(2:n     ),n-1)
+call lagdw_ad(x(2:n  ),x_ad(2:n  ),xt,bq,bq_ad,bw_ad(2:n  ),&
+             dbw_ad(2:n  ),n-1)
 
-CALL lagdw_AD(x(1:n-1),x_AD(1:n-1),xt,aq,aq_AD,aw_AD(1:n-1),&
-             daw_AD(1:n-1),n-1)
+call lagdw_ad(x(1:n-1),x_ad(1:n-1),xt,aq,aq_ad,aw_ad(1:n-1),&
+             daw_ad(1:n-1),n-1)
 
-end subroutine slagdw_AD
+end subroutine slagdw_ad
 !============================================================================
 end module lagmod
 

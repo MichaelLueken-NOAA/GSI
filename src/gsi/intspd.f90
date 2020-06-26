@@ -11,8 +11,8 @@ module intspdmod
 !   2005-11-16  Derber - remove interfaces
 !   2008-11-26  Todling - remove intspd_tl; add interface back
 !   2009-08-13  lueken - update documentation
-!   2012-09-14  Syed RH Rizvi, NCAR/NESL/MMM/DAS  - implemented obs adjoint test  
-!   2016-05-18  guo     - replaced ob_type with polymorphic obsNode through type casting
+!   2012-09-14  Syed RH Rizvi, ncar/nesl/mmm/das  - implemented obs adjoint test  
+!   2016-05-18  guo     - replaced ob_type with polymorphic obsnode through type casting
 !
 ! subroutines included:
 !   sub intspd_
@@ -25,18 +25,18 @@ module intspdmod
 !
 !$$$ end documentation block
 
-use m_obsNode, only: obsNode
-use m_spdNode, only: spdNode
-use m_spdNode, only: spdNode_typecast
-use m_spdNode, only: spdNode_nextcast
-use m_obsdiagNode, only: obsdiagNode_set
+use m_obsnode, only: obsnode
+use m_spdnode, only: spdnode
+use m_spdnode, only: spdnode_typecast
+use m_spdnode, only: spdnode_nextcast
+use m_obsdiagnode, only: obsdiagnode_set
 implicit none
 
-PRIVATE
-PUBLIC intspd
+private
+public intspd
 
 interface intspd; module procedure &
-          intspd_
+   intspd_
 end interface
 
 contains
@@ -60,16 +60,16 @@ subroutine intspd_(spdhead,rval,sval)
 !   2005-08-02  derber  - modify for variational qc parameters for each ob
 !   2005-09-28  derber  - consolidate location and weight arrays
 !   2006-07-28  derber  - modify to use new inner loop obs data structure
-!                       - unify NL qc
+!                       - unify nl qc
 !   2007-03-19  tremolet - binning of observations
 !   2007-06-05  tremolet - use observation diagnostics structure
 !   2007-07-09  tremolet - observation sensitivity
-!   2008-01-04  tremolet - Don't apply H^T if l_do_adjoint is false
-!   2008-11-28  todling  - turn FOTO optional; changed handling of ptr%time
+!   2008-01-04  tremolet - Don't apply h^t if l_do_adjoint is false
+!   2008-11-28  todling  - turn foto optional; changed handling of ptr%time
 !   2010-01-29  zhang,b  - fix adjoint of linearization
 !   2010-02-26  todling  - fix for observation sensitivity
 !   2010-05-13  todling  - update to use gsi_bundle; udpate interface
-!   2012-09-14  Syed RH Rizvi, NCAR/NESL/MMM/DAS  - introduced ladtest_obs         
+!   2012-09-14  Syed RH Rizvi, ncar/nesl/mmm/das  - introduced ladtest_obs         
 !
 !   input argument list:
 !     spdhead  - obs type pointer to obs structure
@@ -100,7 +100,7 @@ subroutine intspd_(spdhead,rval,sval)
   implicit none
 
 ! Declare passed variables
-  class(obsNode),  pointer, intent(in   ) :: spdhead
+  class(obsnode),  pointer, intent(in   ) :: spdhead
   type(gsi_bundle),         intent(in   ) :: sval
   type(gsi_bundle),         intent(inout) :: rval
 
@@ -114,10 +114,10 @@ subroutine intspd_(spdhead,rval,sval)
   real(r_kind) cg_spd,p0,wnotgross,wgross,pg_spd
   real(r_kind),pointer,dimension(:) :: su,sv
   real(r_kind),pointer,dimension(:) :: ru,rv
-  type(spdNode), pointer :: spdptr
+  type(spdnode), pointer :: spdptr
   logical :: ltlint_tmp
 
-!  If no spd data return
+! If no spd data return
   if(.not. associated(spdhead))return
 
 ! Retrieve pointers
@@ -134,7 +134,7 @@ subroutine intspd_(spdhead,rval,sval)
      ltlint = .true.
   end if
   !spdptr => spdhead
-  spdptr => spdNode_typecast(spdhead)
+  spdptr => spdnode_typecast(spdhead)
   do while (associated(spdptr))
 
      j1 = spdptr%ij(1)
@@ -153,7 +153,7 @@ subroutine intspd_(spdhead,rval,sval)
 
      if (ltlint) then
 
-        if (spdtra>EPSILON(spdtra)) then
+        if (spdtra>epsilon(spdtra)) then
 !          Forward model
            uatl=w1*su(j1)+w2*su(j2)+w3*su(j3)+w4*su(j4)
            vatl=w1*sv(j1)+w2*sv(j2)+w3*sv(j3)+w4*sv(j4)
@@ -164,10 +164,10 @@ subroutine intspd_(spdhead,rval,sval)
               if (lsaveobsens) then
                  grad=spdptr%raterr2*spdptr%err2*spdatl
                  !-- spdptr%diags%obssen(jiter)=grad
-                 call obsdiagNode_set(spdptr%diags,jiter=jiter,obssen=grad)
+                 call obsdiagnode_set(spdptr%diags,jiter=jiter,obssen=grad)
               else
                  !-- if (spdptr%luse) spdptr%diags%tldepart(jiter)=spdatl
-                 if (spdptr%luse) call obsdiagNode_set(spdptr%diags,jiter=jiter,tldepart=spdatl)
+                 if (spdptr%luse) call obsdiagnode_set(spdptr%diags,jiter=jiter,tldepart=spdatl)
               endif
            endif
 
@@ -188,9 +188,9 @@ subroutine intspd_(spdhead,rval,sval)
         else
            if(luse_obsdiag)then
               !-- if (spdptr%luse) spdptr%diags%tldepart(jiter)=zero
-              if (spdptr%luse) call obsdiagNode_set(spdptr%diags,jiter=jiter,tldepart=zero)
+              if (spdptr%luse) call obsdiagnode_set(spdptr%diags,jiter=jiter,tldepart=zero)
               !-- if (lsaveobsens) spdptr%diags%obssen(jiter)=zero
-              if (lsaveobsens) call obsdiagNode_set(spdptr%diags,jiter=jiter,obssen=zero)
+              if (lsaveobsens) call obsdiagnode_set(spdptr%diags,jiter=jiter,obssen=zero)
            end if
         endif
 
@@ -202,7 +202,7 @@ subroutine intspd_(spdhead,rval,sval)
         vanl=spdptr%vges+w1* sv(j1)+w2* sv(j2)+w3* sv(j3)+w4* sv(j4)
         spdanl=sqrt(uanl*uanl+vanl*vanl)
         !-- if (luse_obsdiag .and. spdptr%luse) spdptr%diags%tldepart(jiter)=spdanl-spdtra
-        if (luse_obsdiag .and. spdptr%luse) call obsdiagNode_set(spdptr%diags,jiter=jiter,tldepart=spdanl-spdtra)
+        if (luse_obsdiag .and. spdptr%luse) call obsdiagnode_set(spdptr%diags,jiter=jiter,tldepart=spdanl-spdtra)
 
         if (l_do_adjoint) then
            valu=zero
@@ -212,9 +212,9 @@ subroutine intspd_(spdhead,rval,sval)
 
 !          Adjoint
 !          if(spdanl > tiny_r_kind*100._r_kind) then
-           if (spdanl>EPSILON(spdanl)) then
+           if (spdanl>epsilon(spdanl)) then
               !-- if (luse_obsdiag .and. lsaveobsens) spdptr%diags%obssen(jiter)=grad
-              if (luse_obsdiag .and. lsaveobsens) call obsdiagNode_set(spdptr%diags,jiter=jiter,obssen=grad)
+              if (luse_obsdiag .and. lsaveobsens) call obsdiagnode_set(spdptr%diags,jiter=jiter,obssen=grad)
               valu=uanl/spdanl
               valv=vanl/spdanl
               if (nlnqc_iter .and. spdptr%pg > tiny_r_kind .and.  &
@@ -249,7 +249,7 @@ subroutine intspd_(spdhead,rval,sval)
      endif
 
      !spdptr => spdptr%llpoint
-     spdptr => spdNode_nextcast(spdptr)
+     spdptr => spdnode_nextcast(spdptr)
 
   end do
   if( ladtest_obs) ltlint = ltlint_tmp

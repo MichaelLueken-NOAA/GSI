@@ -21,7 +21,7 @@ module lag_fields
 !   sub lag_destroy_state
 !   sub lag_gather_gesuv
 !   sub lag_gather_stateuv
-!   sub lag_ADscatter_stateuv
+!   sub lag_adscatter_stateuv
 !   sub lag_presetup
 !   sub lag_state_write
 !   sub lag_state_read
@@ -74,7 +74,7 @@ module lag_fields
   public:: lag_alloc_uv
   public:: lag_destroy_uv,lag_destroy_state
 
-  public:: lag_gather_gesuv,lag_gather_stateuv,lag_ADscatter_stateuv
+  public:: lag_gather_gesuv,lag_gather_stateuv,lag_adscatter_stateuv
 
   public:: lag_state_write,lag_state_read
 
@@ -100,7 +100,7 @@ module lag_fields
                                                         ! the state of the
                                                         ! lag. module
 
-  ! Allocatable arrays to store the whole U and V fields
+  ! Allocatable arrays to store the whole u and v fields
   !   1st dim: horiz index number
   !   2nd dim: verical level (from kfirst to klast)
   !   3rd dim: obs bin
@@ -119,13 +119,13 @@ module lag_fields
   ! Data associated with balloons (number, processor, internal number)
   integer(i_kind),dimension(:,:),allocatable::orig_lag_num
 
-  ! Vectors to contain NL, TL and AD calculations for each balloon
+  ! Vectors to contain nl, tl and ad calculations for each balloon
   ! affected to the processor (not all balloons)
   real(r_kind),dimension(:,:,:),allocatable::lag_nl_vec
   real(r_kind),dimension(:,:,:),allocatable::lag_tl_vec
   real(r_kind),dimension(:,:,:),allocatable::lag_ad_vec
 
-  ! Specifications of TL and AD models
+  ! Specifications of tl and ad models
   real(r_kind)   ,dimension(:,:,:),allocatable::lag_tl_spec_r
   integer(i_kind),dimension(:,:,:),allocatable::lag_tl_spec_i
 
@@ -170,9 +170,9 @@ module lag_fields
   ! ------------------------------------------------------------------------
   ! Allocate the pseudo state vector for lagrangian assimilation by reading
   ! the guess fields
-  ! - in 4D var, read only the position at the begining of the assimilation
+  ! - in 4d var, read only the position at the begining of the assimilation
   !   window (positions for the other obsbin are calculated by lag_presetup)
-  ! - in 3D var, read the positions at the begining of the assimilation window, 
+  ! - in 3d var, read the positions at the begining of the assimilation window, 
   !   but also try to read the guess at the times of the atmos. model guess.
   !   If these additional guess are missing, values will be calculated by
   !   lag_presetup (but the result of the assimilation won't be optimal)
@@ -186,7 +186,7 @@ module lag_fields
 !
 ! program history log:
 !   2009-08-05  lueken - added subprogram doc block
-!   2013-01-23  parrish - change from grdcrd to grdcrd1 (to allow successful debug compile on WCOSS)
+!   2013-01-23  parrish - change from grdcrd to grdcrd1 (to allow successful debug compile on wcoss)
 !
 !   input argument list:
 !
@@ -248,8 +248,8 @@ module lag_fields
        lat=deg2rad*lat
 
        lok=(lon>=-pi     .and. lon<=two*pi .and. &
-           &lat>=-pi/two .and. lat<=pi/two .and. &
-           &p>=zero)
+            lat>=-pi/two .and. lat<=pi/two .and. &
+            p>=zero)
 
        if (lok) then
 
@@ -284,7 +284,7 @@ module lag_fields
 
     if (mype==0) &
        write(6,'(A,I4,A)') 'LAG_GUESSINI: first guess read. ',&
-         &ntotal_orig_lag,' balloons availlable.'
+          ntotal_orig_lag,' balloons availlable.'
 
     ! Is there observations ?
     if (ntotal_orig_lag>0) then
@@ -330,12 +330,12 @@ module lag_fields
           allocate(lag_tl_spec_i(nlocal_orig_lag,nobs_bins-1,lag_rk2itenpara_i))
        end if
 
-       !If in 3Dvar, try to read the other guess fields
+       !If in 3dvar, try to read the other guess fields
        if (.not.l4dvar) then
 
           ! If there is several obsbin in 3Dvar it will really blow up, so...
           if (nobs_bins/=1) &
-            &call die('LAG_GUESSINI: only 1 obsbin can be handle in 3Dvar')
+             call die('LAG_GUESSINI: only 1 obsbin can be handle in 3Dvar')
 
           do i=2,nfldsig
 
@@ -362,8 +362,8 @@ module lag_fields
                 lat=deg2rad*lat
 
                 lok=(lon>=-pi     .and. lon<=two*pi .and. &
-                    &lat>=-pi/two .and. lat<=pi/two .and. &
-                    &p>=zero)
+                     lat>=-pi/two .and. lat<=pi/two .and. &
+                     p>=zero)
 
                 ! If good, store in the appropriate array
                 if (lok) then
@@ -391,7 +391,7 @@ module lag_fields
 
           end do ! nfldsig
 
-       end if ! 3D var read next guesses
+       end if ! 3d var read next guesses
 
     end if ! ntotal_orig_lag>0
 
@@ -407,7 +407,7 @@ module lag_fields
        do i=1,size(lag_nl_vec,2)
           do j=1,size(lag_nl_vec,1)
              print '(A,I2.2,A,I2.2,A,I2.2,A,F12.6,F12.6,F12.6)',&
-               &'GUESS ',i,' MYPE ',mype,' LOC# ',j,' POS ',lag_nl_vec(j,i,:)
+                'GUESS ',i,' MYPE ',mype,' LOC# ',j,' POS ',lag_nl_vec(j,i,:)
           end do
        end do
     end if
@@ -562,8 +562,8 @@ module lag_fields
     integer(i_kind):: ierror,istatus
     real(r_kind),dimension(lat1*lon1,nsig):: ustrip,vstrip
     real(r_kind),dimension(:),allocatable::  worku,workv
-    real(r_kind),dimension(:,:,:),pointer::  ges_u_itt=>NULL()
-    real(r_kind),dimension(:,:,:),pointer::  ges_v_itt=>NULL()
+    real(r_kind),dimension(:,:,:),pointer::  ges_u_itt=>null()
+    real(r_kind),dimension(:,:,:),pointer::  ges_v_itt=>null()
 
     ! Security
     if (ntotal_orig_lag==0) return
@@ -684,10 +684,10 @@ module lag_fields
   !  - Adjoint increments are added in subdomain state vectors svalu & svalv
   !  - Adjoint increments are read in global domain arrays lag_u_full and 
   !    lag_v_full at obsbin t
-  subroutine lag_ADscatter_stateuv(svalu,svalv,itt)
+  subroutine lag_adscatter_stateuv(svalu,svalv,itt)
 !$$$  subprogram documentation block
 !                .      .    .                                       .
-! subprogram:    lag_ADscatter_stateuv
+! subprogram:    lag_adscatter_stateuv
 !   prgmmr:
 !
 ! abstract:
@@ -771,17 +771,17 @@ module lag_fields
     deallocate(worku2)
     deallocate(workv2)
 
-  end subroutine lag_ADscatter_stateuv
+  end subroutine lag_adscatter_stateuv
   ! ------------------------------------------------------------------------
 
   ! ------------------------------------------------------------------------
   ! 1. Load the entire wind guess in memory.
-  ! 2. In 4Dvar, perfom the non-linear trajectory integration for all balloons
-  ! affected to this processor. Subsequently save the parameters for the TL
+  ! 2. In 4dvar, perfom the non-linear trajectory integration for all balloons
+  ! affected to this processor. Subsequently save the parameters for the tl
   ! model.
-  ! 3. In 3Dvar, perfom the non-linear trajectory integration for all balloons
+  ! 3. In 3dvar, perfom the non-linear trajectory integration for all balloons
   ! affected to this processor only if the postion as not been read previously
-  ! in guess files. (for an optimal 3Dvar, values should be read in guess files)
+  ! in guess files. (for an optimal 3dvar, values should be read in guess files)
   subroutine lag_presetup
 !$$$  subprogram documentation block
 !                .      .    .                                       .
@@ -820,7 +820,7 @@ module lag_fields
             &'. Gather u,v guess',i
        end do
 
-       ! 4Dvar, Perform the NL integration given this guess fo each obsbin
+       ! 4dvar, Perform the nl integration given this guess fo each obsbin
        if (l4dvar .and. nobs_bins>1) then
           do i=2,nobs_bins
  
@@ -837,21 +837,21 @@ module lag_fields
                 do j=1,nlocal_orig_lag
                    lag_nl_vec(j,i,:)=lag_nl_vec(j,i-1,:)
                    call lag_rk2iter_nl(&
-                     &lag_nl_vec(j,i,1),lag_nl_vec(j,i,2),lag_nl_vec(j,i,3),&
-                     &lag_u_full(:,:,itime),lag_v_full(:,:,itime),&
-                     &lag_iteduration,&
-                     &lag_tl_spec_i(j,i-1,:),lag_tl_spec_r(j,i-1,:))
+                      lag_nl_vec(j,i,1),lag_nl_vec(j,i,2),lag_nl_vec(j,i,3),&
+                      lag_u_full(:,:,itime),lag_v_full(:,:,itime),&
+                      lag_iteduration,&
+                      lag_tl_spec_i(j,i-1,:),lag_tl_spec_r(j,i-1,:))
                 end do
 
              else
                 call die('lag_presetup: Inapropriate velocity guess fields to &
-                  & compute trajectories')
+                    compute trajectories')
              end if
 
           end do
        end if ! l4dvar
 
-       ! 3Dvar, Perform the NL integration given this guess fo each guess time 
+       ! 3dvar, Perform the nl integration given this guess fo each guess time 
        ! (if needed only)
        if (.not.l4dvar .and. nfldsig>1) then
 
@@ -861,9 +861,9 @@ module lag_fields
                 if (lag_nl_vec(j,i,3)==zero) then
                    lag_nl_vec(j,i,:)=lag_nl_vec(j,i-1,:)
                    call lag_rk2iter_nl(&
-                     &lag_nl_vec(j,i,1),lag_nl_vec(j,i,2),lag_nl_vec(j,i,3),&
-                     &lag_u_full(:,:,i-1),lag_v_full(:,:,i-1),&
-                     &(hrdifsig(i)-hrdifsig(i-1))*r3600)
+                      lag_nl_vec(j,i,1),lag_nl_vec(j,i,2),lag_nl_vec(j,i,3),&
+                      lag_u_full(:,:,i-1),lag_v_full(:,:,i-1),&
+                      (hrdifsig(i)-hrdifsig(i-1))*r3600)
                 end if
              end do
           end do
@@ -875,7 +875,7 @@ module lag_fields
           do i=1,size(lag_nl_vec,2)
              do j=1,size(lag_nl_vec,1)
                 print '(A,I2.2,A,I2.2,A,I2.2,A,F12.6,F12.6,F12.6)',&
-                  &'PRESETUP ',i,' MYPE ',mype,' LOC# ',j,' POS ',lag_nl_vec(j,i,:)
+                   'PRESETUP ',i,' MYPE ',mype,' LOC# ',j,' POS ',lag_nl_vec(j,i,:)
              end do
           end do
        end if
@@ -914,7 +914,7 @@ module lag_fields
     character(len=255)::loc_filename
     integer(i_kind)::istat
 
-    ! RTodling: Return for now - this code is innactive
+    ! Return for now - this code is innactive
     if(idonothing/=0) return
 
     ! Create the filename with the mype number    
@@ -977,7 +977,7 @@ module lag_fields
     integer(i_kind)::istat
     real(r_kind),dimension(:),allocatable::tmp_pgrid
  
-    ! RTodling: Return for now - this code is innactive
+    ! Return for now - this code is innactive
     if(idonothing/=0) return
 
     ! Create the filename with the mype number    

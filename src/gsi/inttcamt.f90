@@ -8,7 +8,7 @@ module inttcamtmod
 !
 ! program history log:
 !   2015-03-11  pondeca - modify so that use of obsdiags can be turned off
-!   2016-05-18  guo     - replaced ob_type with polymorphic obsNode through type casting
+!   2016-05-18  guo     - replaced ob_type with polymorphic obsnode through type casting
 !
 ! subroutines included:
 !   sub inttcamt
@@ -21,15 +21,15 @@ module inttcamtmod
 !
 !$$$ end documentation block
 
-use m_obsNode  , only: obsNode
-use m_tcamtNode, only: tcamtNode
-use m_tcamtNode, only: tcamtNode_typecast
-use m_tcamtNode, only: tcamtNode_nextcast
-use m_obsdiagNode, only: obsdiagNode_set
+use m_obsnode  , only: obsnode
+use m_tcamtnode, only: tcamtnode
+use m_tcamtnode, only: tcamtnode_typecast
+use m_tcamtnode, only: tcamtnode_nextcast
+use m_obsdiagnode, only: obsdiagnode_set
 implicit none
 
-PRIVATE
-PUBLIC inttcamt
+private
+public inttcamt
 
 contains
 
@@ -69,7 +69,7 @@ subroutine inttcamt(tcamthead,rval,sval)
   implicit none
 
 ! Declare passed variables
-  class(obsNode)  , pointer,intent(in   ) :: tcamthead
+  class(obsnode)  , pointer,intent(in   ) :: tcamthead
   type(gsi_bundle),         intent(in   ) :: sval
   type(gsi_bundle),         intent(inout) :: rval
 
@@ -82,7 +82,7 @@ subroutine inttcamt(tcamthead,rval,sval)
   real(r_kind) cg_tcamt,p0,grad,wnotgross,wgross,pg_tcamt
   real(r_kind),pointer,dimension(:) :: stcamt
   real(r_kind),pointer,dimension(:) :: rtcamt
-  type(tcamtNode), pointer :: tcamtptr
+  type(tcamtnode), pointer :: tcamtptr
 
 ! If no tcamt data return
   if(.not. associated(tcamthead))return
@@ -95,7 +95,7 @@ subroutine inttcamt(tcamthead,rval,sval)
   if(ier/=0)return
 
   !tcamtptr => tcamthead
-  tcamtptr => tcamtNode_typecast(tcamthead)
+  tcamtptr => tcamtnode_typecast(tcamthead)
   do while (associated(tcamtptr))
      j1=tcamtptr%ij(1)
      j2=tcamtptr%ij(2)
@@ -114,10 +114,10 @@ subroutine inttcamt(tcamthead,rval,sval)
         if (lsaveobsens) then
            grad = val*tcamtptr%raterr2*tcamtptr%err2
            !-- tcamtptr%diags%obssen(jiter) = grad
-           call obsdiagNode_set(tcamtptr%diags,jiter=jiter,obssen=grad)
+           call obsdiagnode_set(tcamtptr%diags,jiter=jiter,obssen=grad)
         else
            !-- if (tcamtptr%luse) tcamtptr%diags%tldepart(jiter)=val
-           if (tcamtptr%luse) call obsdiagNode_set(tcamtptr%diags,jiter=jiter,tldepart=val)
+           if (tcamtptr%luse) call obsdiagnode_set(tcamtptr%diags,jiter=jiter,tldepart=val)
         endif
      endif
 
@@ -147,7 +147,7 @@ subroutine inttcamt(tcamthead,rval,sval)
      endif
 
      !tcamtptr => tcamtptr%llpoint
-     tcamtptr => tcamtNode_nextcast(tcamtptr)
+     tcamtptr => tcamtnode_nextcast(tcamtptr)
 
   end do
 

@@ -8,7 +8,7 @@ module inttd2mmod
 !
 ! program history log:
 !   2014-04-10  pondeca
-!   2016-05-18  guo     - replaced ob_type with polymorphic obsNode through type casting
+!   2016-05-18  guo     - replaced ob_type with polymorphic obsnode through type casting
 !
 ! subroutines included:
 !   sub inttd2m
@@ -21,15 +21,15 @@ module inttd2mmod
 !
 !$$$ end documentation block
 
-use m_obsNode , only: obsNode
-use m_td2mNode, only: td2mNode
-use m_td2mNode, only: td2mNode_typecast
-use m_td2mNode, only: td2mNode_nextcast
-use m_obsdiagNode, only: obsdiagNode_set
+use m_obsnode , only: obsnode
+use m_td2mnode, only: td2mnode
+use m_td2mnode, only: td2mnode_typecast
+use m_td2mnode, only: td2mnode_nextcast
+use m_obsdiagnode, only: obsdiagnode_set
 implicit none
 
-PRIVATE
-PUBLIC inttd2m
+private
+public inttd2m
 
 contains
 
@@ -71,7 +71,7 @@ subroutine inttd2m(td2mhead,rval,sval)
   implicit none
 
 ! Declare passed variables
-  class(obsNode)  , pointer,intent(in   ) :: td2mhead
+  class(obsnode)  , pointer,intent(in   ) :: td2mhead
   type(gsi_bundle),         intent(in   ) :: sval
   type(gsi_bundle),         intent(inout) :: rval
 
@@ -84,7 +84,7 @@ subroutine inttd2m(td2mhead,rval,sval)
   real(r_kind) cg_td2m,p0,grad,wnotgross,wgross,pg_td2m
   real(r_kind),pointer,dimension(:) :: std2m
   real(r_kind),pointer,dimension(:) :: rtd2m
-  type(td2mNode), pointer :: td2mptr
+  type(td2mnode), pointer :: td2mptr
 
 ! Retrieve pointers
 ! Simply return if any pointer not found
@@ -94,7 +94,7 @@ subroutine inttd2m(td2mhead,rval,sval)
   if(ier/=0)return
 
   !td2mptr => td2mhead
-  td2mptr => td2mNode_typecast(td2mhead)
+  td2mptr => td2mnode_typecast(td2mhead)
   do while (associated(td2mptr))
      j1=td2mptr%ij(1)
      j2=td2mptr%ij(2)
@@ -113,10 +113,10 @@ subroutine inttd2m(td2mhead,rval,sval)
         if (lsaveobsens) then
            grad = val*td2mptr%raterr2*td2mptr%err2
            !-- td2mptr%diags%obssen(jiter) = grad
-           call obsdiagNode_set(td2mptr%diags,jiter=jiter,obssen=grad)
+           call obsdiagnode_set(td2mptr%diags,jiter=jiter,obssen=grad)
         else
            !-- if (td2mptr%luse) td2mptr%diags%tldepart(jiter)=val
-           if (td2mptr%luse) call obsdiagNode_set(td2mptr%diags,jiter=jiter,tldepart=val)
+           if (td2mptr%luse) call obsdiagnode_set(td2mptr%diags,jiter=jiter,tldepart=val)
         endif
      endif
 
@@ -149,7 +149,7 @@ subroutine inttd2m(td2mhead,rval,sval)
      endif
 
      !td2mptr => td2mptr%llpoint
-     td2mptr => td2mNode_nextcast(td2mptr)
+     td2mptr => td2mnode_nextcast(td2mptr)
 
   end do
 

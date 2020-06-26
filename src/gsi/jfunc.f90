@@ -5,7 +5,7 @@ module jfunc
 !   prgmmr: treadon          org: np23                date: 2003-11-24
 !
 ! abstract: module containing variables used in inner loop minimzation
-!           NOTE: it is ok for jfunc to depend on setting related to B,
+!           Note: it is ok for jfunc to depend on setting related to b,
 !                 but not the other way around.
 !
 ! program history log:
@@ -14,7 +14,7 @@ module jfunc
 !   2004-10-06  kleist, create separate control vector for u,v
 !   2004-10-15  parrish, add outer iteration variable for nonlinear qc
 !   2004-12-23  treadon - add logical flags first and last
-!   2005-02-23  wu - add qoption, dqdt,dqdrh,dqdp and varq for norm RH
+!   2005-02-23  wu - add qoption, dqdt,dqdrh,dqdp and varq for norm rh
 !   2005-03-28  wu - replace mlath with mlat             
 !   2005-06-03  parrish - add logical switch_on_derivatives
 !   2005-09-29  kleist - add pointers for time derivatives
@@ -24,11 +24,11 @@ module jfunc
 !   2006-08-30  zhang,b - add bias correction control parameter
 !   2007-03-13  derber - remove qsinv2 and add rhgues
 !   2007-04-13  tremolet - use control vectors
-!   2008-05-22  guo, j - merge GMAO MERRA changes with NCEP 2008-04-22
-!                      - defer GMAO diurnal bias correction changes.
-!   2008-12-01  todling - bring in Tremolet's changes
+!   2008-05-22  guo, j - merge gmao merra changes with ncep 2008-04-22
+!                      - defer gmao diurnal bias correction changes.
+!   2008-12-01  todling - bring in tremolet's changes
 !   2009-06-01  pondeca,sato - add tsensible initialization. used in 2dvar mode only
-!   2009-06-01  pondeca - add lgschmidt initalization. this variable controls the B-norm
+!   2009-06-01  pondeca - add lgschmidt initalization. this variable controls the b-norm
 !                         re-orthogonalization of the gradx vectors in 2dvar mode
 !   2010-02-20  parrish - add change to get correct nval_len when using hybrid ensemble with dual resolution.
 !   2010-02-20  zhu     - add nrf_levb and nrf_leve
@@ -65,7 +65,7 @@ module jfunc
 !   def switch_on_derivatives - .t. = generate horizontal derivatives
 !   def iout_iter  - output file number for iteration information
 !   def miter      - number of outer iterations
-!   def qoption    - option of q analysis variable; 1:q/qsatg 2:norm RH
+!   def qoption    - option of q analysis variable; 1:q/qsatg 2:norm rh
 !   def iguess     - flag for guess solution
 !   def biascor    - background error bias correction coefficient 
 !   def bcoption   - =0:do-nothing; =1:sbc; when <0 will estimate but not correct bkg bias
@@ -83,7 +83,7 @@ module jfunc
 !   def nvals_len  - number of 2d state-vector variables * subdomain size (with buffer)
 !   def nval_levs  - number of 2d (x/y) control-vector variables
 !   def nval_len   - number of 2d control-vector variables * subdomain size (with buffer)
-!   def print_diag_pcg - option for turning on GMAO diagnostics in pcgsoi
+!   def print_diag_pcg - option for turning on gmao diagnostics in pcgsoi
 !   def tsensible  - option to use sensible temperature as the control variable. applicable
 !                    to the 2dvar mode only
 !   def lgschmidt  - option to re-biorthogonalyze the gradx and grady vectors during the
@@ -93,8 +93,8 @@ module jfunc
 !   def ntracer    - total number of tracer variables
 !   def nrft       - total number of time tendencies for upper level control variables
 !   def nrft_      - order of time tendencies for 3d control variables
-!   def R_option   - Option to use variable correlation length for lcbas based on data
-!                    density - follows Hayden and Purser (1995) (twodvar_regional only)
+!   def r_option   - Option to use variable correlation length for lcbas based on data
+!                    density - follows hayden and purser (1995) (twodvar_regional only)
 !
 ! attributes:
 !   language: f90
@@ -134,13 +134,13 @@ module jfunc
   public :: factqmax,factqmin,clip_supersaturation,last,yhatsave,nvals_len,nval_levs,iout_iter,nclen
   public :: factql,factqi,factqr,factqs,factqg  
   public :: niter_no_qc,print_diag_pcg,lgschmidt,penorig,gnormorig,iguess
-  public :: factg,factv,factp,factl,R_option,factw10m,facthowv,factcldch,diag_precon,step_start
+  public :: factg,factv,factp,factl,r_option,factw10m,facthowv,factcldch,diag_precon,step_start
   public :: pseudo_q2
   public :: varq
   public :: cnvw_option
 
   logical first,last,switch_on_derivatives,tendsflag,print_diag_pcg,tsensible,lgschmidt,diag_precon
-  logical clip_supersaturation,R_option
+  logical clip_supersaturation,r_option
   logical pseudo_q2
   logical cnvw_option
   integer(i_kind) iout_iter,miter,iguess,nclen,qoption,cwoption
@@ -201,7 +201,7 @@ contains
     lgschmidt=.false.
     diag_precon=.false.
     step_start=1.e-4_r_kind
-    R_option=.false.
+    r_option=.false.
 
     factqmin=zero
     factqmax=zero
@@ -271,7 +271,7 @@ contains
 !   2008-05-12  safford - rm unused uses
 !   2013-10-25  todling - revisit variable initialization
 !   2013-11-12  lueken - revisit logic around cwgues
-!   2014-02-03  todling - CV length and B-dims here (no longer in observer)
+!   2014-02-03  todling - cv length and b-dims here (no longer in observer)
 !
 !   input argument list:
 !    mlat
@@ -308,8 +308,8 @@ contains
     yhatsave=zero
 
     if (getindex(cvars3d,'q')>0) then
-        allocate(varq(1:mlat,1:nsig))
-        do k=1,nsig
+       allocate(varq(1:mlat,1:nsig))
+       do k=1,nsig
           do j=1,mlat
              varq(j,k)=zero
           end do
@@ -593,7 +593,7 @@ contains
     return
   end subroutine write_guess_solution
 
-    subroutine strip2(field_in1,field_in2,field_out)
+  subroutine strip2(field_in1,field_in2,field_out)
 !$$$  subprogram documentation block
 !                .      .    .                                       .
 ! subprogram:    strip2
@@ -725,16 +725,16 @@ contains
     end if
 
     if (lsqrtb) then
-       CALL setup_control_vectors(nsig,lat2,lon2,latlon11,latlon1n, &
+       call setup_control_vectors(nsig,lat2,lon2,latlon11,latlon1n, &
                                   nsclen,npclen,ntclen,nclenz,nsubwin,nval_lenz,lsqrtb,n_ensz, &
                                   nval_lenz_enz)
     else
-       CALL setup_control_vectors(nsig,lat2,lon2,latlon11,latlon1n, &
+       call setup_control_vectors(nsig,lat2,lon2,latlon11,latlon1n, &
                                   nsclen,npclen,ntclen,nclen,nsubwin,nval_len,lsqrtb,n_ens, &
                                   nval_lenz_enz)
     endif
-    CALL setup_predictors(nrclen,nsclen,npclen,ntclen)
-    CALL setup_state_vectors(latlon11,latlon1n,nvals_len,lat2,lon2,nsig)
+    call setup_predictors(nrclen,nsclen,npclen,ntclen)
+    call setup_state_vectors(latlon11,latlon1n,nvals_len,lat2,lon2,nsig)
 
   end subroutine set_pointer
 
@@ -744,7 +744,7 @@ contains
 ! subprogram:    set_sqrt_2dsize
 !   prgmmr: todling          org: np23                date: 2011-09-05
 !
-! abstract: Calculates size of 2d-component of control vector in sqrt-B
+! abstract: Calculates size of 2d-component of control vector in sqrt-b
 !           case. This being an independent call allows using ckgcov
 !           within context of B-precond.
 !
@@ -754,29 +754,29 @@ contains
 !   input argument list:
 !
 !   output argument list:
-!     ndim2d - size of 2d component of control vector in sqrt-B case
+!     ndim2d - size of 2d component of control vector in sqrt-b case
 !
 ! attributes:
 !   language: f90
 !   machine:  ibm rs/6000 sp
 !
 !$$$
-  use kinds, only: i_kind
-  use gridmod, only: nlat,nlon
-  implicit none
-  integer(i_kind),intent(out):: ndim2d
-  integer(i_kind) nx,ny,mr,nr,nf
+    use kinds, only: i_kind
+    use gridmod, only: nlat,nlon
+    implicit none
+    integer(i_kind),intent(out):: ndim2d
+    integer(i_kind) nx,ny,mr,nr,nf
 !           following lifted from subroutine create_berror_vars in module berror.f90
 !            inserted because create_berror_vars called after this routine
-     nx=nlon*3/2
-     nx=nx/2*2
-     ny=nlat*8/9
-     ny=ny/2*2
-     if(mod(nlat,2)/=0)ny=ny+1
-     mr=0
-     nr=nlat/4
-     nf=nr
-     ndim2d=(ny*nx + 2*(2*nf+1)*(2*nf+1))*3
+    nx=nlon*3/2
+    nx=nx/2*2
+    ny=nlat*8/9
+    ny=ny/2*2
+    if(mod(nlat,2)/=0)ny=ny+1
+    mr=0
+    nr=nlat/4
+    nf=nr
+    ndim2d=(ny*nx + 2*(2*nf+1)*(2*nf+1))*3
   end subroutine set_sqrt_2dsize
 
 end module jfunc

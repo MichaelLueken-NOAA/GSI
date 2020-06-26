@@ -7,8 +7,8 @@ module intwspd10mmod
 ! abstract: module for intwspd10m and its tangent linear intwspd10m_tl
 !
 ! program history log:
-!   2012-09-14  Syed RH Rizvi, NCAR/NESL/MMM/DAS  - implemented obs adjoint test  
-!   2016-05-18  guo     - replaced ob_type with polymorphic obsNode through type casting
+!   2012-09-14  Syed RH Rizvi, ncar/nesl/mmm/das  - implemented obs adjoint test  
+!   2016-05-18  guo     - replaced ob_type with polymorphic obsnode through type casting
 !
 ! subroutines included:
 !   sub intwspd10m
@@ -21,15 +21,15 @@ module intwspd10mmod
 !
 !$$$ end documentation block
 
-use m_obsNode    , only: obsNode
-use m_wspd10mNode, only: wspd10mNode
-use m_wspd10mNode, only: wspd10mNode_typecast
-use m_wspd10mNode, only: wspd10mNode_nextcast
-use m_obsdiagNode, only: obsdiagNode_set
+use m_obsnode    , only: obsnode
+use m_wspd10mnode, only: wspd10mnode
+use m_wspd10mnode, only: wspd10mnode_typecast
+use m_wspd10mnode, only: wspd10mnode_nextcast
+use m_obsdiagnode, only: obsdiagnode_set
 implicit none
 
-PRIVATE
-PUBLIC intwspd10m
+private
+public intwspd10m
 
 contains
 
@@ -71,7 +71,7 @@ subroutine intwspd10m(wspd10mhead,rval,sval)
   implicit none
 
 ! Declare passed variables
-  class(obsNode)  , pointer,intent(in   ) :: wspd10mhead
+  class(obsnode)  , pointer,intent(in   ) :: wspd10mhead
   type(gsi_bundle),         intent(in   ) :: sval
   type(gsi_bundle),         intent(inout) :: rval
 
@@ -84,7 +84,7 @@ subroutine intwspd10m(wspd10mhead,rval,sval)
   real(r_kind) cg_wspd10m,p0,grad,wnotgross,wgross,pg_wspd10m
   real(r_kind),pointer,dimension(:) :: swspd10m
   real(r_kind),pointer,dimension(:) :: rwspd10m
-  type(wspd10mNode), pointer :: wspd10mptr
+  type(wspd10mnode), pointer :: wspd10mptr
 
 ! Retrieve pointers
 ! Simply return if any pointer not found
@@ -94,7 +94,7 @@ subroutine intwspd10m(wspd10mhead,rval,sval)
   if(ier/=0)return
 
   !wspd10mptr => wspd10mhead
-  wspd10mptr => wspd10mNode_typecast(wspd10mhead)
+  wspd10mptr => wspd10mnode_typecast(wspd10mhead)
   do while (associated(wspd10mptr))
      j1=wspd10mptr%ij(1)
      j2=wspd10mptr%ij(2)
@@ -113,10 +113,10 @@ subroutine intwspd10m(wspd10mhead,rval,sval)
         if (lsaveobsens) then
            grad = val*wspd10mptr%raterr2*wspd10mptr%err2
            !-- wspd10mptr%diags%obssen(jiter) = grad
-           call obsdiagNode_set(wspd10mptr%diags,jiter=jiter,obssen=grad)
+           call obsdiagnode_set(wspd10mptr%diags,jiter=jiter,obssen=grad)
         else
            !-- if (wspd10mptr%luse) wspd10mptr%diags%tldepart(jiter)=val
-           if (wspd10mptr%luse) call obsdiagNode_set(wspd10mptr%diags,jiter=jiter,tldepart=val)
+           if (wspd10mptr%luse) call obsdiagnode_set(wspd10mptr%diags,jiter=jiter,tldepart=val)
         endif
      endif
 
@@ -149,7 +149,7 @@ subroutine intwspd10m(wspd10mhead,rval,sval)
      endif
 
      !wspd10mptr => wspd10mptr%llpoint
-     wspd10mptr => wspd10mNode_nextcast(wspd10mptr)
+     wspd10mptr => wspd10mnode_nextcast(wspd10mptr)
 
   end do
 

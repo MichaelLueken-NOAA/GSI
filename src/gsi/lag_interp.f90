@@ -4,9 +4,9 @@ module lag_interp
 ! module:   lag_interp
 !   prgmmr: meunier          org:                     date: 2009-03-11
 !
-! abstract:  This module contains 3D interpolation function for the
+! abstract:  This module contains 3d interpolation function for the
 !            wind field. This version differ from the original
-!            version of GSI because :
+!            version of gsi because :
 !            - it operates on global grids (not on subdomains like other
 !            routines)
 !            - in the tangent linear and adjoint, an increment on the horizontal
@@ -129,7 +129,7 @@ module lag_interp
 
   
   ! ------------------------------------------------------------------------
-  ! Give grid relative coordinates for lon,lat and level (use the GSI routine)
+  ! Give grid relative coordinates for lon,lat and level (use the gsi routine)
   ! ------------------------------------------------------------------------
   subroutine lag_gridrel_ijk(lon,lat,p,i,j,k)
 !$$$  subprogram documentation block
@@ -141,7 +141,7 @@ module lag_interp
 !
 ! program history log:
 !   2009-08-05  lueken - added subprogram doc block
-!   2013-01-23  parrish - change from grdcrd to grdcrd1 (to allow successful debug compile on WCOSS)
+!   2013-01-23  parrish - change from grdcrd to grdcrd1 (to allow successful debug compile on wcoss)
 !
 !   input argument list:
 !    lat,lon,p
@@ -202,7 +202,7 @@ module lag_interp
     lag_index_h=lat+(lon-1)*nlat
   end function lag_index_h
   ! ------------------------------------------------------------------------
-  ! Give the global array index number for a grid point on 3D grid
+  ! Give the global array index number for a grid point on 3d grid
   ! ------------------------------------------------------------------------
   function lag_index_3d(lonlat,sig)
 !$$$  subprogram documentation block
@@ -234,7 +234,7 @@ module lag_interp
     lag_index_3d=lonlat+(sig-1)*nlat*nlon
   end function lag_index_3d
   ! ------------------------------------------------------------------------
-  ! Retrieve horizontal index and sigma level from a 3D index number
+  ! Retrieve horizontal index and sigma level from a 3d index number
   ! ------------------------------------------------------------------------
   subroutine lag_retr_3d(i3d,lonlat,sig)
 !$$$  subprogram documentation block
@@ -269,7 +269,7 @@ module lag_interp
 
   
   ! ------------------------------------------------------------------------
-  ! 3D interpolation : non linear version
+  ! 3d interpolation : non linear version
   ! ------------------------------------------------------------------------
   function lag_int3d_nl(field,lon,lat,p,lspec_i,lspec_r)
 !$$$  subprogram documentation block
@@ -314,12 +314,12 @@ module lag_interp
 
     ! Location of points used in the interpolation
     integer(i_kind),dimension(3)::i111,i211,i121,i221,i112,i212,i122,i222
-    ! Location of points used in the determination of the TL parameters
+    ! Location of points used in the determination of the tl parameters
     integer(i_kind),dimension(3)::im111,im112,im121,im122
     integer(i_kind),dimension(3)::i1m11,i1m12,i2m11,i2m12
     ! Relative distance to the origin (in the grid box)
     real(r_kind)::rdx,rdy,rdz
-    ! Coefficients in lon and lat for the TL
+    ! Coefficients in lon and lat for the tl
     real(r_kind)::rcx,rcy
     ! Grid relative coordinates
     real(r_kind)::rlong,rlatg,rpg
@@ -503,7 +503,7 @@ module lag_interp
   end function lag_int3d_nl
 
   ! ------------------------------------------------------------------------
-  ! 3D interpolation : linearised
+  ! 3d interpolation : linearised
   ! ------------------------------------------------------------------------
   function lag_int3d_tl(lspec_i,lspec_r,dlon,dlat,dfield)
 !$$$  subprogram documentation block
@@ -552,7 +552,7 @@ module lag_interp
   end function lag_int3d_tl
 
   ! ------------------------------------------------------------------------
-  ! 3D interpolation : adjoint
+  ! 3d interpolation : adjoint
   ! ------------------------------------------------------------------------
   subroutine lag_int3d_ad(lspec_i,lspec_r,adint3d,adlon,adlat,adfield)
 !$$$  subprogram documentation block

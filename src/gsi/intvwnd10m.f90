@@ -8,8 +8,8 @@ module intvwnd10mmod
 !
 ! program history log:
 !   2016-05-03 -  pondeca
-!   2017-03-19 -  yang     - replaced ob_type with polymorphic obsNode through
-!   type casting (follow Guo's code)
+!   2017-03-19 -  yang     - replaced ob_type with polymorphic obsnode through
+!   type casting (follow guo's code)
 !
 ! subroutines included:
 !   sub intvwnd10m
@@ -21,16 +21,16 @@ module intvwnd10mmod
 !   machine:
 !
 !$$$ end documentation block
-use m_obsNode    , only: obsNode
-use m_vwnd10mNode, only: vwnd10mNode
-use m_vwnd10mNode, only: vwnd10mNode_typecast
-use m_vwnd10mNode, only: vwnd10mNode_nextcast
-use m_obsdiagNode, only: obsdiagNode_set
+use m_obsnode    , only: obsnode
+use m_vwnd10mnode, only: vwnd10mnode
+use m_vwnd10mnode, only: vwnd10mnode_typecast
+use m_vwnd10mnode, only: vwnd10mnode_nextcast
+use m_obsdiagnode, only: obsdiagnode_set
 
 implicit none
 
-PRIVATE
-PUBLIC intvwnd10m
+private
+public intvwnd10m
 
 contains
 
@@ -72,7 +72,7 @@ subroutine intvwnd10m(vwnd10mhead,rval,sval)
   implicit none
 
 ! Declare passed variables
-  class(obsNode), pointer,intent(in   ) :: vwnd10mhead
+  class(obsnode), pointer,intent(in   ) :: vwnd10mhead
   type(gsi_bundle),         intent(in   ) :: sval
   type(gsi_bundle),         intent(inout) :: rval
 
@@ -85,7 +85,7 @@ subroutine intvwnd10m(vwnd10mhead,rval,sval)
   real(r_kind) cg_vwnd10m,p0,grad,wnotgross,wgross,pg_vwnd10m
   real(r_kind),pointer,dimension(:) :: svwnd10m
   real(r_kind),pointer,dimension(:) :: rvwnd10m
-  type(vwnd10mNode), pointer :: vwnd10mptr
+  type(vwnd10mnode), pointer :: vwnd10mptr
 
 ! Retrieve pointers
 ! Simply return if any pointer not found
@@ -94,8 +94,8 @@ subroutine intvwnd10m(vwnd10mhead,rval,sval)
   call gsi_bundlegetpointer(rval,'vwnd10m',rvwnd10m,istatus);ier=istatus+ier
   if(ier/=0)return
 
-!  vwnd10mptr => vwnd10mhead
-  vwnd10mptr => vwnd10mNode_typecast(vwnd10mhead)
+! vwnd10mptr => vwnd10mhead
+  vwnd10mptr => vwnd10mnode_typecast(vwnd10mhead)
 
   do while (associated(vwnd10mptr))
      j1=vwnd10mptr%ij(1)
@@ -115,10 +115,10 @@ subroutine intvwnd10m(vwnd10mhead,rval,sval)
         if (lsaveobsens) then
            grad = val*vwnd10mptr%raterr2*vwnd10mptr%err2
            !-- vwnd10mptr%diags%obssen(jiter) = grad
-           call obsdiagNode_set(vwnd10mptr%diags,jiter=jiter,obssen=grad)
+           call obsdiagnode_set(vwnd10mptr%diags,jiter=jiter,obssen=grad)
         else
            !-- if (vwnd10mptr%luse) vwnd10mptr%diags%tldepart(jiter)=val
-           if (vwnd10mptr%luse) call obsdiagNode_set(vwnd10mptr%diags,jiter=jiter,tldepart=val)
+           if (vwnd10mptr%luse) call obsdiagnode_set(vwnd10mptr%diags,jiter=jiter,tldepart=val)
         endif
      endif
 
@@ -151,7 +151,7 @@ subroutine intvwnd10m(vwnd10mhead,rval,sval)
      endif
 
 !    vwnd10mptr => vwnd10mptr%llpoint
-     vwnd10mptr => vwnd10mNode_nextcast(vwnd10mptr) 
+     vwnd10mptr => vwnd10mnode_nextcast(vwnd10mptr) 
 
   end do
 

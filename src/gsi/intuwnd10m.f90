@@ -8,8 +8,8 @@ module intuwnd10mmod
 !
 ! program history log:
 !   2016-05-03 -  pondeca
-!   2017-03-19 -  yang     - replaced ob_type with polymorphic obsNode through
-!   type casting (follow Guo's code)
+!   2017-03-19 -  yang     - replaced ob_type with polymorphic obsnode through
+!   type casting (follow guo's code)
 !
 ! subroutines included:
 !   sub intuwnd10m
@@ -22,16 +22,16 @@ module intuwnd10mmod
 !
 !$$$ end documentation block
 
-use m_obsNode    , only: obsNode
-use m_uwnd10mNode, only: uwnd10mNode
-use m_uwnd10mNode, only: uwnd10mNode_typecast
-use m_uwnd10mNode, only: uwnd10mNode_nextcast
-use m_obsdiagNode, only: obsdiagNode_set
+use m_obsnode    , only: obsnode
+use m_uwnd10mnode, only: uwnd10mnode
+use m_uwnd10mnode, only: uwnd10mnode_typecast
+use m_uwnd10mnode, only: uwnd10mnode_nextcast
+use m_obsdiagnode, only: obsdiagnode_set
 
 implicit none
 
-PRIVATE
-PUBLIC intuwnd10m
+private
+public intuwnd10m
 
 contains
 
@@ -73,7 +73,7 @@ subroutine intuwnd10m(uwnd10mhead,rval,sval)
   implicit none
 
 ! Declare passed variables
-  class(obsNode), pointer,intent(in   ) :: uwnd10mhead
+  class(obsnode), pointer,intent(in   ) :: uwnd10mhead
   type(gsi_bundle),         intent(in   ) :: sval
   type(gsi_bundle),         intent(inout) :: rval
 
@@ -86,7 +86,7 @@ subroutine intuwnd10m(uwnd10mhead,rval,sval)
   real(r_kind) cg_uwnd10m,p0,grad,wnotgross,wgross,pg_uwnd10m
   real(r_kind),pointer,dimension(:) :: suwnd10m
   real(r_kind),pointer,dimension(:) :: ruwnd10m
-  type(uwnd10mNode), pointer :: uwnd10mptr
+  type(uwnd10mnode), pointer :: uwnd10mptr
 
 ! Retrieve pointers
 ! Simply return if any pointer not found
@@ -96,7 +96,7 @@ subroutine intuwnd10m(uwnd10mhead,rval,sval)
   if(ier/=0)return
 
 !  uwnd10mptr => uwnd10mhead
-  uwnd10mptr => uwnd10mNode_typecast(uwnd10mhead)
+  uwnd10mptr => uwnd10mnode_typecast(uwnd10mhead)
 
   do while (associated(uwnd10mptr))
      j1=uwnd10mptr%ij(1)
@@ -116,10 +116,10 @@ subroutine intuwnd10m(uwnd10mhead,rval,sval)
         if (lsaveobsens) then
            grad = val*uwnd10mptr%raterr2*uwnd10mptr%err2
            !-- uwnd10mptr%diags%obssen(jiter) = grad
-           call obsdiagNode_set(uwnd10mptr%diags,jiter=jiter,obssen=grad)
+           call obsdiagnode_set(uwnd10mptr%diags,jiter=jiter,obssen=grad)
         else
            !-- if (uwnd10mptr%luse) uwnd10mptr%diags%tldepart(jiter)=val
-           if (uwnd10mptr%luse) call obsdiagNode_set(uwnd10mptr%diags,jiter=jiter,tldepart=val)
+           if (uwnd10mptr%luse) call obsdiagnode_set(uwnd10mptr%diags,jiter=jiter,tldepart=val)
         endif
      endif
 
@@ -152,7 +152,7 @@ subroutine intuwnd10m(uwnd10mhead,rval,sval)
      endif
 
 !    uwnd10mptr => uwnd10mptr%llpoint
-     uwnd10mptr => uwnd10mNode_nextcast(uwnd10mptr)
+     uwnd10mptr => uwnd10mnode_nextcast(uwnd10mptr)
 
 
   end do

@@ -11,11 +11,11 @@ module inttmod
 !   2005-11-16  Derber - remove interfaces
 !   2008-11-26  Todling - remove intt_tl; add interface back
 !   2009-08-13  lueken - update documentation
-!   2012-09-14  Syed RH Rizvi, NCAR/NESL/MMM/DAS  - implemented obs adjoint test  
+!   2012-09-14  Syed RH Rizvi, ncar/nesl/mmm/das  - implemented obs adjoint test  
 !   2013-10-28  todling - rename p3d to prse
-!   2014-04-09      Su  - add non linear qc from Purser's scheme
-!   2015-02-26      Su  - add njqc as an option to choose Purser varqc
-!   2016-05-18  guo     - replaced ob_type with polymorphic obsNode through type casting
+!   2014-04-09      Su  - add non linear qc from purser's scheme
+!   2015-02-26      Su  - add njqc as an option to choose purser varqc
+!   2016-05-18  guo     - replaced ob_type with polymorphic obsnode through type casting
 !
 ! subroutines included:
 !   sub intt_
@@ -28,18 +28,18 @@ module inttmod
 !
 !$$$ end documentation block
 
-use m_obsNode, only: obsNode
-use m_tNode, only: tNode
-use m_tNode, only: tNode_typecast
-use m_tNode, only: tNode_nextcast
-use m_obsdiagNode, only: obsdiagNode_set
+use m_obsnode, only: obsnode
+use m_tnode, only: tnode
+use m_tnode, only: tnode_typecast
+use m_tnode, only: tnode_nextcast
+use m_obsdiagnode, only: obsdiagnode_set
 implicit none
 
-PRIVATE
-PUBLIC intt
+private
+public intt
 
 interface intt; module procedure &
-          intt_
+   intt_
 end interface
 
 contains
@@ -68,22 +68,22 @@ subroutine intt_(thead,rval,sval,rpred,spred)
 !   2005-12-20  parrish - add option for boundary layer tlm
 !   2006-03-30  park - correct indexing error for surface temp adjoint interpolation
 !   2006-07-28  derber  - modify to use new inner loop obs data structure
-!                       - unify NL qc
+!                       - unify nl qc
 !   2006-09-20  derber - add sensible temperature for conventional temperatures
 !   2007-03-19  tremolet - binning of observations
 !   2007-06-05  tremolet - use observation diagnostics structure
 !   2007-07-09  tremolet - observation sensitivity
-!   2008-01-04  tremolet - Don't apply H^T if l_do_adjoint is false
-!   2008-11-26  Todling - turned FOTO optional; changed ptr%time handle
+!   2008-01-04  tremolet - Don't apply h^t if l_do_adjoint is false
+!   2008-11-26  Todling - turned foto optional; changed ptr%time handle
 !   2010-03-25  zhu  - use state_vector in the interface; 
 !                    - add nrf2_sst case; add pointer_state
 !   2010-05-13  todling  - update to use gsi_bundle
 !                        - on-the-spot handling of non-essential vars
-!   2012-09-14  Syed RH Rizvi, NCAR/NESL/MMM/DAS  - introduced ladtest_obs         
+!   2012-09-14  Syed RH Rizvi, ncar/nesl/mmm/das  - introduced ladtest_obs         
 !   2013-05-26  zhu  - add aircraft temperature bias correction contribution
 !   2014-12-03  derber  - modify so that use of obsdiags can be turned off
 !   2015-12-21  yang    - Parrish's correction to the previous code in new varqc.
-!   2019-09-20  Su      - remove current VQC part and add VQC subroutine call
+!   2019-09-20  Su      - remove current vqc part and add vqc subroutine call
 !
 !   input argument list:
 !     thead    - obs type pointer to obs structure
@@ -130,7 +130,7 @@ subroutine intt_(thead,rval,sval,rpred,spred)
   
 
 ! Declare passed variables
-  class(obsNode), pointer,intent(in   ) :: thead
+  class(obsnode), pointer,intent(in   ) :: thead
   type(gsi_bundle)       ,intent(in   ) :: sval
   type(gsi_bundle)       ,intent(inout) :: rval
   real(r_kind),optional,dimension(npredt*ntail),intent(in   ) :: spred
@@ -153,9 +153,9 @@ subroutine intt_(thead,rval,sval,rpred,spred)
   real(r_kind) qs_prime0,tg_prime0,ts_prime0,psfc_prime0
   real(r_kind) us_prime0,vs_prime0
   integer(i_kind) ibb,ikk
-  type(tNode), pointer :: tptr
+  type(tnode), pointer :: tptr
 
-!  If no t data return
+! If no t data return
   if(.not. associated(thead))return
 
 ! Retrieve pointers
@@ -181,7 +181,7 @@ subroutine intt_(thead,rval,sval,rpred,spred)
 
   time_t=zero
   !tptr => thead
-  tptr => tNode_typecast(thead)
+  tptr => tnode_typecast(thead)
   do while (associated(tptr))
 
      j1=tptr%ij(1)
@@ -249,10 +249,10 @@ subroutine intt_(thead,rval,sval,rpred,spred)
         if (lsaveobsens) then
            grad = val*tptr%raterr2*tptr%err2
            !-- tptr%diags%obssen(jiter) = grad
-           call obsdiagNode_set(tptr%diags,jiter=jiter,obssen=grad)
+           call obsdiagnode_set(tptr%diags,jiter=jiter,obssen=grad)
         else
            !-- if (tptr%luse) tptr%diags%tldepart(jiter)=val
-           if (tptr%luse) call obsdiagNode_set(tptr%diags,jiter=jiter,tldepart=val)
+           if (tptr%luse) call obsdiagnode_set(tptr%diags,jiter=jiter,tldepart=val)
         endif
      endif
 
@@ -265,7 +265,7 @@ subroutine intt_(thead,rval,sval,rpred,spred)
            error2=tptr%err2
            rat_err2=tptr%raterr2
            if (vqc .and. nlnqc_iter .and. tptr%pg > tiny_r_kind .and.  &
-                                tptr%b  > tiny_r_kind) then
+                                          tptr%b  > tiny_r_kind) then
               t_pg=tptr%pg*varqc_iter
               cg_t=cg_term/tptr%b
            else
@@ -380,7 +380,7 @@ subroutine intt_(thead,rval,sval,rpred,spred)
      end if
 
      !tptr => tptr%llpoint
-     tptr => tNode_nextcast(tptr)
+     tptr => tnode_nextcast(tptr)
   end do
   return
 end subroutine intt_
