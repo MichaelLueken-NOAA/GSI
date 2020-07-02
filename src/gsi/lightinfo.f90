@@ -5,12 +5,12 @@ module lightinfo
 !   prgmmr: Apodaca     org: CSU/CIRA            date: 2015-08-11
 ! abstract: This module contains variables related to the
 !           direct assimilation of lightning observations
-!           (e.g. GOES-16 GLM).
+!           (e.g. goes-16 glm).
 !
 ! program history log:
 !     
 !           .       .       .       .       .       .       .       .
-!   2016-05-03  Apodaca - updates regarding GLM observation errors 
+!   2016-05-03  Apodaca - updates regarding glm observation errors 
 !
 ! Subroutines Included:
 !   sub init_light         - initialize lightning related variables to defaults
@@ -27,8 +27,8 @@ module lightinfo
 !   def gross_light - gross error for lightning obs      
 !   def glermax     - gross error parameter - max error      
 !   def glermin     - gross error parameter - min error      
-!   def b_light     - b value for variational QC      
-!   def pg_light    - pg value for variational QC      
+!   def b_light     - b value for variational qc      
+!   def pg_light    - pg value for variational qc      
 !   def nulight     - satellite/instrument                
 !   def iuse_light  - use to turn off lightning data
 !
@@ -70,7 +70,7 @@ contains
 !            assimilation routines
 !
 ! program history log:
-!   2016-05-03  apodaca, updates regarding GLM observation errors
+!   2016-05-03  apodaca, updates regarding glm observation errors
 !   2016-06-13  apodaca, documentation
 !
 !   input argument list:
@@ -91,7 +91,7 @@ contains
     deltiml    = r1200   ! model timestep
     diag_light =.true.   ! flag to toggle creation of lightning diagnostic file
     mype_light = 0       ! task to print light info. Note that mype_light 
-                      ! MUST equal mype_rad (see radinfo.f90) in order for 
+                      ! must equal mype_rad (see radinfo.f90) in order for 
                       ! statspcp.f90 to print out the correct information          
   end subroutine init_light
 
@@ -106,7 +106,7 @@ contains
 !
 ! program history log:
 !   2015-08-14  apodaca - original code based on pcpinfo and aeroinfo
-!   2016-05-03  apodaca - updates regarding GLM observation errors
+!   2016-05-03  apodaca - updates regarding glm observation errors
 !   input argument list:
 !      mype - mpi task id
 !
@@ -180,7 +180,7 @@ contains
        rewind(lunin)
 
 !----------------------------------------------------------
-! READ INFO FILE
+! Read info file
 !----------------------------------------------------------
        j=0
        do k=1,nlines

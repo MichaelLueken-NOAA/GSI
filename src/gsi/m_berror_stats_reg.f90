@@ -8,25 +8,25 @@
 !
 ! !INTERFACE:
 
-    module m_berror_stats_reg
-      use kinds,only : i_kind,r_kind
-      use constants, only: zero,one,max_varname_length
-      use gridmod, only: nsig
-      use chemmod, only : berror_chem,upper2lower,lower2upper
-      use m_berror_stats, only: berror_stats
+module m_berror_stats_reg
+  use kinds,only : i_kind,r_kind
+  use constants, only: zero,one,max_varname_length
+  use gridmod, only: nsig
+  use chemmod, only : berror_chem,upper2lower,lower2upper
+  use m_berror_stats, only: berror_stats
 
-      implicit none
+  implicit none
 
-      private   ! except
+  private   ! except
 
-        ! reconfigurable parameters, via NAMELIST/setup/
-      public :: berror_stats    ! reconfigurable filename
+        ! reconfigurable parameters, via namelist/setup/
+  public :: berror_stats    ! reconfigurable filename
 
         ! interfaces to file berror_stats.
-      public :: berror_set_reg          ! set internal parameters
-      public :: berror_get_dims_reg	! get dimensions, jfunc::createj_func()
-      public :: berror_read_bal_reg	! get cross-cov.stats., balmod::prebal()
-      public :: berror_read_wgt_reg	! get auto-cov.stats., prewgt()
+  public :: berror_set_reg          ! set internal parameters
+  public :: berror_get_dims_reg     ! get dimensions, jfunc::createj_func()
+  public :: berror_read_bal_reg     ! get cross-cov.stats., balmod::prebal()
+  public :: berror_read_wgt_reg     ! get auto-cov.stats., prewgt()
 
 ! !REVISION HISTORY:
 !       25Feb10 - Zhu - adopt code format from m_berror_stats
@@ -50,7 +50,7 @@
         ! be defined for this module in the /setup/ namelist.
 
   integer(i_kind),parameter :: default_unit_ = 22
-  integer(i_kind),parameter :: ERRCODE=2
+  integer(i_kind),parameter :: errcode=2
   logical,save:: cwcoveqqcov_
 
   integer(i_kind),allocatable,dimension(:):: lsig
@@ -67,13 +67,13 @@ contains
 !
 ! !INTERFACE:
 
-    subroutine berror_get_dims_reg(msig,mlat,unit)
+subroutine berror_get_dims_reg(msig,mlat,unit)
 
-      implicit none
+  implicit none
 
-      integer(i_kind)         ,intent(  out) :: msig  ! dimension of levels
-      integer(i_kind)         ,intent(  out) :: mlat  ! dimension of latitudes
-      integer(i_kind),optional,intent(in   ) :: unit  ! logical unit [22]
+  integer(i_kind)         ,intent(  out) :: msig  ! dimension of levels
+  integer(i_kind)         ,intent(  out) :: mlat  ! dimension of latitudes
+  integer(i_kind),optional,intent(in   ) :: unit  ! logical unit [22]
 
 ! !REVISION HISTORY:
 !EOP ___________________________________________________________________
@@ -94,17 +94,17 @@ end subroutine berror_get_dims_reg
 ! NASA/GSFC, Global Modeling and Assimilation Office, 900.3, GEOS/DAS  !
 !BOP -------------------------------------------------------------------
 !
-! !IROUTINE: berror_set_reg - set (logical) parameter options internal to B
+! !IROUTINE: berror_set_reg - set (logical) parameter options internal to b
 !
 ! !DESCRIPTION:
 !
 ! !INTERFACE:
 
-    subroutine berror_set_reg(opt,value)
+subroutine berror_set_reg(opt,value)
 
-      implicit none
-      character(len=*),intent(in) :: opt
-      logical(i_kind), intent(in) :: value
+  implicit none
+  character(len=*),intent(in) :: opt
+  logical(i_kind), intent(in) :: value
 
 ! !REVISION HISTORY:
 !      2014-10-15 - Zhu - adopted from m_berror_stat to make code structure similar
@@ -134,18 +134,18 @@ end subroutine berror_set_reg
 !
 ! !INTERFACE:
 
-    subroutine berror_read_bal_reg(msig,mlat,agvi,bvi,wgvi,mype,unit)
-      use kinds,only : r_single
-      use guess_grids, only:  ges_psfcavg,ges_prslavg
+subroutine berror_read_bal_reg(msig,mlat,agvi,bvi,wgvi,mype,unit)
+  use kinds,only : r_single
+  use guess_grids, only:  ges_psfcavg,ges_prslavg
 
-      implicit none
+  implicit none
 
-      integer(i_kind)                              ,intent(in   ) :: msig,mlat
-      real(r_kind),dimension(0:mlat+1,nsig,nsig),intent(  out) :: agvi
-      real(r_kind),dimension(0:mlat+1,nsig)     ,intent(  out) :: wgvi
-      real(r_kind),dimension(0:mlat+1,nsig)     ,intent(  out) :: bvi
-      integer(i_kind)                              ,intent(in   ) :: mype  ! "my" processor ID
-      integer(i_kind),optional                     ,intent(in   ) :: unit ! an alternative unit
+  integer(i_kind)                           ,intent(in   ) :: msig,mlat
+  real(r_kind),dimension(0:mlat+1,nsig,nsig),intent(  out) :: agvi
+  real(r_kind),dimension(0:mlat+1,nsig)     ,intent(  out) :: wgvi
+  real(r_kind),dimension(0:mlat+1,nsig)     ,intent(  out) :: bvi
+  integer(i_kind)                           ,intent(in   ) :: mype  ! "my" processor id
+  integer(i_kind),optional                  ,intent(in   ) :: unit ! an alternative unit
 
 ! !REVISION HISTORY:
 !       25Feb10 - Zhu  - extracted from rdgstat_reg
@@ -167,102 +167,102 @@ end subroutine berror_set_reg
   real(r_single),dimension(:,:,:),allocatable:: agv_avn
   real(r_kind),dimension(:),allocatable::  rlsigo
 
-!   Open background error statistics file
-    inerr=default_unit_
-    if(present(unit)) inerr=unit
-    open(inerr,file=berror_stats,form='unformatted',status='old')
+! Open background error statistics file
+  inerr=default_unit_
+  if(present(unit)) inerr=unit
+  open(inerr,file=berror_stats,form='unformatted',status='old')
 
-!   Read header. 
-    rewind inerr
-    read(inerr) nsigstat,nlatstat
+! Read header. 
+  rewind inerr
+  read(inerr) nsigstat,nlatstat
 
-    if(mype==0) then
-       write(6,*) myname_,'(PREBAL_REG):  get balance variables', &
-         '"',trim(berror_stats),'".  ', &
-         'mype,nsigstat,nlatstat =', &
-          mype,nsigstat,nlatstat
-    end if
+  if(mype==0) then
+     write(6,*) myname_,'(PREBAL_REG):  get balance variables', &
+       '"',trim(berror_stats),'".  ', &
+       'mype,nsigstat,nlatstat =', &
+        mype,nsigstat,nlatstat
+  end if
 
-    allocate ( clat_avn(mlat) )
-    allocate ( sigma_avn(1:msig) )
-    allocate ( rlsigo(1:msig) )
-    allocate ( agv_avn(0:mlat+1,1:msig,1:msig) )
-    allocate ( bv_avn(0:mlat+1,1:msig),wgv_avn(0:mlat+1,1:msig) )
+  allocate ( clat_avn(mlat) )
+  allocate ( sigma_avn(1:msig) )
+  allocate ( rlsigo(1:msig) )
+  allocate ( agv_avn(0:mlat+1,1:msig,1:msig) )
+  allocate ( bv_avn(0:mlat+1,1:msig),wgv_avn(0:mlat+1,1:msig) )
 
-!   Read background error file to get balance variables
-    read(inerr)clat_avn,(sigma_avn(k),k=1,msig)
-    read(inerr)agv_avn,bv_avn,wgv_avn
-    close(inerr)
+! Read background error file to get balance variables
+  read(inerr)clat_avn,(sigma_avn(k),k=1,msig)
+  read(inerr)agv_avn,bv_avn,wgv_avn
+  close(inerr)
 
-!   compute vertical(pressure) interpolation index and weight
-    do k=1,nsig
-       rlsig(k)=log(ges_prslavg(k)/ges_psfcavg)
-    enddo
-    do k=1,msig
-       rlsigo(k)=log(sigma_avn(k))
-    enddo
+! compute vertical(pressure) interpolation index and weight
+  do k=1,nsig
+     rlsig(k)=log(ges_prslavg(k)/ges_psfcavg)
+  enddo
+  do k=1,msig
+     rlsigo(k)=log(sigma_avn(k))
+  enddo
 
-    allocate(lsig(nsig),coef1(nsig),coef2(nsig))
-    do k=1,nsig
-       if(rlsig(k)>=rlsigo(1))then
-          m=1
-          m1=2
-          lsig(k)=1
-          coef1(k)=one
-          coef2(k)=zero
-       else if(rlsig(k)<=rlsigo(msig))then
-          m=msig-1
-          m1=msig
-          lsig(k)=msig-1
-          coef1(k)=zero
-          coef2(k)=one
-       else
-          m_loop: do m=1,msig-1
-             m1=m+1
-             if((rlsig(k)<=rlsigo(m))   .and.  &
-                  (rlsig(k)>rlsigo(m1))     )then
-                lsig(k)=m
-                exit m_loop
-             end if
-          enddo m_loop
-          coef1(k)=(rlsigo(m1)-rlsig(k))/(rlsigo(m1)-rlsigo(m))
-          coef2(k)=one-coef1(k)
-          if(lsig(k)==msig)then
-             lsig(k)=msig-1
-             coef2(k)=one
-             coef1(k)=zero
-          endif
-       endif
-    end do
+  allocate(lsig(nsig),coef1(nsig),coef2(nsig))
+  do k=1,nsig
+     if(rlsig(k)>=rlsigo(1))then
+        m=1
+        m1=2
+        lsig(k)=1
+        coef1(k)=one
+        coef2(k)=zero
+     else if(rlsig(k)<=rlsigo(msig))then
+        m=msig-1
+        m1=msig
+        lsig(k)=msig-1
+        coef1(k)=zero
+        coef2(k)=one
+     else
+        m_loop: do m=1,msig-1
+           m1=m+1
+           if((rlsig(k)<=rlsigo(m))   .and.  &
+              (rlsig(k)>rlsigo(m1)))then
+              lsig(k)=m
+              exit m_loop
+           end if
+        enddo m_loop
+        coef1(k)=(rlsigo(m1)-rlsig(k))/(rlsigo(m1)-rlsigo(m))
+        coef2(k)=one-coef1(k)
+        if(lsig(k)==msig)then
+           lsig(k)=msig-1
+           coef2(k)=one
+           coef1(k)=zero
+        endif
+     endif
+  end do
 
-!   Load agv wgv bv
-    do k=1,nsig
-       m=lsig(k)
-       m1=m+1
-       do i=1,mlat
-          wgvi(i,k)=wgv_avn(i,m)*coef1(k)+wgv_avn(i,m1)*coef2(k)
-          bvi (i,k)=bv_avn (i,m)*coef1(k)+bv_avn (i,m1)*coef2(k)
-       enddo
+! Load agv wgv bv
+  do k=1,nsig
+     m=lsig(k)
+     m1=m+1
+     do i=1,mlat
+        wgvi(i,k)=wgv_avn(i,m)*coef1(k)+wgv_avn(i,m1)*coef2(k)
+        bvi (i,k)=bv_avn (i,m)*coef1(k)+bv_avn (i,m1)*coef2(k)
+     enddo
 
-       do j=1,nsig
-          l=lsig(j)
-          l1=l+1
-          do i=1,mlat
-             agvi(i,j,k)=(agv_avn(i,l,m)*coef1(j)+agv_avn(i,l1,m)*coef2(j))*coef1(k) &
-                      +(agv_avn(i,l,m1)*coef1(j)+agv_avn(i,l1,m1)*coef2(j))*coef2(k)
-          enddo
-       enddo
-    enddo
+     do j=1,nsig
+        l=lsig(j)
+        l1=l+1
+        do i=1,mlat
+           agvi(i,j,k)=(agv_avn(i,l,m)*coef1(j)+agv_avn(i,l1,m)*coef2(j))*coef1(k) &
+                    +(agv_avn(i,l,m1)*coef1(j)+agv_avn(i,l1,m1)*coef2(j))*coef2(k)
+        enddo
+     enddo
+  enddo
 
-    agvi(0,:,:)=agvi(1,:,:)
-    wgvi(0,:)=wgvi(1,:)
-    bvi(0,:)=bvi(1,:)
-    agvi(mlat+1,:,:)=agvi(mlat,:,:)
-    wgvi(mlat+1,:)=wgvi(mlat,:)
-    bvi(mlat+1,:)=bvi(mlat,:)
+  agvi(0,:,:)=agvi(1,:,:)
+  wgvi(0,:)=wgvi(1,:)
+  bvi(0,:)=bvi(1,:)
+  agvi(mlat+1,:,:)=agvi(mlat,:,:)
+  wgvi(mlat+1,:)=wgvi(mlat,:)
+  bvi(mlat+1,:)=bvi(mlat,:)
      
-    deallocate (agv_avn,bv_avn,wgv_avn,clat_avn,sigma_avn,rlsigo)
-    return
+  deallocate (agv_avn,bv_avn,wgv_avn,clat_avn,sigma_avn,rlsigo)
+  return
 end subroutine berror_read_bal_reg
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ! NASA/GSFC, Global Modeling and Assimilation Office, 900.3, GEOS/DAS  !
@@ -274,37 +274,37 @@ end subroutine berror_read_bal_reg
 !
 ! !INTERFACE:
 
-    subroutine berror_read_wgt_reg(msig,mlat,corz,corp,hwll,hwllp,vz,rlsig,varq,qoption,varcw,cwoption,mype,unit)
+subroutine berror_read_wgt_reg(msig,mlat,corz,corp,hwll,hwllp,vz,rlsig,varq,qoption,varcw,cwoption,mype,unit)
 
-      use kinds,only : r_single,r_kind
-      use gridmod,only : nsig
-      use gsi_io, only : verbose
-      use control_vectors,only: nrf,nc2d,nc3d,mvars,nvars
-      use control_vectors,only: cvars => nrf_var
-      use control_vectors,only: cvars2d,cvars3d,cvarsmd
-      use guess_grids, only:  ges_psfcavg,ges_prslavg
-      use constants, only: zero,one,ten,three
-      use mpeu_util,only: getindex
-      use radiance_mod, only: icloud_cv,n_clouds_fwd,cloud_names_fwd
+  use kinds,only : r_single,r_kind
+  use gridmod,only : nsig
+  use gsi_io, only : verbose
+  use control_vectors,only: nrf,nc2d,nc3d,mvars,nvars
+  use control_vectors,only: cvars => nrf_var
+  use control_vectors,only: cvars2d,cvars3d,cvarsmd
+  use guess_grids, only:  ges_psfcavg,ges_prslavg
+  use constants, only: zero,one,ten,three
+  use mpeu_util,only: getindex
+  use radiance_mod, only: icloud_cv,n_clouds_fwd,cloud_names_fwd
 
-      implicit none
+  implicit none
 
-      integer(i_kind)                    ,intent(in   ) :: qoption
-      integer(i_kind)                    ,intent(in   ) :: cwoption
-      integer(i_kind)                    ,intent(in   ) :: msig,mlat
-      integer(i_kind)                    ,intent(in   ) :: mype  ! "my" processor ID
-      integer(i_kind),optional           ,intent(in   ) :: unit ! an alternative unit
+  integer(i_kind)                    ,intent(in   ) :: qoption
+  integer(i_kind)                    ,intent(in   ) :: cwoption
+  integer(i_kind)                    ,intent(in   ) :: msig,mlat
+  integer(i_kind)                    ,intent(in   ) :: mype  ! "my" processor id
+  integer(i_kind),optional           ,intent(in   ) :: unit ! an alternative unit
 
-      real(r_kind),dimension(:,:,:),intent(inout):: corz
-      real(r_kind),dimension(:,:)  ,intent(inout)  :: corp
+  real(r_kind),dimension(:,:,:),intent(inout):: corz
+  real(r_kind),dimension(:,:)  ,intent(inout)  :: corp
 
-      real(r_kind),dimension(0:mlat+1,1:nsig,1:nc3d), intent(inout):: hwll
-      real(r_kind),dimension(0:mlat+1,nvars-nc3d)   , intent(inout):: hwllp
-      real(r_kind),dimension(nsig,0:mlat+1,1:nc3d),intent(inout):: vz
-      real(r_kind),dimension(mlat,nsig),intent(inout)::varq
-      real(r_kind),dimension(mlat,nsig),intent(inout)::varcw
+  real(r_kind),dimension(0:mlat+1,1:nsig,1:nc3d), intent(inout):: hwll
+  real(r_kind),dimension(0:mlat+1,nvars-nc3d)   , intent(inout):: hwllp
+  real(r_kind),dimension(nsig,0:mlat+1,1:nc3d),intent(inout):: vz
+  real(r_kind),dimension(mlat,nsig),intent(inout)::varq
+  real(r_kind),dimension(mlat,nsig),intent(inout)::varcw
 
-      real(r_kind),dimension(nsig),intent(out):: rlsig
+  real(r_kind),dimension(nsig),intent(out):: rlsig
 
 ! !REVISION HISTORY:
 !       25Feb10 - Zhu - extract from rdgstat_reg
@@ -490,17 +490,17 @@ end subroutine berror_read_bal_reg
      end if
 
      if (isig==1) then
-       do n=1,nc2d
-          if (nrf2_loc(n)==loc) then
-             do i=1,mlat
+        do n=1,nc2d
+           if (nrf2_loc(n)==loc) then
+              do i=1,mlat
                  corp(i,n)=corz_avn(i,1)
                  hwllp(i,n)=hwll_avn(i,1)
-             end do
-             hwllp(0,n)=hwll_avn(0,1)
-             hwllp(mlat+1,n)=hwll_avn(mlat+1,1)
-             exit
-          end if
-       end do
+              end do
+              hwllp(0,n)=hwll_avn(0,1)
+              hwllp(mlat+1,n)=hwll_avn(mlat+1,1)
+              exit
+           end if
+        end do
      end if
 
      deallocate ( corz_avn )
@@ -583,13 +583,13 @@ end subroutine berror_read_bal_reg
   endif
 
   if( nrf3_dbz>0 )then
-    if(.not. nrf3_t>0) then
-      write(6,*)'not as expect,stop'
-      stop
-    endif
-    corz(:,:,nrf3_dbz)=10.0_r_kind
-    hwll(:,:,nrf3_dbz)=hwll(:,:,nrf3_t)
-    vz(:,:,nrf3_dbz)=vz(:,:,nrf3_t)
+     if(.not. nrf3_t>0) then
+        write(6,*)'not as expect,stop'
+        stop
+     endif
+     corz(:,:,nrf3_dbz)=10.0_r_kind
+     hwll(:,:,nrf3_dbz)=hwll(:,:,nrf3_t)
+     vz(:,:,nrf3_dbz)=vz(:,:,nrf3_t)
   endif
 
   if (nrf3_oz>0) then 
@@ -651,15 +651,15 @@ end subroutine berror_read_bal_reg
 
 
   if (nrf3_sfwter>0) then
-      if(mype==0) write(6,*)'Replace default with appropriate statistics for variable sfwter'
-      corz(1:mlat,1:nsig,nrf3_sfwter)=corz(1:mlat,1:nsig,nrf3_sf)
-      hwll(0:mlat+1,1:nsig,nrf3_sfwter)=hwll(0:mlat+1,1:nsig,nrf3_sf)
+     if(mype==0) write(6,*)'Replace default with appropriate statistics for variable sfwter'
+     corz(1:mlat,1:nsig,nrf3_sfwter)=corz(1:mlat,1:nsig,nrf3_sf)
+     hwll(0:mlat+1,1:nsig,nrf3_sfwter)=hwll(0:mlat+1,1:nsig,nrf3_sf)
   endif
 
   if (nrf3_vpwter>0) then
-      if(mype==0) write(6,*)'Replace default with appropriate statistics for variable vpwter'
-      corz(1:mlat,1:nsig,nrf3_vpwter)=corz(1:mlat,1:nsig,nrf3_vp)
-      hwll(0:mlat+1,1:nsig,nrf3_vpwter)=hwll(0:mlat+1,1:nsig,nrf3_vp)
+     if(mype==0) write(6,*)'Replace default with appropriate statistics for variable vpwter'
+     corz(1:mlat,1:nsig,nrf3_vpwter)=corz(1:mlat,1:nsig,nrf3_vp)
+     hwll(0:mlat+1,1:nsig,nrf3_vpwter)=hwll(0:mlat+1,1:nsig,nrf3_vp)
   endif
 
 ! 2d variable
@@ -742,17 +742,17 @@ end subroutine berror_read_bal_reg
         end do
      end if
      if (n==nrf2_howv) then
-         call read_howv_stats(mlat,1,2,cov_dum)
-         do i=1,mlat
-            corp(i,n)=cov_dum(i,1,1)     !#ww3
-            hwllp(i,n) = cov_dum(i,1,2) 
-         end do
-         hwllp(0,n) = hwllp(1,n)
-         hwllp(mlat+1,n) = hwllp(mlat,n)
+        call read_howv_stats(mlat,1,2,cov_dum)
+        do i=1,mlat
+           corp(i,n)=cov_dum(i,1,1)     !#ww3
+           hwllp(i,n) = cov_dum(i,1,2) 
+        end do
+        hwllp(0,n) = hwllp(1,n)
+        hwllp(mlat+1,n) = hwllp(mlat,n)
 
-         if (mype==0) print*, 'corp(i,n) = ', corp(:,n)
-         if (mype==0) print*, ' hwllp(i,n) = ',  hwllp(:,n)
-!         corp(:,n)=cov_dum(:,1)
+        if (mype==0) print*, 'corp(i,n) = ', corp(:,n)
+        if (mype==0) print*, ' hwllp(i,n) = ',  hwllp(:,n)
+!        corp(:,n)=cov_dum(:,1)
         !do i=1,mlat
         !   corp(i,n)=0.4_r_kind     !#ww3
         !end do
@@ -917,12 +917,12 @@ subroutine read_howv_stats(nlat,nlon,npar,arrout)
 !
 ! abstract: improrts the bkerror stats for howv (variance, correlation lengths,
 !           etc). Each quantity has been calculated externaly, it is interpolated at
-!           the grid of URMA and it is saved as binary file. The exact format 
+!           the grid of urma and it is saved as binary file. The exact format 
 !           is shown in the code. 
 !           The imported arrays can be 2d or 1d, aka can be lon/lat dependent or
 !           two one of the two (most probably on lat)
 !
-!           For cross reference the MATLAB code is provided
+!           For cross reference the matlab code is provided
 !           Export ::
 !              fid = fopen(['URMA_variance_Q',num2str(i1),'.bin'],'w');
 !              dum =squeeze(variance(i1,:,:));
@@ -943,7 +943,7 @@ subroutine read_howv_stats(nlat,nlon,npar,arrout)
 !     
 ! program history log:
 !   2016-08-03  stelios
-!   2016-08-26  stelios : Compatible with GSI.
+!   2016-08-26  stelios : Compatible with gsi.
 !   input argument list:
 !     filename -  The name of the file 
 !   output argument list:
@@ -967,7 +967,6 @@ subroutine read_howv_stats(nlat,nlon,npar,arrout)
    logical :: file_exists
    integer(i_kind), parameter :: lun34=34
    character(len=256),dimension(npar) :: filename
-   integer(i_kind), parameter :: dp1 = kind(1D0)
 !
    filename(1) = 'howv_var_berr.bin'
    filename(2) = 'howv_lng_berr.bin'

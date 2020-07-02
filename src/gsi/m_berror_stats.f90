@@ -129,7 +129,7 @@ end subroutine get_dims
 ! NASA/GSFC, Global Modeling and Assimilation Office, 900.3, GEOS/DAS  !
 !BOP -------------------------------------------------------------------
 !
-! !IROUTINE: lset - set (logical) parameter options internal to B
+! !IROUTINE: lset - set (logical) parameter options internal to b
 !
 ! !DESCRIPTION:
 !
@@ -184,7 +184,7 @@ subroutine read_bal(agvin,bvin,wgvin,pputin,fut2ps,mype,lunit)
    real(r_single),dimension(nlat,nsig,nsig),intent(  out) :: agvin
    real(r_single),dimension(nlat,nsig)     ,intent(  out) :: bvin,wgvin
    real(r_single),dimension(nlat,nsig)     ,intent(  out) :: pputin
-   integer(i_kind)                         ,intent(in   ) :: mype  ! "my" processor ID
+   integer(i_kind)                         ,intent(in   ) :: mype  ! "my" processor id
    integer(i_kind),optional                ,intent(in   ) :: lunit ! an alternative unit
 
 ! !REVISION HISTORY:
@@ -194,7 +194,7 @@ subroutine read_bal(agvin,bvin,wgvin,pputin,fut2ps,mype,lunit)
 !       25Feb10 - Zhu 
 !               - change the structure of background error file
 !               - read in agvin,wgvin,bvin only
-!      09Oct12 - Gu  add fut2ps to project unbalanced temp to surface pressure in static B modeling
+!      09Oct12 - Gu  add fut2ps to project unbalanced temp to surface pressure in static b modeling
 !EOP ___________________________________________________________________
 
    character(len=*),parameter :: myname_=myname//'::read_bal'
@@ -261,7 +261,7 @@ subroutine read_wgt(corz,corp,hwll,hwllp,vz,corsst,hsst,varq,qoption,varcw,cwopt
 
    use kinds,only : r_single,r_kind
    use gridmod,only : nlat,nlon,nsig
-      use radiance_mod, only: n_clouds_fwd,cloud_names_fwd
+   use radiance_mod, only: n_clouds_fwd,cloud_names_fwd
 
    implicit none
 
@@ -280,7 +280,7 @@ subroutine read_wgt(corz,corp,hwll,hwllp,vz,corsst,hsst,varq,qoption,varcw,cwopt
 
    integer(i_kind)                    ,intent(in   ) :: qoption
    integer(i_kind)                    ,intent(in   ) :: cwoption
-   integer(i_kind)                    ,intent(in   ) :: mype  ! "my" processor ID
+   integer(i_kind)                    ,intent(in   ) :: mype  ! "my" processor id
    integer(i_kind),optional           ,intent(in   ) :: lunit ! an alternative unit
 
 ! !REVISION HISTORY:
@@ -470,8 +470,8 @@ subroutine read_wgt(corz,corp,hwll,hwllp,vz,corsst,hsst,varq,qoption,varcw,cwopt
    enddo
    if (cwcoveqqcov_) then
       if(iq>0.and.icw>0) then
-        hwll(:,:,icw)=hwll(:,:,iq)
-        vz  (:,:,icw)=vz  (:,:,iq)
+         hwll(:,:,icw)=hwll(:,:,iq)
+         vz  (:,:,icw)=vz  (:,:,iq)
       end if
    end if
    if (cwoption==1 .or. cwoption==3) then
@@ -508,7 +508,7 @@ subroutine read_wgt(corz,corp,hwll,hwllp,vz,corsst,hsst,varq,qoption,varcw,cwopt
 
    deallocate(found3d,found2d)
 
-  return
+   return
 end subroutine read_wgt
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -531,7 +531,7 @@ subroutine setcoroz_(coroz,mype)
    use gridmod,only: lon1,lat1
 
    use guess_grids,only: ntguessig
-   use guess_grids,only: ges_prsi ! interface pressures (kPa)
+   use guess_grids,only: ges_prsi ! interface pressures (kpa)
 
    use gsi_bundlemod,   only: gsi_bundlegetpointer
    use gsi_metguess_mod,only: gsi_metguess_bundle
@@ -539,18 +539,18 @@ subroutine setcoroz_(coroz,mype)
    implicit none
 
    real(r_single),dimension(nlat,nsig),intent(  out) :: coroz ! of ozone
-   integer(i_kind)                    ,intent(in   ) :: mype  ! ID of this processor
+   integer(i_kind)                    ,intent(in   ) :: mype  ! id of this processor
 
 ! !REVISION HISTORY:
 !       31Jul08 - Jing Guo <guo@gmao.gsfc.nasa.gov>
-!               - adopted from PREWGT of previous version
+!               - adopted from prewgt of previous version
 !       2013-10-19 oz guess field in metguess now 
 !EOP ___________________________________________________________________
 
    character(len=*),parameter :: myname_=myname//'::setcoroz_'
 
    real(r_kind),parameter :: r25 = one/25.0_r_kind
-   real(r_kind),dimension(:,:,:),pointer :: ges_oz=>NULL()
+   real(r_kind),dimension(:,:,:),pointer :: ges_oz=>null()
 
    real(r_kind),dimension(nsig+1,npe) :: work_oz,work_oz1
    real(r_kind),dimension(nsig) :: ozmz
@@ -590,7 +590,7 @@ subroutine setcoroz_(coroz,mype)
          enddo
       enddo
    enddo
-   work_oz(nsig+1,mm1)=float(lon1*lat1)
+   work_oz(nsig+1,mm1)=real(lon1*lat1,r_kind)
 
    call mpi_allreduce(work_oz,work_oz1,(nsig+1)*npe,mpi_rtype,mpi_sum,&
       mpi_comm_world,ierror)
@@ -641,12 +641,12 @@ subroutine sethwlloz_(hwlloz,mype)
    use kinds,    only: r_single,r_kind
    use mpimod,   only: levs_id
    use gridmod,  only: nnnn1o,nsig,nlon,nlat
-   use constants,only: two,three,pi,rearth_equator
+   use constants,only: two,three,four,pi,rearth_equator
    
    implicit none
 
    real(r_single),dimension(nlat,nsig),intent(  out) :: hwlloz
-   integer(i_kind)                    ,intent(in   ) :: mype ! ID of this processor
+   integer(i_kind)                    ,intent(in   ) :: mype ! id of this processor
 
 ! !REVISION HISTORY:
 !       31Jul08 - Jing Guo <guo@gmao.gsfc.nasa.gov>
@@ -671,10 +671,10 @@ subroutine sethwlloz_(hwlloz,mype)
       if ( k1>0 ) then
       write(6,*) myname_,'(PREWGT): mype = ',mype, k1
          if ( k1<=nsig*3/4 ) then
-           ! fact=1./hwl
-           fact=r40000/(r400*nlon)
+            ! fact=1._r_kind/hwl
+            fact=r40000/(r400*nlon)
          else
-           fact=r40000/(nlon*(r800-r400*(nsig-k1)/(nsig-nsig*3/4)))
+            fact=r40000/(nlon*(r800-r400*(nsig-k1)/(nsig-nsig*three/four)))
          endif
          fact=fact*three
          hwlloz(:,k1)=s2u/fact
@@ -741,7 +741,7 @@ subroutine setcorchem_(cname,corchem,rc)
    use gridmod,only: lon1,lat1
 
    use guess_grids,only: ntguessig
-   use guess_grids,only: ges_prsi ! interface pressures (kPa)
+   use guess_grids,only: ges_prsi ! interface pressures (kpa)
 
    use gsi_chemguess_mod,only: gsi_chemguess_bundle
    use gsi_bundlemod,    only: gsi_bundlegetpointer
@@ -774,10 +774,10 @@ subroutine setcorchem_(cname,corchem,rc)
    ! sanity check
    if ( mype==0 ) write(6,*) myname_,'(PREWGT): mype = ',mype
 
-   ! Get information for how to use CO2
+   ! Get information for how to use co2
    iptr=-1
    if ( size(gsi_chemguess_bundle)>0 ) then ! check to see if bundle's allocated
-       call gsi_bundlegetpointer(gsi_chemguess_bundle(1),cname,iptr,ierror)
+      call gsi_bundlegetpointer(gsi_chemguess_bundle(1),cname,iptr,ierror)
       if ( ierror/=0 ) then
          rc=-2  ! field not found
          return 
@@ -808,12 +808,12 @@ subroutine setcorchem_(cname,corchem,rc)
          do i=2,lat1+1
             work_chem(k,mm1) = work_chem(k,mm1) + gsi_chemguess_bundle(ntguessig)%r3(iptr)%q(i,j,k)* &
                (ges_prsi(i,j,k,ntguessig)-ges_prsi(i,j,k+1,ntguessig))
-            !_RT not sure yet how to handle scaling factor (rozcon) in general
-            !_RT            rozcon*(ges_prsi(i,j,k,ntguessig)-ges_prsi(i,j,k+1,ntguessig))
+            !not sure yet how to handle scaling factor (rozcon) in general
+            !            rozcon*(ges_prsi(i,j,k,ntguessig)-ges_prsi(i,j,k+1,ntguessig))
          enddo
       enddo
    enddo
-   work_chem(nsig+1,mm1)=float(lon1*lat1)
+   work_chem(nsig+1,mm1)=real(lon1*lat1,r_kind)
   
    call mpi_allreduce(work_chem,work_chem1,(nsig+1)*npe,mpi_rtype,mpi_sum,&
         mpi_comm_world,ierror)

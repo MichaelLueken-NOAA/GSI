@@ -7,10 +7,10 @@ module lag_traj
 ! abstract:  This module contain, the trajectory model used to forecast
 !            the position of superpressure balloon when used in data
 !            assimilation. 
-!            - A model based on a Runge-Kutta (4th order)
+!            - A model based on a runge-kutta (4th order)
 !            algorithm is fully implemented (non-linear, linear and 
 !            adjoint).
-!            - A model based on a Runge-Kutta (2nd order)
+!            - A model based on a runge-kutta (2nd order)
 !            algorithm is fully implemented (non-linear, linear and 
 !            adjoint).
 !
@@ -61,11 +61,11 @@ module lag_traj
   public:: lag_rk2iter_nl,lag_rk2iter_tl,lag_rk2iter_ad
 
   ! Number of parameters needed by the tangent linear model, for one step
-  ! of the Runge-Kutta (4th order) trajectory model
+  ! of the runge-kutta (4th order) trajectory model
   integer(i_kind),parameter::lag_rk4stepnpara_r=57  ! real numbers
   integer(i_kind),parameter::lag_rk4stepnpara_i=32  ! integer numbers
   ! Number of parameters needed by the tangent linear model, for one step
-  ! of the Runge-Kutta (2nd order) trajectory model
+  ! of the runge-kutta (2nd order) trajectory model
   integer(i_kind),parameter::lag_rk2stepnpara_r=29  ! real numbers
   integer(i_kind),parameter::lag_rk2stepnpara_i=16  ! integer numbers
 
@@ -82,16 +82,16 @@ module lag_traj
 
 
   ! Number of parameters needed by the tangent linear model, for one iteration
-  ! of the Runge-Kutta (4th order) trajectory model
+  ! of the runge-kutta (4th order) trajectory model
   integer(i_kind)::lag_rk4itenpara_r,lag_rk4itenpara_i
   ! Number of parameters needed by the tangent linear model, for one iteration
-  ! of the Runge-Kutta (2nd order) trajectory model
+  ! of the runge-kutta (2nd order) trajectory model
   integer(i_kind)::lag_rk2itenpara_r,lag_rk2itenpara_i
 
   ! Number of steps needed to achieve one iteration
   integer(i_kind)::lag_nstepiter
 
-  ! Array indexes for the storage of the NL RK4 model parameters
+  ! Array indexes for the storage of the nl rk4 model parameters
   integer(i_kind),parameter::irk4_loc_0=1
   integer(i_kind),parameter::irk4_loc_half_p =9
   integer(i_kind),parameter::irk4_loc_half_pp=17
@@ -118,7 +118,7 @@ module lag_traj
   integer(i_kind),parameter::irk4_lon_half_pp=54
   integer(i_kind),parameter::irk4_lon_1_p=56
 
-  ! Array indexes for the storage of the NL RK2 model parameters
+  ! Array indexes for the storage of the nl rk2 model parameters
   integer(i_kind),parameter::irk2_loc_0=1
   integer(i_kind),parameter::irk2_loc_1_p=9
 
@@ -298,7 +298,7 @@ module lag_traj
     real(r_kind)                      ,intent(in   ) :: rv_orig_lat
     ! distance in meters along a longitude line
     real(r_kind)                      ,intent(in   ) :: rv_dx
-    ! parameters needed for the TL and adjoint (optional)
+    ! parameters needed for the tl and adjoint (optional)
     real(r_kind),dimension(2),optional,intent(  out) :: lspec_r
     ! equivalent distance in radians
     real(r_kind)::m2lon_nl
@@ -425,7 +425,7 @@ module lag_traj
 
     real(r_kind),intent(in   ) :: rv_theta
     real(r_kind)::lag_haversin
-    lag_haversin=sin(rv_theta/2)**2
+    lag_haversin=sin(rv_theta/two)**2
   end function lag_haversin
   ! ------------------------------------------------------------------------
   ! Inverse-haversine function
@@ -586,12 +586,12 @@ module lag_traj
 
 
   ! ------------------------------------------------------------------------
-  ! RK4 MODEL IMPLEMENTATION FOR ONE TIME STEP -----------------------------
+  ! rk4 model implementation for one time step -----------------------------
   ! ------------------------------------------------------------------------
 
   
   ! ------------------------------------------------------------------------
-  ! Implementation of the Runge-Kutta algorithm : Non linear
+  ! Implementation of the runge-kutta algorithm : non linear
   ! ------------------------------------------------------------------------
   subroutine lag_rk4_nl(lon,lat,p,ufield,vfield,tstep,lspec_i,lspec_r)
 !$$$  subprogram documentation block
@@ -627,7 +627,7 @@ module lag_traj
     real(r_kind)   ,dimension(:,:)                        ,intent(in   ) :: ufield,vfield
     ! Time step (seconds)
     real(r_kind)                                          ,intent(in   ) :: tstep
-    ! Parameters for the TL and Adjoint (optional)
+    ! Parameters for the tl and adjoint (optional)
     integer(i_kind),dimension(lag_rk4stepnpara_i),optional,intent(  out) :: lspec_i
     real(r_kind)   ,dimension(lag_rk4stepnpara_r),optional,intent(  out) :: lspec_r
 
@@ -755,7 +755,7 @@ module lag_traj
     end if
 
     ! Final step : calculate the final position  of the balloon using a
-    ! Simpson's rules corrector
+    ! simpson's rules corrector
     if (lv_spec) then
        rv_intu_1_p=lag_int3d_nl(ufield,&
           pos_1_p(1),pos_1_p(2),pos_1_p(3),&
@@ -813,7 +813,7 @@ module lag_traj
 
 
   ! ------------------------------------------------------------------------
-  ! Implementation of the Runge-Kutta algorithm-> TLM
+  ! Implementation of the runge-kutta algorithm-> tlm
   ! ------------------------------------------------------------------------
   subroutine lag_rk4_tl(lspec_i,lspec_r,lon,lat,p,ufield,vfield)
 !$$$  subprogram documentation block
@@ -937,7 +937,7 @@ module lag_traj
 
 
   ! ------------------------------------------------------------------------
-  ! Implementation of the Runge-Kutta algorithm-> ADJOINT
+  ! Implementation of the runge-kutta algorithm-> adjoint
   ! ------------------------------------------------------------------------
   subroutine lag_rk4_ad(lspec_i,lspec_r,&
     ad_lon,ad_lat,ad_p,ad_ufield,ad_vfield)
@@ -1006,7 +1006,7 @@ module lag_traj
     ad_lon=zero; ad_lat=zero; ad_p=zero;
 
     ! Final step : calculate the final position  of the balloon using a
-    ! Simpson's rules corretor
+    ! simpson's rules corretor
     ad_p=ad_p+ad_pos_1_pp(3)
 
     ad_lon=ad_lon+ad_pos_1_pp(1)
@@ -1117,13 +1117,13 @@ module lag_traj
   end subroutine lag_rk4_ad
 
   ! ------------------------------------------------------------------------
-  ! RK2 MODEL IMPLEMENTATION FOR ONE TIME STEP -----------------------------
+  ! rk2 model implementation for one time step -----------------------------
   ! ------------------------------------------------------------------------
 
   
   ! ------------------------------------------------------------------------
-  ! Implementation of the Runge-Kutta algorithm (2nd order) : Non linear
-  ! (Heun's Method)
+  ! Implementation of the runge-kutta algorithm (2nd order) : non linear
+  ! (heun's method)
   ! ------------------------------------------------------------------------
   subroutine lag_rk2_nl(lon,lat,p,ufield,vfield,tstep,lspec_i,lspec_r)
 !$$$  subprogram documentation block
@@ -1159,7 +1159,7 @@ module lag_traj
     real(r_kind)   ,dimension(:,:)                        ,intent(in   ) :: ufield,vfield
     ! Time step (seconds)
     real(r_kind)                                          ,intent(in   ) :: tstep
-    ! Parameters for the TL and Adjoint (optional)
+    ! Parameters for the tl and adjoint (optional)
     integer(i_kind),dimension(lag_rk2stepnpara_i),optional,intent(  out) :: lspec_i
     real(r_kind)   ,dimension(lag_rk2stepnpara_r),optional,intent(  out) :: lspec_r
 
@@ -1264,8 +1264,8 @@ module lag_traj
 
   
   ! ------------------------------------------------------------------------
-  ! Implementation of the Runge-Kutta algorithm (2nd order) : Tangent linear
-  ! (Heun's Method)
+  ! Implementation of the runge-kutta algorithm (2nd order) : tangent linear
+  ! (heun's method)
   ! ------------------------------------------------------------------------
   subroutine lag_rk2_tl(lspec_i,lspec_r,lon,lat,p,ufield,vfield)
 !$$$  subprogram documentation block
@@ -1294,7 +1294,7 @@ module lag_traj
 !$$$ end documentation block
     implicit none
 
-    ! Parameters for the TL and Adjoint
+    ! Parameters for the tl and adjoint
     integer(i_kind),dimension(lag_rk2stepnpara_i),intent(in   ) :: lspec_i
     real(r_kind)   ,dimension(lag_rk2stepnpara_r),intent(in   ) :: lspec_r
     ! longitude, latitude, pressure of the balloon
@@ -1357,8 +1357,8 @@ module lag_traj
 
   
   ! ------------------------------------------------------------------------
-  ! Implementation of the Runge-Kutta algorithm (2nd order) : Adjoint
-  ! (Heun's Method)
+  ! Implementation of the runge-kutta algorithm (2nd order) : adjoint
+  ! (heun's method)
   ! ------------------------------------------------------------------------
   subroutine lag_rk2_ad(lspec_i,lspec_r,ad_lon,ad_lat,ad_p,&
     ad_ufield,ad_vfield)
@@ -1389,7 +1389,7 @@ module lag_traj
 !$$$ end documentation block
     implicit none
 
-    ! Parameters for the TL and Adjoint
+    ! Parameters for the tl and adjoint
     integer(i_kind),dimension(lag_rk2stepnpara_i),intent(in   ) :: lspec_i
     real(r_kind)   ,dimension(lag_rk2stepnpara_r),intent(in   ) :: lspec_r
     ! longitude, latitude, pressure of the balloon
@@ -1481,12 +1481,12 @@ module lag_traj
 
 
   ! --------------------------------------------------------------------------
-  ! RK2 MODEL IMPLEMENTATION FOR ONE ITERATION (discomposed in sev. time steps)
+  ! rk2 model implementation for one iteration (discomposed in sev. time steps)
   ! --------------------------------------------------------------------------
 
 
   ! ------------------------------------------------------------------------
-  ! Implementation for the RK2 non linear model
+  ! Implementation for the rk2 non linear model
   ! ------------------------------------------------------------------------
   subroutine lag_rk2iter_nl(lon,lat,p,ufield,vfield,tstep,lspec_i,lspec_r)
 !$$$  subprogram documentation block
@@ -1522,7 +1522,7 @@ module lag_traj
     real(r_kind)   ,dimension(:,:)       ,intent(in   ) :: ufield,vfield
     ! Time step (seconds)
     real(r_kind)                         ,intent(in   ) :: tstep
-    ! Parameters for the TL and Adjoint (optional)
+    ! Parameters for the tl and adjoint (optional)
     integer(i_kind),dimension(:),optional,intent(  out) :: lspec_i
     real(r_kind)   ,dimension(:),optional,intent(  out) :: lspec_r
 
@@ -1598,7 +1598,7 @@ module lag_traj
 
 
   ! ------------------------------------------------------------------------
-  ! Implementation for the RK2 tangent-linear model
+  ! Implementation for the rk2 tangent-linear model
   ! ------------------------------------------------------------------------
   subroutine lag_rk2iter_tl(lspec_i,lspec_r,lon,lat,p,ufield,vfield)
 !$$$  subprogram documentation block
@@ -1654,7 +1654,7 @@ module lag_traj
 
 
   ! ------------------------------------------------------------------------
-  ! Implementation for the RK2 adjoint model
+  ! Implementation for the rk2 adjoint model
   ! ------------------------------------------------------------------------
   subroutine lag_rk2iter_ad(lspec_i,lspec_r,ad_lon,ad_lat,ad_p,ad_ufield,ad_vfield)
 !$$$  subprogram documentation block
