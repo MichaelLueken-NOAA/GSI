@@ -21,7 +21,7 @@ module m_dtime
 !
 !$$$  end subprogram documentation block
 
-#define ZERODIFFTEST
+#define zerodifftest
 
 ! module interface:
 
@@ -128,7 +128,7 @@ subroutine dtime_check(dtime, in_curbin,in_anybin)
   at=at+(dtime-at)/nt
 
   in_curbin = (dtime>hrdifsig(1) .and. dtime<=hrdifsig(nfldsig))
-#ifdef ZERODIFFTEST
+#ifdef zerodifftest
   if(hrdifsig(1)==hrdifsig_all(1)) in_curbin = in_curbin .or. dtime<=hrdifsig(1)
   if(hrdifsig(nfldsig)==hrdifsig_all(nfldsig_all)) in_curbin = in_curbin .or. dtime>hrdifsig(nfldsig)
   in_anybin = .true.
@@ -140,22 +140,22 @@ subroutine dtime_check(dtime, in_curbin,in_anybin)
 
 
   if(in_curbin) then
-    nm=nm+1
-    am=am+(dtime-am)/nm
-    return
+     nm=nm+1
+     am=am+(dtime-am)/nm
+     return
   endif
   if(in_anybin) return
 
   if(dtime <= hrdifsig_all(1)) then
-    nl=nl+1
-    al=al+(dtime-al)/nl
-    return
+     nl=nl+1
+     al=al+(dtime-al)/nl
+     return
   endif
 
   if(dtime > hrdifsig_all(nfldsig_all)) then
-    nr=nr+1
-    ar=ar+(dtime-ar)/nr
-    return
+     nr=nr+1
+     ar=ar+(dtime-ar)/nr
+     return
   endif
 end subroutine dtime_check
 

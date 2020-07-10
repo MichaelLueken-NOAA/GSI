@@ -9,8 +9,8 @@ module m_distance
 ! assimilation
 !
 ! program history log:
-!   1996-10-01  Joiner/Karki - initial coding from NASA/GMAO 
-!   2012-02-15  eliu         - reformat to use in GSI 
+!   1996-10-01  Joiner/Karki - initial coding from nasa/gmao 
+!   2012-02-15  eliu         - reformat to use in gsi
 !
 ! subroutines included:
 !
@@ -22,8 +22,9 @@ module m_distance
 !
 !$$$ end documentation block
 
-  use constants, only: deg2rad,half,two
+  use constants, only: deg2rad,zero,half,two
   use kinds,     only: i_kind, r_kind
+  implicit none
 
   interface distance
     module procedure distance1
@@ -33,7 +34,7 @@ module m_distance
   contains
 
   function distance1( alat, alon, blat, blon ) result (dist)
-  implicit NONE
+  implicit none
 
 
   !INPUT PARAMETERS:
@@ -53,7 +54,7 @@ module m_distance
 
   !Initialize
   !----------
-  dist=0.
+  dist=zero
 
   !Compute distances
   !=================
@@ -90,6 +91,7 @@ module m_distance
   end function distance1
 
   function distance2( alat, alon, blat, blon ) result (dist)
+  implicit none
 
   real(r_kind), intent(in)   :: alat
   real(r_kind), intent(in)   :: alon

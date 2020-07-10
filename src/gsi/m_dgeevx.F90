@@ -6,7 +6,7 @@ module m_dgeevx
 !      org:      NASA/GSFC, Global Modeling and Assimilation Office, 900.3
 !     date:      2010-03-24
 !
-! abstract: an alternative interface of LAPACK DGEEV()
+! abstract: an alternative interface of lapack dgeev()
 !
 ! program history log:
 !   2010-03-24  j guo   - added this document block
@@ -27,7 +27,7 @@ module m_dgeevx
 ! NASA/GSFC, Global Modeling and Assimilation Office, 900.3, GEOS/DAS  !
 !BOP -------------------------------------------------------------------
 !
-! !MODULE: m_dgeevx - an alternative interface of LAPACK DGEEV()
+! !MODULE: m_dgeevx - an alternative interface of lapack dgeev()
 !
 ! !DESCRIPTION:
 !
@@ -36,7 +36,7 @@ module m_dgeevx
       implicit none
       private   ! except
 
-      public :: dgeevx          ! alternative DGEEV()
+      public :: dgeevx          ! alternative dgeev()
 
 ! !REVISION HISTORY:
 !       29May08 - Jing Guo <guo@gmao.gsfc.nasa.gov>
@@ -89,7 +89,7 @@ contains
     integer(i_kind)  :: naux
     real(r_kind)     :: aux,factor
 
-    ! Use IBM ESSL routine dgeev()
+    ! Use ibm essl routine dgeev()
 
 ! Below is a copy of the original code in mod_vtrans.f90_1.2.
 !<<<<
@@ -163,10 +163,10 @@ contains
     info=0
   
 #else
-   ! Use standard LAPACK routine dgeev()
+   ! Use standard lapack routine dgeev()
 
 !----------------------------------------
-! Modification for using GSI dgeev  -RY
+! Modification for using gsi dgeev
 !----------------------------------------
     character*1,parameter:: jobvr='V'
     character*1,parameter:: jobvl='V'
@@ -182,8 +182,7 @@ contains
     lwork=size(work)
 
 !------------------------------------
-!  ryang: 
-!      use SGI scslib dgeev subroutine
+!      use sgi scslib dgeev subroutine
 
     do j=1,nsig
        do i=1,nsig
@@ -197,14 +196,14 @@ contains
 
     if (mype ==0) write (6,*) myname, ' after  CALL DGEEV', 'status: info =  ', info
 
-! use Dave's array names
+! use dave's array names
     do j=1,nsig
        if (wi(j) /= zero) write (6,*) &
           'wrong eigen computation: create_vtrans'
        www(1,j)=wr(j)
        www(2,j)=wi(j)
 !-----------------------------------------------------------
-!ADD explanation:!!!
+!add explanation:!!!
 !
 ! vl is zzzd
 !the following line is not generic, only hold when wi (j)=0.0
@@ -217,7 +216,7 @@ contains
           zzzd(2,k,j)=zero
         enddo
     enddo
-! back to Dave's code
+! back to dave's code
 !sort from largest to smallest eigenvalues
 !   sort from largest to smallest eigenvalue
     do j=1,nsig-1

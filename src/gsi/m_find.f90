@@ -2,15 +2,15 @@ module m_find
 
 !$$$ module documentation block
 !           .      .    .                                       .
-! module:   m_find   similar to IDL's "where" function, but needs to know the
+! module:   m_find   similar to idl's "where" function, but needs to know the
 !                    dimension of the outupt e.g., index=find(mask,count)  
 !   prgmmr: eliu
 !
-! abstract:  module similar to IDL's "where" function 
+! abstract:  module similar to idl's "where" function 
 !
 ! program history log:
-!   1997-08-13  Joiner  - initial coding from NASA/GMAO
-!   2012-02-15  eliu    - reformat to use in GSI
+!   1997-08-13  Joiner  - initial coding from nasa/gmao
+!   2012-02-15  eliu    - reformat to use in gsi
 !
 ! subroutines included:
 !
@@ -25,8 +25,8 @@ module m_find
   use kinds,only : i_kind, r_kind
 
   interface find
-    module procedure find2
-    module procedure find1
+     module procedure find2
+     module procedure find1
   end interface
 
   contains
@@ -107,10 +107,10 @@ module m_find
      index=temp(1)
   else
      !if (present(iprt)) then
-     ! if (iprt >= 3) then
-     !   print *,'find: WARNING, found more than 1 value'
-     !   print *,'taking the first'
-     ! endif
+     !   if (iprt >= 3) then
+     !      print *,'find: WARNING, found more than 1 value'
+     !      print *,'taking the first'
+     !   endif
      !endif
      if (n > 1) then
         allocate(temp2(n))
