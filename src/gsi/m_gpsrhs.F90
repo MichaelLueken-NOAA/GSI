@@ -33,7 +33,7 @@ module m_gpsrhs
   implicit none
   private
 
-  !! GPS processing specific interfaces and variables
+  !! gps processing specific interfaces and variables
 
   public:: gpsrhs_alloc
   public:: gpsrhs_aliases
@@ -78,55 +78,55 @@ module m_gpsrhs
 ! Revision history:
 
   type gpsrhs_buffer
-    private
-    logical:: alloced =.false.
-    character(len=max(len('ref'),len('bend'))):: class =""
+     private
+     logical:: alloced =.false.
+     character(len=max(len('ref'),len('bend'))):: class =""
 
-    logical         , pointer, dimension(  :):: muse => null()
+     logical         , pointer, dimension(  :):: muse => null()
 
-    real(r_kind    ), pointer, dimension(  :):: error    => null()
-    real(r_kind    ), pointer, dimension(  :):: error_adjst => null()
-    real(r_kind    ), pointer, dimension(  :):: ratio_errors=> null()
+     real(r_kind    ), pointer, dimension(  :):: error    => null()
+     real(r_kind    ), pointer, dimension(  :):: error_adjst => null()
+     real(r_kind    ), pointer, dimension(  :):: ratio_errors=> null()
 
        ! case: class=="ref"
-    real(r_kind    ), pointer, dimension(  :):: termq  => null()
-    real(r_kind    ), pointer, dimension(  :):: termpk => null()
-    real(r_kind    ), pointer, dimension(  :):: termt  => null()
-    real(r_kind    ), pointer, dimension(  :):: termtk => null()
-    real(r_kind    ), pointer, dimension(:,:):: termtl => null()
-    real(r_kind    ), pointer, dimension(:,:):: termpl1=> null()
-    real(r_kind    ), pointer, dimension(:,:):: termpl2=> null()
-    real(r_kind    ), pointer, dimension(  :):: pressure => null()
-    real(r_kind    ), pointer, dimension(  :):: dpresl => null()
+     real(r_kind    ), pointer, dimension(  :):: termq  => null()
+     real(r_kind    ), pointer, dimension(  :):: termpk => null()
+     real(r_kind    ), pointer, dimension(  :):: termt  => null()
+     real(r_kind    ), pointer, dimension(  :):: termtk => null()
+     real(r_kind    ), pointer, dimension(:,:):: termtl => null()
+     real(r_kind    ), pointer, dimension(:,:):: termpl1=> null()
+     real(r_kind    ), pointer, dimension(:,:):: termpl2=> null()
+     real(r_kind    ), pointer, dimension(  :):: pressure => null()
+     real(r_kind    ), pointer, dimension(  :):: dpresl => null()
 
        ! case: class=="bend"
-    real(r_kind    ), pointer, dimension(:,:):: dbend_loc => null()
-    real(r_kind    ), pointer, dimension(:,:):: xj      => null()
-    real(r_kind    ), pointer, dimension(:,:):: n_t     => null()
-    real(r_kind    ), pointer, dimension(:,:):: n_q     => null()
-    real(r_kind    ), pointer, dimension(:,:):: n_p     => null()
-    real(r_kind    ), pointer, dimension(:,:):: nrefges => null()
-    real(r_kind    ), pointer, dimension(:,:):: rges    => null()
-    real(r_kind    ), pointer, dimension(:,:):: gp2gm   => null()
-    real(r_kind    ), pointer, dimension(:,:):: prsltmp_o => null()
-    real(r_kind    ), pointer, dimension(:,:):: tges_o  => null()
+     real(r_kind    ), pointer, dimension(:,:):: dbend_loc => null()
+     real(r_kind    ), pointer, dimension(:,:):: xj      => null()
+     real(r_kind    ), pointer, dimension(:,:):: n_t     => null()
+     real(r_kind    ), pointer, dimension(:,:):: n_q     => null()
+     real(r_kind    ), pointer, dimension(:,:):: n_p     => null()
+     real(r_kind    ), pointer, dimension(:,:):: nrefges => null()
+     real(r_kind    ), pointer, dimension(:,:):: rges    => null()
+     real(r_kind    ), pointer, dimension(:,:):: gp2gm   => null()
+     real(r_kind    ), pointer, dimension(:,:):: prsltmp_o => null()
+     real(r_kind    ), pointer, dimension(:,:):: tges_o  => null()
 
-    real(r_kind    ), pointer, dimension(:,:):: rdiagbuf => null()
-    character(len=8), pointer, dimension(  :):: cdiagbuf => null()
+     real(r_kind    ), pointer, dimension(:,:):: rdiagbuf => null()
+     character(len=8), pointer, dimension(  :):: cdiagbuf => null()
+ 
+     logical         , pointer, dimension(  :):: qcfail => null()
+     real(r_single  ), pointer, dimension(  :):: qcfail_loc  => null()
+     real(r_single  ), pointer, dimension(  :):: qcfail_high => null()
+     real(r_single  ), pointer, dimension(  :):: qcfail_gross=> null()
 
-    logical         , pointer, dimension(  :):: qcfail => null()
-    real(r_single  ), pointer, dimension(  :):: qcfail_loc  => null()
-    real(r_single  ), pointer, dimension(  :):: qcfail_high => null()
-    real(r_single  ), pointer, dimension(  :):: qcfail_gross=> null()
-
-    real(r_kind    ), pointer, dimension(  :):: data_ier  => null()
-    real(r_kind    ), pointer, dimension(  :):: data_igps => null()
-    real(r_kind    ), pointer, dimension(  :):: data_ihgt => null()
+     real(r_kind    ), pointer, dimension(  :):: data_ier  => null()
+     real(r_kind    ), pointer, dimension(  :):: data_igps => null()
+     real(r_kind    ), pointer, dimension(  :):: data_ihgt => null()
   end type gpsrhs_buffer
 
-  type(gpsrhs_buffer),dimension(:),allocatable,target,save:: aGPSRHS_buffer
+  type(gpsrhs_buffer),dimension(:),allocatable,target,save:: agpsrhs_buffer
 
-!! Aliases to all private components of the is-th element of aGPSRHS_buffer(1:ndat).
+!! Aliases to all private components of the is-th element of agpsrhs_buffer(1:ndat).
 !! These aliases will let the uses of these variables unchanged in setupref()
 !! and setupbend() routines.
 
@@ -175,11 +175,11 @@ subroutine gpsrhs_alloc(is,class,nobs,nsig,nreal,grids_dim,nsig_ext)
   character(len=*),parameter:: myname_=myname//'_alloc'
 _ENTRY_(myname_)
 
-  if(.not.allocated(aGPSRHS_buffer)) then
-    allocate(aGPSRHS_buffer(ndat))
-    aGPSRHS_buffer(1:ndat)%alloced=.false.
+  if(.not.allocated(agpsrhs_buffer)) then
+     allocate(agpsrhs_buffer(ndat))
+     agpsrhs_buffer(1:ndat)%alloced=.false.
   endif
-  b=>aGPSRHS_buffer(is) ! b is aliased to an entry in aGPSRHS_buffer
+  b=>agpsrhs_buffer(is) ! b is aliased to an entry in agpsrhs_buffer
   if(b%alloced) call die(myname_,'this object is already allocated')
 
   b%alloced =.true.
@@ -190,59 +190,59 @@ _ENTRY_(myname_)
   b%muse(:)=.false.
 
   select case(b%class)
-  case('ref')
+     case('ref')
 
-    allocate(b%termq  (     nobs))
-    allocate(b%termpk (     nobs))
-    allocate(b%termpl1(nsig,nobs))
-    allocate(b%termpl2(nsig,nobs))
+        allocate(b%termq  (     nobs))
+        allocate(b%termpk (     nobs))
+        allocate(b%termpl1(nsig,nobs))
+        allocate(b%termpl2(nsig,nobs))
 
-    b%termq  (  :)=zero
-    b%termpk (  :)=zero
-    b%termpl1(:,:)=zero
-    b%termpl2(:,:)=zero
+        b%termq  (  :)=zero
+        b%termpk (  :)=zero
+        b%termpl1(:,:)=zero
+        b%termpl2(:,:)=zero
 
-    allocate(b%termt  (     nobs))
-    allocate(b%termtk (     nobs))
-    allocate(b%termtl (nsig,nobs))
+        allocate(b%termt  (     nobs))
+        allocate(b%termtk (     nobs))
+        allocate(b%termtl (nsig,nobs))
 
-    b%termt (  :)=zero
-    b%termtk(  :)=zero
-    b%termtl(:,:)=zero
+        b%termt (  :)=zero
+        b%termtk(  :)=zero
+        b%termtl(:,:)=zero
 
-    allocate(b%pressure    (nobs))
-    allocate(b%dpresl(nobs))
+        allocate(b%pressure    (nobs))
+        allocate(b%dpresl(nobs))
 
-    b%pressure(:)=huge(b%pressure)
-    b%dpresl  (:)=huge(b%dpresl  )
+        b%pressure(:)=huge(b%pressure)
+        b%dpresl  (:)=huge(b%dpresl  )
 
-  case('bend')
+     case('bend')
 
-    allocate(b%dbend_loc(grids_dim,nobs))
-    allocate(b%xj       (grids_dim,nobs))
+        allocate(b%dbend_loc(grids_dim,nobs))
+        allocate(b%xj       (grids_dim,nobs))
 
-    b%dbend_loc(:,:) = HUGE(b%dbend_loc)
-    b%xj(:,:)=HUGE(b%xj)
+        b%dbend_loc(:,:) = huge(b%dbend_loc)
+        b%xj(:,:)=huge(b%xj)
 
-    allocate(b%n_t(nsig,nobs))
-    allocate(b%n_q(nsig,nobs))
-    allocate(b%n_p(nsig,nobs))
-    allocate(b%nrefges(nsig+nsig_ext,nobs))
+        allocate(b%n_t(nsig,nobs))
+        allocate(b%n_q(nsig,nobs))
+        allocate(b%n_p(nsig,nobs))
+        allocate(b%nrefges(nsig+nsig_ext,nobs))
 
-    b%n_t(:,:)=HUGE(b%n_t)
-    b%n_q(:,:)=HUGE(b%n_q)
-    b%n_p(:,:)=HUGE(b%n_p)
-    b%nrefges(:,:)=HUGE(b%nrefges)
+        b%n_t(:,:)=huge(b%n_t)
+        b%n_q(:,:)=huge(b%n_q)
+        b%n_p(:,:)=huge(b%n_p)
+        b%nrefges(:,:)=huge(b%nrefges)
 
-    allocate(b%rges     (nsig,nobs))
-    allocate(b%gp2gm    (nsig,nobs))
-    allocate(b%prsltmp_o(nsig,nobs))
-    allocate(b%tges_o   (nsig,nobs))
+        allocate(b%rges     (nsig,nobs))
+        allocate(b%gp2gm    (nsig,nobs))
+        allocate(b%prsltmp_o(nsig,nobs))
+        allocate(b%tges_o   (nsig,nobs))
 
-    b%rges(:,:) = HUGE(b%rges)
-    b%gp2gm(:,:) = HUGE(b%gp2gm)
-    b%prsltmp_o(:,:) = HUGE(b%prsltmp_o)
-    b%tges_o(:,:) = HUGE(b%tges_o)
+        b%rges(:,:) = huge(b%rges)
+        b%gp2gm(:,:) = huge(b%gp2gm)
+        b%prsltmp_o(:,:) = huge(b%prsltmp_o)
+        b%tges_o(:,:) = huge(b%tges_o)
 
   end select
 
@@ -288,49 +288,49 @@ subroutine gpsrhs_dealloc(is)
   character(len=*),parameter:: myname_=myname//'_dealloc'
 
 _ENTRY_(myname_)
-  if(.not.allocated(aGPSRHS_buffer)) &
-    call die(myname_,'object not allocated, aGPSbuffer')
+  if(.not.allocated(agpsrhs_buffer)) &
+    call die(myname_,'object not allocated, agpsbuffer')
 
-  if(is<lbound(aGPSRHS_buffer,1) .or. is>ubound(aGPSRHS_buffer,1)) then
-    call perr(myname_,'out of aGPSRHS_buffer range, is =',is)
-    call perr(myname_,'lbound(aGPSRHS_buffer) =',lbound(aGPSRHS_buffer,1))
-    call perr(myname_,'ubound(aGPSRHS_buffer) =',ubound(aGPSRHS_buffer,1))
+  if(is<lbound(agpsrhs_buffer,1) .or. is>ubound(agpsrhs_buffer,1)) then
+    call perr(myname_,'out of agpsrhs_buffer range, is =',is)
+    call perr(myname_,'lbound(agpsrhs_buffer) =',lbound(agpsrhs_buffer,1))
+    call perr(myname_,'ubound(agpsrhs_buffer) =',ubound(agpsrhs_buffer,1))
     call die(myname_)
   endif
 
-  b=>aGPSRHS_buffer(is) ! b is aliased to an entry in gpsrhs_buffer
+  b=>agpsrhs_buffer(is) ! b is aliased to an entry in gpsrhs_buffer
   if(.not.b%alloced) then
-    call perr(myname_,'aGPSRHS_buffer(is) not allocated, is =',is)
-    call die(myname_)
+     call perr(myname_,'agpsrhs_buffer(is) not allocated, is =',is)
+     call die(myname_)
   endif
 
   deallocate(b%muse)
 
   select case(b%class)
-  case('ref')
-    deallocate(b%termq  )
-    deallocate(b%termpk )
-    deallocate(b%termpl1)
-    deallocate(b%termpl2)
+     case('ref')
+        deallocate(b%termq  )
+        deallocate(b%termpk )
+        deallocate(b%termpl1)
+        deallocate(b%termpl2)
 
-    deallocate(b%termt  )
-    deallocate(b%termtk )
-    deallocate(b%termtl )
+        deallocate(b%termt  )
+        deallocate(b%termtk )
+        deallocate(b%termtl )
 
-    deallocate(b%pressure)
-    deallocate(b%dpresl)
+        deallocate(b%pressure)
+        deallocate(b%dpresl)
 
-  case('bend')
-    deallocate(b%dbend_loc)
-    deallocate(b%xj)
-    deallocate(b%n_t)
-    deallocate(b%n_q)
-    deallocate(b%n_p)
-    deallocate(b%nrefges)
-    deallocate(b%rges)
-    deallocate(b%gp2gm)
-    deallocate(b%prsltmp_o)
-    deallocate(b%tges_o)
+     case('bend')
+        deallocate(b%dbend_loc)
+        deallocate(b%xj)
+        deallocate(b%n_t)
+        deallocate(b%n_q)
+        deallocate(b%n_p)
+        deallocate(b%nrefges)
+        deallocate(b%rges)
+        deallocate(b%gp2gm)
+        deallocate(b%prsltmp_o)
+        deallocate(b%tges_o)
 
   end select
 
@@ -362,33 +362,33 @@ subroutine gpsrhs_aliases(is)
   type(gpsrhs_buffer),pointer:: b
   character(len=*),parameter:: myname_=myname//'_aliases'
 _ENTRY_(myname_)
-  b=>aGPSRHS_buffer(is) ! b is aliased to an entry in gpsrhs_buffer
+  b=>agpsrhs_buffer(is) ! b is aliased to an entry in gpsrhs_buffer
 
   muse          => b%muse
 
   select case(b%class)
-  case('ref')
-    termq       => b%termq
-    termpk      => b%termpk
-    termt       => b%termt
-    termtk      => b%termtk
-    termtl      => b%termtl
-    termpl1     => b%termpl1
-    termpl2     => b%termpl2
-    pressure    => b%pressure
-    dpresl      => b%dpresl
+     case('ref')
+        termq       => b%termq
+        termpk      => b%termpk
+        termt       => b%termt
+        termtk      => b%termtk
+        termtl      => b%termtl
+        termpl1     => b%termpl1
+        termpl2     => b%termpl2
+        pressure    => b%pressure
+        dpresl      => b%dpresl
 
-  case('bend')
-    dbend_loc   => b%dbend_loc
-    xj          => b%xj
-    n_t         => b%n_t
-    n_q         => b%n_q
-    n_p         => b%n_p
-    nrefges     => b%nrefges
-    rges        => b%rges
-    gp2gm       => b%gp2gm
-    prsltmp_o   => b%prsltmp_o
-    tges_o      => b%tges_o
+     case('bend')
+        dbend_loc   => b%dbend_loc
+        xj          => b%xj
+        n_t         => b%n_t
+        n_q         => b%n_q
+        n_p         => b%n_p
+        nrefges     => b%nrefges
+        rges        => b%rges
+        gp2gm       => b%gp2gm
+        prsltmp_o   => b%prsltmp_o
+        tges_o      => b%tges_o
   end select
 
   error         => b%error
@@ -417,11 +417,11 @@ subroutine gpsrhs_unaliases(is)
 
 _ENTRY_(myname_)
 
-  b=>aGPSRHS_buffer(is)
+  b=>agpsrhs_buffer(is)
   if((.not.b%alloced) .or. (.not.associated(muse,b%muse))) then
-    if(.not.b%alloced) call perr(myname_,'not allocated, aGPSRHS_buffer #',is)
-    if(.not.associated(muse,b%muse)) call perr(myname_,'not associated to aGPSRHS_buffer #',is)
-    call die(myname_)
+     if(.not.b%alloced) call perr(myname_,'not allocated, agpsrhs_buffer #',is)
+     if(.not.associated(muse,b%muse)) call perr(myname_,'not associated to agpsrhs_buffer #',is)
+     call die(myname_)
   endif
 
   nullify(muse)

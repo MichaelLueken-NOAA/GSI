@@ -1,7 +1,7 @@
-module m_gsiBiases
+module m_gsibiases
 !$$$  subprogram documentation block
 !                .      .    .                                       .
-! subprogram:    module m_gsiBiases
+! subprogram:    module m_gsibiases
 !   prgmmr:      j guo <jguo@nasa.gov>
 !      org:      NASA/GSFC, Global Modeling and Assimilation Office, 900.3
 !     date:      2010-03-24
@@ -31,7 +31,7 @@ module m_gsiBiases
 !-------------------------------------------------------------------------
 !BOP
 !
-! !MODULE:  m_gsiBiases --- Module defining bias prediction scheme
+! !MODULE:  m_gsibiases --- Module defining bias prediction scheme
 !
 ! !INTERFACE:
 !
@@ -45,16 +45,16 @@ module m_gsiBiases
   use gridmod, only: lat2,lon2,nsig
   use gsi_4dvar, only: nhr_assimilation,ibdate
 
-  use GSI_BundleMod, only: gsi_grid
-  use GSI_BundleMod, only: gsi_bundle
-  use GSI_BundleMod, only: gsi_gridcreate
-  use GSI_BundleMod, only: gsi_bundlecreate
-  use GSI_BundleMod, only: gsi_bundledestroy
-  use GSI_BundleMod, only: gsi_bundlegetpointer
-  use GSI_BundleMod, only: gsi_bundlegetvar
-  use GSI_BundleMod, only: gsi_bundleputvar
-  use GSI_MetGuess_Mod, only: gsi_metguess_bundle
-  use GSI_ChemGuess_Mod, only: gsi_chemguess_bundle
+  use gsi_bundlemod, only: gsi_grid
+  use gsi_bundlemod, only: gsi_bundle
+  use gsi_bundlemod, only: gsi_gridcreate
+  use gsi_bundlemod, only: gsi_bundlecreate
+  use gsi_bundlemod, only: gsi_bundledestroy
+  use gsi_bundlemod, only: gsi_bundlegetpointer
+  use gsi_bundlemod, only: gsi_bundlegetvar
+  use gsi_bundlemod, only: gsi_bundleputvar
+  use gsi_metguess_mod, only: gsi_metguess_bundle
+  use gsi_chemguess_mod, only: gsi_chemguess_bundle
 
   implicit none
 
@@ -89,7 +89,7 @@ module m_gsiBiases
   public :: destroy_bkgbias_grids
 
   public :: gsi_bkgbias_bundle
-  public :: bvars2d, bvars3d    ! TODO: temporarily made public
+  public :: bvars2d, bvars3d    ! temporarily made public
 
   integer(i_kind),save :: bias_hour = -1
   integer(i_kind),save :: nbc       = -1
@@ -109,14 +109,14 @@ module m_gsiBiases
   character(len=32),allocatable,dimension(:):: bvars2d, bvars3d
   character(len=32),allocatable,dimension(:):: bsrcs2d, bsrcs3d
   integer(i_kind),allocatable,dimension(:):: levels
-  integer(i_kind),allocatable,dimension(:):: bkg_nymd ! Bkg date: YYYYMMDD
-  integer(i_kind),allocatable,dimension(:):: bkg_nhms ! Bkg time: HHMMSS
+  integer(i_kind),allocatable,dimension(:):: bkg_nymd ! Bkg date: yyyymmdd
+  integer(i_kind),allocatable,dimension(:):: bkg_nhms ! Bkg time: hhmmss
 
   type(gsi_bundle),pointer :: gsi_bkgbias_bundle(:)
 
-  character(len=*),parameter::myname='m_gsiBiases'
+  character(len=*),parameter::myname='m_gsibiases'
 
-  integer(i_kind), parameter :: bkg_nstarthr=3  ! GSI always starts 3hrs from syn hour 
+  integer(i_kind), parameter :: bkg_nstarthr=3  ! gsi always starts 3hrs from syn hour 
 contains
 
 subroutine set_ (iamroot,rcname)
@@ -127,7 +127,7 @@ subroutine set_ (iamroot,rcname)
 !      org:	 NASA/GSFC, Global Modeling and Assimilation Office, 610.1
 !     date:	 2014-10-05
 !
-! abstract: - set which variables in background is GSI to estimate biases for
+! abstract: - set which variables in background is gsi to estimate biases for
 !
 ! program history log:
 !   2014-10-05  todling  - initial code
@@ -328,9 +328,9 @@ subroutine init_(hour)
   if (bcoption==0 ) return
 
 ! set table with fields to bias correct
-  call set_(rcname='anavinfo')   ! would be better placed in Observer
+  call set_(rcname='anavinfo')   ! would be better placed in observer
   if ( .not. bkg_bias_set_ ) then
-     bcoption = 0  ! in case table is absent but user sets to do BBC
+     bcoption = 0  ! in case table is absent but user sets to do bbc
      if(mype==0) then
         write(6,*) myname_,': WARNING, BKG bias correction missing driving table'
         write(6,*) myname_,': WARNING, BKG bias correction deactivated ...'
@@ -342,7 +342,7 @@ subroutine init_(hour)
   if (nint(diurnalbc)==1) nbc=3
 
 ! create grid which biases are defined over
-  call GSI_GridCreate(grid,lat2,lon2,nsig)
+  call gsi_gridcreate(grid,lat2,lon2,nsig)
 
 ! allocate structures
   allocate(gsi_bkgbias_bundle(nbc))
@@ -352,13 +352,13 @@ subroutine init_(hour)
 
 !    create background bias bundle for this slot
      write(bname,'(a,i3.3)') 'Bkg Bias Vector-',nt
-     call GSI_BundleCreate(gsi_bkgbias_bundle(nt),grid,bname,istatus, &
+     call gsi_bundlecreate(gsi_bkgbias_bundle(nt),grid,bname,istatus, &
                            names2d=bvars2d,names3d=bvars3d,levels=levels,bundle_kind=r_kind)
 
   enddo
 
 ! store dates/time background available for 
-! NOTE: This should not really be done here (it belongs to guess_grids)
+! Note: This should not really be done here (it belongs to guess_grids)
   allocate(bkg_nymd(nfldsig))
   allocate(bkg_nhms(nfldsig))
   if(nfldsig>1) then
@@ -410,28 +410,28 @@ subroutine clean_()
 !
 !$$$ end documentation block
 
-   implicit none
+  implicit none
 
-   character(len=*), parameter :: myname_=myname//'*clean_'
-   integer(i_kind):: nt,istatus
+  character(len=*), parameter :: myname_=myname//'*clean_'
+  integer(i_kind):: nt,istatus
 
-   if (.not.initialized_) return 
+  if (.not.initialized_) return 
 
-   deallocate(bkg_nhms)
-   deallocate(bkg_nymd)
+  deallocate(bkg_nhms)
+  deallocate(bkg_nymd)
 
-!  destroy each instance of bundle
-   do nt=1,size(gsi_bkgbias_bundle)
+! destroy each instance of bundle
+  do nt=1,size(gsi_bkgbias_bundle)
 
-!     destroy nt slot ...
-      call GSI_BundleDestroy(gsi_bkgbias_bundle(nt),istatus)
-       if(istatus/=0) then
+!    destroy nt slot ...
+     call GSI_BundleDestroy(gsi_bkgbias_bundle(nt),istatus)
+     if(istatus/=0) then
         if(mype==0) &
         write(6,*)myname_,':  Error Dealloc(), istatus=',istatus
-      endif
+     endif
 
-   enddo
-   deallocate(gsi_bkgbias_bundle)
+  enddo
+  deallocate(gsi_bkgbias_bundle)
 
 end subroutine clean_
 
@@ -450,22 +450,22 @@ subroutine bias_model2d_(bias2d,varname,rc,hour,iflag)
 
 ! !USES:
 
-   use constants, only: one
-   implicit none
+  use constants, only: one
+  implicit none
 
 ! !INPUT PARAMETERS:
 
-   character(len=*)        ,intent(in   ) :: varname
-   integer(i_kind),optional,intent(in   ) :: hour
-   integer(i_kind),optional,intent(in   ) :: iflag  ! when -1 routine simple compress biases
+  character(len=*)        ,intent(in   ) :: varname
+  integer(i_kind),optional,intent(in   ) :: hour
+  integer(i_kind),optional,intent(in   ) :: iflag  ! when -1 routine simple compress biases
 
 ! !INPUT/OUTPUT PARAMETERS:
 
-   real   (r_kind),dimension(:,:),intent(inout) :: bias2d
+  real   (r_kind),dimension(:,:),intent(inout) :: bias2d
 
 ! !OUTPUT PARAMETERS:
 
-   integer(i_kind)               ,intent(  out) :: rc
+  integer(i_kind)               ,intent(  out) :: rc
 
 ! !DESCRIPTION: 2d-interface to bias prediction model
 !
@@ -486,39 +486,39 @@ subroutine bias_model2d_(bias2d,varname,rc,hour,iflag)
 !EOP
 !-------------------------------------------------------------------------
 
-   integer(i_kind) :: istatus
-   real(r_kind) :: twopi
-   real(r_kind) :: coshr,sinhr,coeff
-   real(r_kind),allocatable,dimension(:,:,:):: bias
+  integer(i_kind) :: istatus
+  real(r_kind) :: twopi
+  real(r_kind) :: coshr,sinhr,coeff
+  real(r_kind),allocatable,dimension(:,:,:):: bias
 
-   rc=0
-   allocate(bias(lat2,lon2,nbc))
-   call gsi_bundlegetvar(gsi_bkgbias_bundle,varname,bias,istatus)
-   if(istatus/=0) then
-      deallocate(bias)
-      rc=-1
-      return
-   endif
+  rc=0
+  allocate(bias(lat2,lon2,nbc))
+  call gsi_bundlegetvar(gsi_bkgbias_bundle,varname,bias,istatus)
+  if(istatus/=0) then
+     deallocate(bias)
+     rc=-1
+     return
+  endif
 
-   coeff = biascor(1)
-   if (present(iflag)) then
-      if(iflag==-1) coeff=one
-   endif
+  coeff = biascor(1)
+  if (present(iflag)) then
+     if(iflag==-1) coeff=one
+  endif
 
-   if (nbc==1) then
-      bias2d(:,:) = coeff*bias(:,:,1)
-   endif
+  if (nbc==1) then
+     bias2d(:,:) = coeff*bias(:,:,1)
+  endif
  
-   if (nbc==3) then
-      twopi=8._r_kind*atan(one)
-      coshr=one*cos(twopi*hour/24._r_kind)*diurnalbc
-      sinhr=one*sin(twopi*hour/24._r_kind)*diurnalbc
+  if (nbc==3) then
+     twopi=8._r_kind*atan(one)
+     coshr=one*cos(twopi*hour/24._r_kind)*diurnalbc
+     sinhr=one*sin(twopi*hour/24._r_kind)*diurnalbc
 
-      bias2d(:,:) = coeff*(bias(:,:,1) + &
-                           bias(:,:,2)*coshr + &
-                           bias(:,:,3)*sinhr)
-   endif
-   deallocate(bias)
+     bias2d(:,:) = coeff*(bias(:,:,1) + &
+                          bias(:,:,2)*coshr + &
+                          bias(:,:,3)*sinhr)
+  endif
+  deallocate(bias)
 
 end subroutine bias_model2d_
 
@@ -537,22 +537,22 @@ subroutine bias_model3d_(bias3d,varname,rc,hour,iflag)
 
 ! USES:
 
-   use constants, only: one
-   implicit none
+  use constants, only: one
+  implicit none
 
 ! !INPUT PARAMETERS:
 
-   character(len=*)        ,intent(in   ) :: varname
-   integer(i_kind),optional,intent(in   ) :: hour
-   integer(i_kind),optional,intent(in   ) :: iflag  ! when -1 routine simple compress biases
+  character(len=*)        ,intent(in   ) :: varname
+  integer(i_kind),optional,intent(in   ) :: hour
+  integer(i_kind),optional,intent(in   ) :: iflag  ! when -1 routine simple compress biases
 
 ! !INPUT/OUTPUT PARAMETERS:
 
-   real   (r_kind),dimension(:,:,:),intent(inout) :: bias3d
+  real   (r_kind),dimension(:,:,:),intent(inout) :: bias3d
 
 ! !OUTPUT PARAMETERS:
 
-   integer(i_kind)                 ,intent(  out) :: rc
+  integer(i_kind)                 ,intent(  out) :: rc
 
 ! !DESCRIPTION: 3d-interface to bias prediction model
 !
@@ -573,40 +573,40 @@ subroutine bias_model3d_(bias3d,varname,rc,hour,iflag)
 !EOP
 !-------------------------------------------------------------------------
 
-   integer(i_kind) :: istatus
-   real(r_kind) :: twopi
-   real(r_kind) :: coshr,sinhr,coeff
-   real(r_kind),allocatable,dimension(:,:,:,:):: bias
+  integer(i_kind) :: istatus
+  real(r_kind) :: twopi
+  real(r_kind) :: coshr,sinhr,coeff
+  real(r_kind),allocatable,dimension(:,:,:,:):: bias
 
-   rc=0
+  rc=0
 
-   allocate(bias(lat2,lon2,nsig,nbc))
-   call gsi_bundlegetvar(gsi_bkgbias_bundle,varname,bias,istatus)
-   if(istatus/=0) then
-      rc=-1
-      deallocate(bias)
-      return
-   endif
+  allocate(bias(lat2,lon2,nsig,nbc))
+  call gsi_bundlegetvar(gsi_bkgbias_bundle,varname,bias,istatus)
+  if(istatus/=0) then
+     rc=-1
+     deallocate(bias)
+     return
+  endif
 
-   coeff = biascor(1)
-   if (present(iflag)) then
-      if(iflag==-1) coeff=one
-   endif
+  coeff = biascor(1)
+  if (present(iflag)) then
+     if(iflag==-1) coeff=one
+  endif
 
-   if (nbc==1) then
-      bias3d(:,:,:) = coeff*bias(:,:,:,1)
-   endif
+  if (nbc==1) then
+     bias3d(:,:,:) = coeff*bias(:,:,:,1)
+  endif
 
-   if (nbc==3) then
-      twopi=8._r_kind*atan(one)
-      coshr=one*cos(twopi*hour/24._r_kind)*diurnalbc
-      sinhr=one*sin(twopi*hour/24._r_kind)*diurnalbc
+  if (nbc==3) then
+     twopi=8._r_kind*atan(one)
+     coshr=one*cos(twopi*hour/24._r_kind)*diurnalbc
+     sinhr=one*sin(twopi*hour/24._r_kind)*diurnalbc
 
-      bias3d(:,:,:) = coeff*(bias(:,:,:,1) + &
-                             bias(:,:,:,2)*coshr + &
-                             bias(:,:,:,3)*sinhr)
-   endif
-   deallocate(bias)
+     bias3d(:,:,:) = coeff*(bias(:,:,:,1) + &
+                            bias(:,:,:,2)*coshr + &
+                            bias(:,:,:,3)*sinhr)
+  endif
+  deallocate(bias)
 
 end subroutine bias_model3d_
 
@@ -624,15 +624,15 @@ subroutine bias_model_bundle_ (bundle,hour)
 
 ! USES:
 
-   implicit none
+  implicit none
 
 ! !INPUT PARAMETERS:
 
-integer(i_kind),optional,intent(in) :: hour
+  integer(i_kind),optional,intent(in) :: hour
 
 ! !INPUT/OUTPUT PARAMETERS:
 
-type(gsi_bundle) bundle
+  type(gsi_bundle) bundle
 
 ! !DESCRIPTION: bundle-interface to bias prediction model
 !
@@ -650,19 +650,19 @@ type(gsi_bundle) bundle
 !EOP
 !-------------------------------------------------------------------------
 
-integer(i_kind) iv,istatus
-real(r_kind), pointer, dimension(:,:)   :: ptr2d
-real(r_kind), pointer, dimension(:,:,:) :: ptr3d
+  integer(i_kind) iv,istatus
+  real(r_kind), pointer, dimension(:,:)   :: ptr2d
+  real(r_kind), pointer, dimension(:,:,:) :: ptr3d
 
-do iv=1,size(bvars2d)
-   call gsi_bundlegetpointer(bundle, bvars2d(iv), ptr2d, istatus)
-   if(istatus==0) call bias_model2d_ (ptr2d,bvars2d(iv),istatus,hour=hour)
-enddo
+  do iv=1,size(bvars2d)
+     call gsi_bundlegetpointer(bundle, bvars2d(iv), ptr2d, istatus)
+     if(istatus==0) call bias_model2d_ (ptr2d,bvars2d(iv),istatus,hour=hour)
+  enddo
 
-do iv=1,size(bvars3d)
-   call gsi_bundlegetpointer(bundle, bvars3d(iv), ptr3d, istatus)
-   if(istatus==0) call bias_model3d_ (ptr3d,bvars3d(iv),istatus,hour=hour)
-enddo
+  do iv=1,size(bvars3d)
+     call gsi_bundlegetpointer(bundle, bvars3d(iv), ptr3d, istatus)
+     if(istatus==0) call bias_model3d_ (ptr3d,bvars3d(iv),istatus,hour=hour)
+  enddo
 
 end subroutine bias_model_bundle_
 
@@ -701,8 +701,8 @@ subroutine update2d_(bias,sval,hour)
 !   2006-12-04  todling - documentation/prologue
 !   2014-10-04  todling - revisit selection of persistent/diurnal cases
 !                       - multiplicative parameter belongs to bias model
-!   2014-10-11  todling - make bias sign consistent with Dee and da Silva (1998)
-!                         and Dee and Todling (2000)
+!   2014-10-11  todling - make bias sign consistent with dee and da silva (1998)
+!                         and dee and todling (2000)
 !
 ! !REMARKS:
 !   language: f90
@@ -769,8 +769,8 @@ subroutine update3d_(bias,sval,hour)
 !   2006-12-04  todling - documentation/prologue
 !   2014-10-04  todling - revisit selection of persistent/diurnal cases
 !                       - multiplicative parameter belongs to bias model
-!   2014-10-11  todling - make bias sign consistent with Dee and da Silva (1998)
-!                         and Dee and Todling (2000)
+!   2014-10-11  todling - make bias sign consistent with dee and da silva (1998)
+!                         and dee and todling (2000)
 !
 ! !REMARKS:
 !   language: f90
@@ -948,11 +948,11 @@ subroutine updateall_ (sval,sval_div,sval_vor,hour)
 
   if (upa_update) then
      if(present(hour)) then
-       if(mype==0) & 
-       write(6,*) trim(myname_), ': complete bias update for all upper-air vars at hour ',hour
+        if(mype==0) & 
+        write(6,*) trim(myname_), ': complete bias update for all upper-air vars at hour ',hour
      else
-       if(mype==0) & 
-       write(6,*) trim(myname_), ': complete bias update for all upper-air variables'
+        if(mype==0) & 
+        write(6,*) trim(myname_), ': complete bias update for all upper-air variables'
      endif
   endif
 
@@ -1029,8 +1029,8 @@ subroutine correct_()
 !   2006-12-04  todling - initial code
 !   2011-02-11  zhu     - add gust,vis,pblh
 !   2011-05-01  todling - cwmr no longer in guess-grids; use metguess bundle now
-!   2014-10-11  todling - make bias sign consistent with Dee and da Silva (1998)
-!                         and Dee and Todling (2000)
+!   2014-10-11  todling - make bias sign consistent with dee and da silva (1998)
+!                         and dee and todling (2000)
 !
 ! !REMARKS:
 !   language: f90
@@ -1045,16 +1045,16 @@ subroutine correct_()
 
   character(len=*),parameter::myname_=myname//'*correct_'
 
-  real(r_kind),pointer,dimension(:,:  )  :: ptr2dges   =>NULL()
-  real(r_kind),pointer,dimension(:,:  )  :: ges_ps_it  =>NULL()
-  real(r_kind),pointer,dimension(:,:,:)  :: ges_u_it   =>NULL()
-  real(r_kind),pointer,dimension(:,:,:)  :: ges_v_it   =>NULL()
-  real(r_kind),pointer,dimension(:,:,:)  :: ges_div_it =>NULL()
-  real(r_kind),pointer,dimension(:,:,:)  :: ges_vor_it =>NULL()
-  real(r_kind),pointer,dimension(:,:,:)  :: ges_tv_it  =>NULL()
-  real(r_kind),pointer,dimension(:,:,:)  :: ges_q_it   =>NULL()
-  real(r_kind),pointer,dimension(:,:,:)  :: ges_oz_it  =>NULL()
-  real(r_kind),pointer,dimension(:,:,:)  :: ges_cwmr_it=>NULL()
+  real(r_kind),pointer,dimension(:,:  )  :: ptr2dges   =>null()
+  real(r_kind),pointer,dimension(:,:  )  :: ges_ps_it  =>null()
+  real(r_kind),pointer,dimension(:,:,:)  :: ges_u_it   =>null()
+  real(r_kind),pointer,dimension(:,:,:)  :: ges_v_it   =>null()
+  real(r_kind),pointer,dimension(:,:,:)  :: ges_div_it =>null()
+  real(r_kind),pointer,dimension(:,:,:)  :: ges_vor_it =>null()
+  real(r_kind),pointer,dimension(:,:,:)  :: ges_tv_it  =>null()
+  real(r_kind),pointer,dimension(:,:,:)  :: ges_q_it   =>null()
+  real(r_kind),pointer,dimension(:,:,:)  :: ges_oz_it  =>null()
+  real(r_kind),pointer,dimension(:,:,:)  :: ges_cwmr_it=>null()
 
   real(r_kind),allocatable,dimension(:,:)  :: work2d
   real(r_kind),allocatable,dimension(:,:,:):: work3d
@@ -1154,7 +1154,7 @@ subroutine correct_()
               call gsi_bundlegetpointer (gsi_metguess_bundle(it),'gust',ptr2dges,ier)
               if (ier==0) then
                  ptr2dges = ptr2dges - work2d
-                 ptr2dges =>NULL()
+                 ptr2dges =>null()
               end if
            end if
         end if
@@ -1166,7 +1166,7 @@ subroutine correct_()
               call gsi_bundlegetpointer (gsi_metguess_bundle(it),'vis',ptr2dges,ier)
               if (ier==0) then
                  ptr2dges = ptr2dges - work2d
-                 ptr2dges =>NULL()
+                 ptr2dges =>null()
               end if
            end if
         end if
@@ -1178,7 +1178,7 @@ subroutine correct_()
               call gsi_bundlegetpointer (gsi_metguess_bundle(it),'pblh',ptr2dges,ier)
               if (ier==0) then
                  ptr2dges = ptr2dges - work2d
-                 ptr2dges =>NULL()
+                 ptr2dges =>null()
               end if
            end if
         end if
@@ -1192,6 +1192,7 @@ subroutine correct_()
 end subroutine correct_
 
 subroutine upd_fldr3_(ges,xinc,threshold)
+  implicit none
   real(r_kind),optional:: threshold
   real(r_kind),pointer :: ges(:,:,:)
   real(r_kind)         :: xinc(:,:,:)
@@ -1215,4 +1216,4 @@ subroutine upd_fldr3_(ges,xinc,threshold)
   endif
 end subroutine upd_fldr3_
 
-end module m_gsiBiases
+end module m_gsibiases
