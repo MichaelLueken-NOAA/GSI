@@ -11,26 +11,26 @@ module m_obsdiags
 ! program history log:
 !   2015-02-04  j guo   - Re-implemented read_obsdiags() and write_obsdiags(),
 !                         to support reconfigurable observation operators.  This
-!                         implemenstation uses an obsLList template to support,
+!                         implemenstation uses an obsllist template to support,
 !                         in ceterian degree, static polymoprhism for different
 !                         observation types.
 !   2015-10-09  j guo   - By using Fortran 2003 dynamic polymorphism, this
-!                         version has removed many ugly type dispatching SELECT
-!                         CASE constructs, by using an obsLList, a linked-list
-!                         of dynamic polymorphic observation type (obsNode),
-!                         which replaced the earlier obsLList template.
-!   2016-06-22  j guo   - Added latlonRange for selected file readings, to let
+!                         version has removed many ugly type dispatching select
+!                         case constructs, by using an obsllist, a linked-list
+!                         of dynamic polymorphic observation type (obsnode),
+!                         which replaced the earlier obsllist template.
+!   2016-06-22  j guo   - Added latlonrange for selected file readings, to let
 !                         []_mread() to skip unnecessary read() of some files
 !                         containing no relevant observations.
-!                       . Added obsdiags_alwaysLocal, as a user controlable
+!                       . Added obsdiags_alwayslocal, as a user controlable
 !                         switch to allow or to bypass selected file readings.
-!                       . Added CHECK_SIZES_ outputs to allow size checkings.
-!                       . Added #define SHOW_LLRANGE, for text-dumping of latlonRanges.
-!                       . Added #define DEBUG_obsdiags, for text-dumping
+!                       . Added check_sizes_ outputs to allow size checkings.
+!                       . Added #define show_llrange, for text-dumping of latlonranges.
+!                       . Added #define debug_obsdiags, for text-dumping
 !                         specific sections of obsdiags(:,:).
-!                       . Locally renamed MPI_comm_world to gsi_comm_world.
+!                       . locally renamed mpi_comm_world to gsi_comm_world.
 !   2018-01-23  k apodaca - Add a new observation type i.e. lightning (light) 
-!                           suitable for the GOES/GLM instrument
+!                           suitable for the goes/glm instrument
 !
 !   input argument list: see Fortran 90 style document below
 !
@@ -48,85 +48,85 @@ module m_obsdiags
   use mpeu_util, only: tell,warn,perr,die
   use mpeu_util, only: assert_
   use mpeu_util, only: stdout_open,stdout_close,stdout
-  use mpeu_mpif, only: gsi_comm_world => MPI_comm_world
+  use mpeu_mpif, only: gsi_comm_world => mpi_comm_world
 
-  use gsi_obOper, only: obOper
+  use gsi_oboper, only: oboper
 
-  use m_obsLList, only: obsLList
-  use m_obsdiagNode, only: obs_diag
-  use m_obsdiagNode, only: obs_diags
+  use m_obsllist, only: obsllist
+  use m_obsdiagnode, only: obs_diag
+  use m_obsdiagnode, only: obs_diags
 
-  use gsi_obOperTypeManager, only: nobs_type => obOper_count
+  use gsi_obopertypemanager, only: nobs_type => oboper_count
   use gsi_4dvar            , only: nobs_bins
 
   !use obsmod, only: obsdiags     ! (nobs_type,nobs_bins)
   implicit none
   private       ! except
 
-  public:: obOpers_config
-        interface obOpers_config; module procedure config_; end interface
+  public:: obopers_config
+  interface obopers_config; module procedure config_; end interface
 
-        ! obOper instance creater with initialization to objects corresponding
+        ! oboper instance creater with initialization to objects corresponding
         ! linked-list data instances.
-  public:: obOper_create
-  public:: obOper_headNode
-  public:: obOper_destroy
-        interface obOper_create; module procedure &
-          createbydtype_, &
-          createbyindex_, &
-          createbyvmold_
-        end interface
-        interface obOper_headNode; module procedure headnode_; end interface
-        interface obOper_destroy ; module procedure destroy_ ; end interface
+  public:: oboper_create
+  public:: oboper_headnode
+  public:: oboper_destroy
+  interface oboper_create; module procedure &
+     createbydtype_, &
+     createbyindex_, &
+     createbyvmold_
+  end interface
+  interface oboper_headnode; module procedure headnode_; end interface
+  interface oboper_destroy ; module procedure destroy_ ; end interface
 
   public:: obsdiags_reset
   public:: obsdiags_write
   public:: obsdiags_read
   public:: obsdiags_sort
 
-        interface obsdiags_reset; module procedure reset_; end interface
-        interface obsdiags_write; module procedure write_; end interface
-        interface obsdiags_read ; module procedure mread_; end interface
-        interface obsdiags_sort ; module procedure lsort_; end interface
+  interface obsdiags_reset; module procedure reset_; end interface
+  interface obsdiags_write; module procedure write_; end interface
+  interface obsdiags_read ; module procedure mread_; end interface
+  interface obsdiags_sort ; module procedure lsort_; end interface
 
   public:: obsdiags_create
   public:: obsdiags_destroy
   public:: obsdiags_inquire
-        interface obsdiags_create ; module procedure  create_obsmod_vars; end interface
-        interface obsdiags_destroy; module procedure destroy_obsmod_vars; end interface
-        interface obsdiags_inquire; module procedure inquire_obsdiags   ; end interface
+  interface obsdiags_create ; module procedure  create_obsmod_vars; end interface
+  interface obsdiags_destroy; module procedure destroy_obsmod_vars; end interface
+  interface obsdiags_inquire; module procedure inquire_obsdiags   ; end interface
 
   public:: obsdiags_summary
 
-        interface obsdiags_summary ; module procedure summary_ ; end interface
+  interface obsdiags_summary ; module procedure summary_ ; end interface
 
-  public:: obsdiags_alwaysLocal
-        logical,save:: obsdiags_alwaysLocal = .false.
+  public:: obsdiags_alwayslocal
+  logical,save:: obsdiags_alwayslocal = .false.
 
 ! Note: User configurables
 !
-!   (1) obsdiags_mread(..,mPEs,..) via /SETUP/:mPEs_observer:
+!   (1) obsdiags_mread(..,mpes,..) via /setup/:mpes_observer:
 !
-!       mPEs==0, for reading "my own data";
-!       mPEs=>0, reading "all data", from PE 0 to mPEs-1, but only up to the
+!       mpes==0, for reading "my own data";
+!       mpes=>0, reading "all data", from pe 0 to mpes-1, but only up to the
 !                highest count of the actually accessible files.
 !
-!       This value is configured through gsimod namelist/SETUP/:mPEs_observer,
+!       This value is configured through gsimod namelist/setup/:mpes_observer,
 !       with the default value set to 0, to behave as it was ("my own data").
-!       Otherwise, a simple usage is to let mPEs_observer=1024, or other large
+!       Otherwise, a simple usage is to let mpes_observer=1024, or other large
 !       enough value, such that the solver-mode will try to determine how many
 !       files created by the observer-mode are actually there to read.
 !
-!   (2) obsdiags_alwaysLocal via /SETUP/:alwaysLocal:
+!   (2) obsdiags_alwayslocal via /setup/:alwayslocal:
 !       
-!       obsdiags_alwaysLocal sets an alternative default value of the optional
-!       argument of obsdiags_mread(..,alwaysLocal).
+!       obsdiags_alwayslocal sets an alternative default value of the optional
+!       argument of obsdiags_mread(..,alwayslocal).
 !
-!       obsdiags_alwaysLocal==.false., its default value.
+!       obsdiags_alwayslocal==.false., its default value.
 !               It let obsdiags_mread() to check the locality of a file first,
-!               using latlonRange_islocal(iPE), to avoid unnecessary opening+
+!               using latlonrange_islocal(ipe), to avoid unnecessary opening+
 !               reading some files.
-!       obsdiags_alwaysLocal==.true., override latlonRange_islocal(iPE).
+!       obsdiags_alwayslocal==.true., override latlonrange_islocal(ipe).
 !               It let obsdiags_mread() to always open+read all file.
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -134,25 +134,25 @@ module m_obsdiags
   logical,save:: lobsdiags_allocated_ = .false.
   logical,save:: lobstypes_allocated_ = .false.
 
-  logical,parameter:: All_PEs =.false.  ! report status on all PEs or root only
-  !logical,parameter:: All_PEs =.true.  ! report status on all PEs or root only
-  logical,parameter:: DO_SUMMARY =.false.  ! report status on all PEs or root only
-  !logical,parameter:: DO_SUMMARY =.true.  ! report status on all PEs or root only
+  logical,parameter:: all_pes =.false.  ! report status on all pes or root only
+  !logical,parameter:: all_pes =.true.  ! report status on all pes or root only
+  logical,parameter:: do_summary =.false.  ! report status on all pes or root only
+  !logical,parameter:: do_summary =.true.  ! report status on all pes or root only
 
-        ! SYNCH_MESSAGES is a flag to invoke MPI_Barrier() calls before some
+        ! synch_messages is a flag to invoke mpi_barrier() calls before some
         ! status messages.  These calls are otherwise not necessary for the
         ! functionalities, but used here to ensure those messages mean what they
-        ! intent to mean, in case that only the root PE is used to report some
-        ! all PE status.
+        ! intent to mean, in case that only the root pe is used to report some
+        ! all pe status.
 
-  !logical,parameter:: SYNCH_MESSAGES = .true.          ! turn synch on
-  !logical,parameter:: SYNCH_MESSAGES = .not. All_PEs   ! conditionally turn on
-  logical,parameter:: SYNCH_MESSAGES = .false.          ! turn synch off
+  !logical,parameter:: synch_messages = .true.          ! turn synch on
+  !logical,parameter:: synch_messages = .not. all_pes   ! conditionally turn on
+  logical,parameter:: synch_messages = .false.          ! turn synch off
 
   public :: obsdiags
-  public :: obsLLists
+  public :: obsllists
 
-  type(obsLList ),save,dimension(:,:),pointer :: obsLLists => null()
+  type(obsllist ),save,dimension(:,:),pointer :: obsllists => null()
   type(obs_diags),save,dimension(:,:),pointer :: obsdiags  => null()  ! (nobs_type,nobs_bins)
   
   integer(i_kind),save:: jfunc__jiter = -1
@@ -163,29 +163,29 @@ module m_obsdiags
   integer(i_kind),save:: gsi_4dvar__min_offset = -1
   real   (r_kind),save:: gsi_4dvar__hr_obsbin  = -999._r_kind
 
-!#define DEBUG_TRACE
-!#define DEBUG_VERBOSE
+!#define debug_trace
+!#define debug_verbose
 #include "mytrace.H"
 #include "myassert.H"
 
-#define _TIMER_ON_
-#ifdef  _TIMER_ON_
-#undef  _TIMER_ON_
-#undef  _TIMER_OFF_
-#undef  _TIMER_USE_
-#define _TIMER_ON_(id)  call timer_ini(id)
-#define _TIMER_OFF_(id) call timer_fnl(id)
-#define _TIMER_USE_     use timermod, only: timer_ini,timer_fnl
+#define _timer_on_
+#ifdef  _timer_on_
+#undef  _timer_on_
+#undef  _timer_off_
+#undef  _timer_use_
+#define _timer_on_(id)  call timer_ini(id)
+#define _timer_off_(id) call timer_fnl(id)
+#define _timer_use_     use timermod, only: timer_ini,timer_fnl
 #else
-#define _TIMER_ON_(id)
-#define _TIMER_OFF_(id)
-#define _TIMER_USE_
+#define _timer_on_(id)
+#define _timer_off_(id)
+#define _timer_use_
 #endif
 
-  logical,parameter:: CHECK_SIZES_=.false.
-  !logical,parameter:: CHECK_SIZES_=.true.
+  logical,parameter:: check_sizes_=.false.
+  !logical,parameter:: check_sizes_=.true.
 
-  !-- if(CHECK_SIZES_) then 
+  !-- if(check_sizes_) then 
   !--   these size counters,
 
   integer(i_kind),allocatable,dimension(:),save:: lsize_type    !  luse counts of ob_type
@@ -195,235 +195,235 @@ module m_obsdiags
   integer(i_kind),allocatable,dimension(:),save:: nsize_diag    ! total counts of obs_diags
 
   !--   will be used to generate extra log-information, reporting different
-  !--   size-counts of linked-lists, of all j-type, i-bin, on all PEs.  Search
-  !--   "CHECK_SIZES_" here for details.
+  !--   size-counts of linked-lists, of all j-type, i-bin, on all pes.  Search
+  !--   "check_sizes_" here for details.
   !-- endif
 
 contains
 
 subroutine config_()
-!> Coupling external configurations (through external modules) to obOpers' own
+!> Coupling external configurations (through external modules) to obopers' own
 !> module configurations
   implicit none
 
-!> For all obOpers, import external configurations
+!> For all obopers, import external configurations
   call     jfunc__import_()
   call gsi_4dvar__import_()
 
-!> For specific obOpers, import specific configurations
-  call  lwcpOper__config_()
+!> For specific obopers, import specific configurations
+  call  lwcpoper__config_()
 
-return
+  return
 contains
 subroutine jfunc__import_()
-  !> jfunc parameters imported
-    use jfunc, only: jiter
-    use jfunc, only: miter
-    use jfunc, only: jiterstart
-    implicit none
-    jfunc__jiter = jiter
-    jfunc__miter = miter
-    jfunc__jiterstart = jiterstart
+!> jfunc parameters imported
+  use jfunc, only: jiter
+  use jfunc, only: miter
+  use jfunc, only: jiterstart
+  implicit none
+  jfunc__jiter = jiter
+  jfunc__miter = miter
+  jfunc__jiterstart = jiterstart
   return
-  end subroutine jfunc__import_
+end subroutine jfunc__import_
 subroutine gsi_4dvar__import_()
-  !> gsi4dvar parameters imported
-    use gsi_4dvar, only: nobs_bins
-    use gsi_4dvar, only: min_offset
-    use gsi_4dvar, only: hr_obsbin
-    implicit none
-    gsi_4dvar__nobs_bins  = nobs_bins
-    gsi_4dvar__min_offset = min_offset
-    gsi_4dvar__hr_obsbin  = hr_obsbin
+!> gsi4dvar parameters imported
+  use gsi_4dvar, only: nobs_bins
+  use gsi_4dvar, only: min_offset
+  use gsi_4dvar, only: hr_obsbin
+  implicit none
+  gsi_4dvar__nobs_bins  = nobs_bins
+  gsi_4dvar__min_offset = min_offset
+  gsi_4dvar__hr_obsbin  = hr_obsbin
   return
-  end subroutine gsi_4dvar__import_
-subroutine lwcpOper__config_()
-  !> gsi_lwcpOper parameters for configuration
-  !> gfs_stratosphere imports
-    use gfs_stratosphere, only: use_gfs_stratosphere
-    use gfs_stratosphere, only: nsig_save
-  !> lwcpOper
-    use gsi_lwcpOper    , only: lwcpOper_config
-    implicit none
+end subroutine gsi_4dvar__import_
+subroutine lwcpoper__config_()
+!> gsi_lwcpoper parameters for configuration
+!> gfs_stratosphere imports
+  use gfs_stratosphere, only: use_gfs_stratosphere
+  use gfs_stratosphere, only: nsig_save
+!> lwcpoper
+  use gsi_lwcpoper    , only: lwcpoper_config
+  implicit none
   
-    call lwcpOper_config()   ! reset to default
-  !> From gfs_stratosphere to gsi_lwcpOper, and expected to be refactored into an attribute of profile-vectors objects)
-    if(use_gfs_stratosphere) call lwcpOper_config(nsig_save=nsig_save)
+  call lwcpoper_config()   ! reset to default
+!> From gfs_stratosphere to gsi_lwcpoper, and expected to be refactored into an attribute of profile-vectors objects)
+  if(use_gfs_stratosphere) call lwcpoper_config(nsig_save=nsig_save)
   return
-  end subroutine lwcpOper__config_
+end subroutine lwcpoper__config_
 end subroutine config_
 
 function createbydtype_(dtype) result(self)
-!>> create an obOper to its components instanciated in this data module, with
-!>> a given obOper registered dtype
-  use gsi_obOperTypeManager, only: obOper_typeMold     ! (dtype)
+!>> create an oboper to its components instanciated in this data module, with
+!>> a given oboper registered dtype
+  use gsi_obopertypemanager, only: oboper_typemold     ! (dtype)
   implicit none
-  class(obOper),pointer:: self
+  class(oboper),pointer:: self
   character(len=*),intent(in):: dtype
   character(len=*),parameter:: myname_=myname//"::createbydtype_"
 
-  self => createbyvmold_(obOper_typeMold(dtype))
+  self => createbyvmold_(oboper_typemold(dtype))
 
-#ifdef DEBUG_VERBOSE
+#ifdef debug_verbose
 ! show status of the object for debugging
   call tell(myname_,'--- argument dtype =',trim(dtype))
   call tell(myname_,'associated(return) =',associated(self))
-  !if(associated(self)) call obOper_show_(myname_,self)
+  !if(associated(self)) call oboper_show_(myname_,self)
 #endif
 end function createbydtype_
 
 function createbyindex_(ioper) result(self)
-!>> create an obOper to its components instanciated in this data module, with
-!>> a given obOper registered index.
-  use gsi_obOperTypeManager, only: obOper_typeMold     ! (ioper)
-  use gsi_obOperTypeManager, only: obOper_lbound
-  use gsi_obOperTypeManager, only: obOper_ubound
+!>> create an oboper to its components instanciated in this data module, with
+!>> a given oboper registered index.
+  use gsi_obopertypemanager, only: oboper_typemold     ! (ioper)
+  use gsi_obopertypemanager, only: oboper_lbound
+  use gsi_obopertypemanager, only: oboper_ubound
   implicit none
-  class(obOper),pointer:: self
+  class(oboper),pointer:: self
   integer(kind=i_kind),intent(in):: ioper
 
   character(len=*),parameter:: myname_=myname//"::createbyindex_"
-  class(obOper),pointer:: mold_
+  class(oboper),pointer:: mold_
 
-  mold_ => obOper_typeMold(ioper)
+  mold_ => oboper_typemold(ioper)
   if(associated(mold_)) then
-    allocate(self,mold=mold_)
+     allocate(self,mold=mold_)
 
-        if(ioper<lbound(obsLLists,1) .or. ioper>ubound(obsLLists,1)) then
-          call perr(myname_,'unexpected value, ioper =',ioper)
-          call perr(myname_,'    lbound(obsLLists,1) =',lbound(obsLLists,1))
-          call perr(myname_,'    ubound(obsLLists,1) =',ubound(obsLLists,1))
-          call perr(myname_,'              %mytype() =',self%mytype())
-          call perr(myname_,'      %mytype(nodetype) =',self%mytype(nodetype=.true.))
-          call  die(myname_)
-        endif
-        if(ioper<lbound( obsdiags,1) .or. ioper>ubound( obsdiags,1)) then
-          call perr(myname_,'unexpected value, ioper =',ioper)
-          call perr(myname_,'    lbound( obsdiags,1) =',lbound( obsdiags,1))
-          call perr(myname_,'    ubound( obsdiags,1) =',ubound( obsdiags,1))
-          call perr(myname_,'              %mytype() =',self%mytype())
-          call perr(myname_,'      %mytype(nodetype) =',self%mytype(nodetype=.true.))
-          call  die(myname_)
-        endif
+     if(ioper<lbound(obsllists,1) .or. ioper>ubound(obsllists,1)) then
+        call perr(myname_,'unexpected value, ioper =',ioper)
+        call perr(myname_,'    lbound(obsllists,1) =',lbound(obsllists,1))
+        call perr(myname_,'    ubound(obsllists,1) =',ubound(obsllists,1))
+        call perr(myname_,'              %mytype() =',self%mytype())
+        call perr(myname_,'      %mytype(nodetype) =',self%mytype(nodetype=.true.))
+        call  die(myname_)
+     endif
+     if(ioper<lbound( obsdiags,1) .or. ioper>ubound( obsdiags,1)) then
+        call perr(myname_,'unexpected value, ioper =',ioper)
+        call perr(myname_,'    lbound( obsdiags,1) =',lbound( obsdiags,1))
+        call perr(myname_,'    ubound( obsdiags,1) =',ubound( obsdiags,1))
+        call perr(myname_,'              %mytype() =',self%mytype())
+        call perr(myname_,'      %mytype(nodetype) =',self%mytype(nodetype=.true.))
+        call  die(myname_)
+     endif
 
-    call self%init(obsLLists(ioper,:), &
-                    obsdiags(ioper,:)  )
-    mold_ => null()
+     call self%init(obsllists(ioper,:), &
+                      obsdiags(ioper,:)  )
+     mold_ => null()
 
   else
-        call perr(myname_,'.not.associated, ioper =',ioper)
-        call  die(myname_)
+     call perr(myname_,'.not.associated, ioper =',ioper)
+     call  die(myname_)
   endif
 
-#ifdef DEBUG_VERBOSE
+#ifdef debug_verbose
 !>> show status of the object for debugging
   call tell(myname_,'--- argument ioper =',ioper)
   call tell(myname_,'associated(return) =',associated(self))
-  !if(associated(self)) call obOper_show_(myname_,self)
+  !if(associated(self)) call oboper_show_(myname_,self)
 #endif
 end function createbyindex_
 
 function createbyvmold_(mold) result(self)
-!>> initialize an obOper to its components (linked-lists)
-  use gsi_obOperTypeManager, only: obOper_typeIndex      ! to type-index
-  use gsi_obOperTypeManager, only: obOper_typeIndex      ! to type-index
+!>> initialize an oboper to its components (linked-lists)
+  use gsi_obopertypemanager, only: oboper_typeindex      ! to type-index
+  use gsi_obopertypemanager, only: oboper_typeindex      ! to type-index
   implicit none
-  class(obOper),pointer:: self
-  class(obOper),target,intent(in):: mold
+  class(oboper),pointer:: self
+  class(oboper),target,intent(in):: mold
 
   character(len=*),parameter:: myname_=myname//"::createbyvmold_"
-  integer(kind=i_kind):: itype  ! for a registered obsNode type index
+  integer(kind=i_kind):: itype  ! for a registered obsnode type index
 
   self => mold
   if(associated(self)) then
-    allocate(self,mold=mold)
+     allocate(self,mold=mold)
 
-    ! Get its corresponding obsNode type name, then convert to its type-index
-    itype=obOper_typeIndex(self)
+     ! Get its corresponding obsnode type name, then convert to its type-index
+     itype=oboper_typeindex(self)
 
-        if(itype<lbound(obsLLists,1) .or. itype>ubound(obsLLists,1)) then
-          call perr(myname_,'unexpected value, itype =',itype)
-          call perr(myname_,'    lbound(obsLLists,1) =',lbound(obsLLists,1))
-          call perr(myname_,'    ubound(obsLLists,1) =',ubound(obsLLists,1))
-          call perr(myname_,'              %mytype() =',self%mytype())
-          call perr(myname_,'      %mytype(nodetype) =',self%mytype(nodetype=.true.))
-          call  die(myname_)
-        endif
-        if(itype<lbound( obsdiags,1) .or. itype>ubound( obsdiags,1)) then
-          call perr(myname_,'unexpected value, itype =',itype)
-          call perr(myname_,'    lbound( obsdiags,1) =',lbound( obsdiags,1))
-          call perr(myname_,'    ubound( obsdiags,1) =',ubound( obsdiags,1))
-          call perr(myname_,'              %mytype() =',self%mytype())
-          call perr(myname_,'      %mytype(nodetype) =',self%mytype(nodetype=.true.))
-          call  die(myname_)
-        endif
+     if(itype<lbound(obsllists,1) .or. itype>ubound(obsllists,1)) then
+        call perr(myname_,'unexpected value, itype =',itype)
+        call perr(myname_,'    lbound(obsllists,1) =',lbound(obsllists,1))
+        call perr(myname_,'    ubound(obsllists,1) =',ubound(obsllists,1))
+        call perr(myname_,'              %mytype() =',self%mytype())
+        call perr(myname_,'      %mytype(nodetype) =',self%mytype(nodetype=.true.))
+        call  die(myname_)
+     endif
+     if(itype<lbound( obsdiags,1) .or. itype>ubound( obsdiags,1)) then
+        call perr(myname_,'unexpected value, itype =',itype)
+        call perr(myname_,'    lbound( obsdiags,1) =',lbound( obsdiags,1))
+        call perr(myname_,'    ubound( obsdiags,1) =',ubound( obsdiags,1))
+        call perr(myname_,'              %mytype() =',self%mytype())
+        call perr(myname_,'      %mytype(nodetype) =',self%mytype(nodetype=.true.))
+        call  die(myname_)
+     endif
 
-    call self%init(obsLLists(itype,:), &
-                    obsdiags(itype,:)  )
+     call self%init(obsllists(itype,:), &
+                     obsdiags(itype,:)  )
   endif
 
-#ifdef DEBUG_VERBOSE
+#ifdef debug_verbose
 ! show status of the object for debugging
   call tell(myname_,'--- argument mold%mytype() =',mold%mytype())
   call tell(myname_,'     mold%mytype(nodetype) =',mold%mytype(nodetype=.true.))
   call tell(myname_,'        associated(return) =',associated(self))
-  if(associated(self)) call obOper_show_(myname_,self)
+  if(associated(self)) call oboper_show_(myname_,self)
 #endif
 end function createbyvmold_
 
 subroutine oboper_show_(mname,self)
-  use gsi_obOper, only: obOper
-  use gsi_obOperTypeManager, only: obOper_typeIndex
-  use gsi_obOperTypeManager, only: obOper_typeInfo
-  use m_obsNodeTypeManager , only: obsNode_typeIndex     ! to type-index
+  use gsi_oboper, only: oboper
+  use gsi_obopertypemanager, only: oboper_typeindex
+  use gsi_obopertypemanager, only: oboper_typeinfo
+  use m_obsnodetypemanager , only: obsnode_typeindex     ! to type-index
   use mpeu_util, only: tell
   implicit none
   character(len=*),intent(in):: mname
-  class(obOper),target,intent(in):: self
+  class(oboper),target,intent(in):: self
 
-  call tell(mname,' obOper_typeIndex(%) =',obOper_typeIndex(self))
-  call tell(mname,'  obOper_typeInfo(%) =',obOper_typeInfo(self))
-  call tell(mname,'  associated(%obsLL) =',associated(self%obsLL))
-  call tell(mname,'associated(%odiagLL) =',associated(self%odiagLL))
+  call tell(mname,' oboper_typeindex(%) =',oboper_typeindex(self))
+  call tell(mname,'  oboper_typeinfo(%) =',oboper_typeinfo(self))
+  call tell(mname,'  associated(%obsll) =',associated(self%obsll))
+  call tell(mname,'associated(%odiagll) =',associated(self%odiagll))
   call tell(mname,'     self%nodetype() =', self%mytype(nodetype=.true.))
-end subroutine obOper_show_
+end subroutine oboper_show_
 
 subroutine destroy_(self)
   implicit none
-  class(obOper),pointer,intent(inout):: self
+  class(oboper),pointer,intent(inout):: self
   if(associated(self)) then
-    call self%clean()
-    deallocate(self)
+     call self%clean()
+     deallocate(self)
   endif
 end subroutine destroy_
 
-function headNode_(iobOper,ibin) result(anode)
-!>> Example: -- get the head node of an obOper%obsLL(ibin)
-!>>   psptr => psNode_typecast(headNode(iobOper_ps))
-  use m_obsNode , only: obsNode
-  use m_obsLList, only: obsLList_headNode
-  use gsi_obOper, only: obOper
+function headnode_(ioboper,ibin) result(anode)
+!>> Example: -- get the head node of an oboper%obsll(ibin)
+!>>   psptr => psnode_typecast(headnode(ioboper_ps))
+  use m_obsnode , only: obsnode
+  use m_obsllist, only: obsllist_headnode
+  use gsi_oboper, only: oboper
   implicit none
-  integer(kind=i_kind),intent(in):: iobOper
+  integer(kind=i_kind),intent(in):: ioboper
   integer(kind=i_kind),intent(in):: ibin
-  class(obsNode),pointer:: anode
+  class(obsnode),pointer:: anode
 
-  character(len=*),parameter:: myname_=myname//"::headNode_"
-  class(obOper),pointer:: obOper_
+  character(len=*),parameter:: myname_=myname//"::headnode_"
+  class(oboper),pointer:: oboper_
 
-  obOper_ => createbyindex_(iobOper)
-        if(.not.associated(obOper_)) then
-          call perr(myname_,'createbuindex_(), associated(obOper_) =',associated(obOper_))
-          call perr(myname_,'                                ioper =',iobOper)
-          call perr(myname_,'                                 ibin =',ibin)
-          call  die(myname_)
-        endif
+  oboper_ => createbyindex_(ioboper)
+  if(.not.associated(oboper_)) then
+     call perr(myname_,'createbuindex_(), associated(oboper_) =',associated(oboper_))
+     call perr(myname_,'                                ioper =',ioboper)
+     call perr(myname_,'                                 ibin =',ibin)
+     call  die(myname_)
+  endif
 
-  anode => obsLList_headNode(obOper_%obsLL(ibin))
-  call destroy_(obOper_)
-end function headNode_
+  anode => obsllist_headnode(oboper_%obsll(ibin))
+  call destroy_(oboper_)
+end function headnode_
 
-subroutine lobsdiags_statusCheck_(who,allocated)
+subroutine lobsdiags_statuscheck_(who,allocated)
 !-- check the allocation status of basic obsdiags components.
   use obsmod, only: luse_obsdiag
   implicit none
@@ -432,24 +432,24 @@ subroutine lobsdiags_statusCheck_(who,allocated)
 
   if(.not.luse_obsdiag) return
   if(allocated) then
-    if( .not.lobsdiags_allocated_ .or. &
-        .not.lobstypes_allocated_ ) then
-      if(.not.lobsdiags_allocated_) call perr(who,'.not.lobsdiags_allocated_')
-      if(.not.lobstypes_allocated_) call perr(who,'.not.lobstypes_allocated_')
-      call die(who)
-    endif
+     if( .not.lobsdiags_allocated_ .or. &
+         .not.lobstypes_allocated_ ) then
+        if(.not.lobsdiags_allocated_) call perr(who,'.not.lobsdiags_allocated_')
+        if(.not.lobstypes_allocated_) call perr(who,'.not.lobstypes_allocated_')
+        call die(who)
+     endif
 
   else
-    if( lobsdiags_allocated_ .or. &
-        lobstypes_allocated_ ) then
-      if(lobsdiags_allocated_) call perr(who,'lobsdiags_allocated_ already')
-      if(lobstypes_allocated_) call perr(who,'lobstypes_allocated_ already')
-      call die(who)
-    endif
+     if( lobsdiags_allocated_ .or. &
+         lobstypes_allocated_ ) then
+        if(lobsdiags_allocated_) call perr(who,'lobsdiags_allocated_ already')
+        if(lobstypes_allocated_) call perr(who,'lobstypes_allocated_ already')
+        call die(who)
+     endif
   endif
-end subroutine lobsdiags_statusCheck_
+end subroutine lobsdiags_statuscheck_
 
-subroutine mread_(cdfile,mPEs,force,jiter_expected,alwaysLocal)
+subroutine mread_(cdfile,mpes,force,jiter_expected,alwayslocal)
 !$$$  subprogram documentation block
 !                .      .    .                                       .
 ! subprogram:    m_obdiags::mread_
@@ -486,195 +486,195 @@ subroutine mread_(cdfile,mPEs,force,jiter_expected,alwaysLocal)
 !$$$ end documentation block
 
   use mpeu_util, only: tell,perr,die,stdout_open,stdout_close,stdout
-  _TIMER_USE_
+  _timer_use_
   use kinds, only: r_kind,i_kind
 
   use obsmod, only: lobserver
-  use mpimod, only: myPE
-  use m_latlonRange, only: latlonRange
-  use m_latlonRange, only: latlonRange_reset
-  use m_latlonRange, only: latlonRange_islocal
-  use m_latlonRange, only: latlonRange_readBcast
-  use m_latlonRange, only: latlonRange_allDump
+  use mpimod, only: mype
+  use m_latlonrange, only: latlonrange
+  use m_latlonrange, only: latlonrange_reset
+  use m_latlonrange, only: latlonrange_islocal
+  use m_latlonrange, only: latlonrange_readbcast
+  use m_latlonrange, only: latlonrange_alldump
 
-  use m_obsdiagNode, only: obsdiagLList_dump
+  use m_obsdiagnode, only: obsdiagllist_dump
   implicit none
   character(len=*), intent(in) :: cdfile          ! prefix, "obsdiags.<miter>"
-  integer(i_kind),optional,intent(in):: mPEs      ! number of files, from 0 to mPEs-1
+  integer(i_kind),optional,intent(in):: mpes      ! number of files, from 0 to mpes-1
   logical        ,optional,intent(in):: force     ! force to read ob_types, regardless l4dvar etc.
   integer(i_kind),optional,intent(in):: jiter_expected  ! expected input jiter
-  logical        ,optional,intent(in):: alwaysLocal ! read all files
+  logical        ,optional,intent(in):: alwayslocal ! read all files
 
 ! ----------------------------------------------------------
   character(len=*),parameter:: myname_=myname//"::mread_"
   logical:: redistr,exist_
-  integer(i_kind):: lPE,uPE,iPE,ier
+  integer(i_kind):: lpe,upe,ipe,ier
   integer(i_kind):: jtyp,jread
   logical:: force_read
-  logical:: alwaysLocal_
+  logical:: alwayslocal_
   logical:: fileislocal
-  type(latlonRange),allocatable,dimension(:):: allRanges
+  type(latlonrange),allocatable,dimension(:):: allranges
 _ENTRY_(myname_)
-_TIMER_ON_(myname_)
+_timer_on_(myname_)
 !call stdout_open("obsdiags_mread")
   force_read=.false.
   if(present(force)) force_read=force
-  alwaysLocal_=obsdiags_alwaysLocal
-  if(present(alwaysLocal)) alwaysLocal_=alwaysLocal
+  alwayslocal_=obsdiags_alwayslocal
+  if(present(alwayslocal)) alwayslocal_=alwayslocal
 
-  call lobsdiags_statusCheck_(myname_,allocated=.true.)
+  call lobsdiags_statuscheck_(myname_,allocated=.true.)
 
         ! Determine the configuration, either read-my-own-data-only, or
         ! try-to-read-all-data-available.
 
-  lPE=myPE
-  uPE=lPE
+  lpe=mype
+  upe=lpe
   redistr=.false.
-  if(present(mPEs)) then
-    if(mPEs>0) then
-      redistr=.true.
-      lPE=0
-      uPE=-1
-      do iPE=lPE,mPEs-1
-        inquire(file=trim(filename_(cdfile,iPE)), exist=exist_)
-        if(exist_) uPE=iPE
-      enddo
-    endif
+  if(present(mpes)) then
+     if(mpes>0) then
+        redistr=.true.
+        lpe=0
+        upe=-1
+        do ipe=lpe,mpes-1
+           inquire(file=trim(filename_(cdfile,ipe)), exist=exist_)
+           if(exist_) upe=ipe
+        enddo
+     endif
   endif
 
         ! Reset components of obsdiags, for their re-construction from files
   call reset_()
 
-  if(CHECK_SIZES_) then
-    allocate(lsize_type(nobs_type))
-    allocate(nsize_type(nobs_type))
-    allocate(lsize_diag(nobs_type))
-    allocate(nsize_diag(nobs_type))
-    allocate(msize_diag(nobs_type))
+  if(check_sizes_) then
+     allocate(lsize_type(nobs_type))
+     allocate(nsize_type(nobs_type))
+     allocate(lsize_diag(nobs_type))
+     allocate(nsize_diag(nobs_type))
+     allocate(msize_diag(nobs_type))
 
-    lsize_type(:)=0
-    nsize_type(:)=0
-    lsize_diag(:)=0
-    nsize_diag(:)=0
-    msize_diag(:)=0
+     lsize_type(:)=0
+     nsize_type(:)=0
+     lsize_diag(:)=0
+     nsize_diag(:)=0
+     msize_diag(:)=0
   endif
 
-        ! MPI_Barrier() calls are not necessary.  They are used here to ensure
+        ! mpi_barrier() calls are not necessary.  They are used here to ensure
         ! the log-messages mean what they really mean, if only the root is used to
-        ! report the all-PE status.
+        ! report the all-pe status.
 
-  if(SYNCH_MESSAGES) call MPI_Barrier(gsi_comm_world,ier)
+  if(synch_messages) call mpi_barrier(gsi_comm_world,ier)
 
   if(redistr) then
-    if(mype==0) then
-      call tell(myname_,'Reading obsdiags files for redistribution, nPEs =',uPE-lPE+1)
-      call tell(myname_,'                    prefix of the files, cdfile =',trim(cdfile))
-      call tell(myname_,'                                            lPE =',lPE)
-      call tell(myname_,'                                            uPE =',uPE)
-      call tell(myname_,'                                    alwaysLocal =',alwaysLocal_)
-    endif
+     if(mype==0) then
+        call tell(myname_,'Reading obsdiags files for redistribution, npes =',upe-lpe+1)
+        call tell(myname_,'                    prefix of the files, cdfile =',trim(cdfile))
+        call tell(myname_,'                                            lpe =',lpe)
+        call tell(myname_,'                                            upe =',upe)
+        call tell(myname_,'                                    alwayslocal =',alwayslocal_)
+     endif
 
-    allocate(allRanges(0:uPE))
-    call latlonRange_reset(allRanges)
-    call latlonRange_readBcast(hdfilename_(cdfile),allRanges,root=0,comm=gsi_comm_world)
+     allocate(allranges(0:upe))
+     call latlonrange_reset(allranges)
+     call latlonrange_readbcast(hdfilename_(cdfile),allranges,root=0,comm=gsi_comm_world)
 
-!#define SHOW_LLRANGE
-#ifdef SHOW_LLRANGE
-    call latlonRange_alldump(allRanges,"obsLLRange")
+!#define show_llrange
+#ifdef show_llrange
+     call latlonrange_alldump(allranges,"obsllrange")
 #endif
 
 
-    jread=-1    ! checker of the input jiter values
-    do iPE=lPE,uPE
-      fileislocal=latlonRange_islocal(allRanges(iPE))
-      if(alwaysLocal_.or.fileislocal) then
-        call read_(cdfile,iPE,redistr,fileislocal=fileislocal, &
-                force=force, &
-                jiter_expected=jiter_expected, &
-                verbose=.not.alwaysLocal_.or.myPE==0, &
-                jread=jread)
-      endif
-    enddo
+     jread=-1    ! checker of the input jiter values
+     do ipe=lpe,upe
+        fileislocal=latlonrange_islocal(allranges(ipe))
+        if(alwayslocal_.or.fileislocal) then
+           call read_(cdfile,ipe,redistr,fileislocal=fileislocal, &
+                   force=force, &
+                   jiter_expected=jiter_expected, &
+                   verbose=.not.alwayslocal_.or.mype==0, &
+                   jread=jread)
+        endif
+     enddo
 
-!#define DEBUG_obsdiags
-#ifdef DEBUG_obsdiags
+!#define debug_obsdiags
+#ifdef debug_obsdiags
         ! This is an example of dumping information for debugging, on selected
-        ! PEs, for specific jtyp and ibin.
+        ! pes, for specific jtyp and ibin.
         !
-        ! This example is on PE #1, for (jtype==3 .and. ibin==3).
+        ! This example is on pe #1, for (jtype==3 .and. ibin==3).
 
-    if(myPE==1) then
-      call tell(myname_)
-      call tell(myname_,'dumping obsdiags(), jtyp =',3)
-      call tell(myname_,'                    ibin =',3)
-      call tell(myname_,'                   jread =',jread)
-      call obsdiagLList_dump(obsdiags(3,3),jiter=jread)
-    endif
+     if(mype==1) then
+        call tell(myname_)
+        call tell(myname_,'dumping obsdiags(), jtyp =',3)
+        call tell(myname_,'                    ibin =',3)
+        call tell(myname_,'                   jread =',jread)
+        call obsdiagllist_dump(obsdiags(3,3),jiter=jread)
+     endif
 #endif
 
         ! Sort to ensure the ordering is unique.
-    call lsort_()
+     call lsort_()
 
-    call latlonRange_reset(allRanges)
-    deallocate(allRanges)
+     call latlonrange_reset(allranges)
+     deallocate(allranges)
 
   else  ! of if(redistr)
-    call read_(cdfile,myPE,redistr,fileislocal=.true., &
-        force=force, &
-        jiter_expected=jiter_expected, &
-        verbose=.true.)
+     call read_(cdfile,mype,redistr,fileislocal=.true., &
+         force=force, &
+         jiter_expected=jiter_expected, &
+         verbose=.true.)
 
   endif ! of if(redistr)
 
-  if(myPE==0) then
-    call tell(myname_,'Finished reading of all obsdiags files, nPEs =',uPE-lPE+1)
+  if(mype==0) then
+     call tell(myname_,'Finished reading of all obsdiags files, npes =',upe-lpe+1)
   endif
   
-  if(CHECK_SIZES_) then
-    do jtyp=lbound(lsize_type,1),ubound(lsize_type,1)
-      if( msize_diag(jtyp)>0.or.lsize_diag(jtyp)>0.or.nsize_diag(jtyp)>0 .or. &
-                                lsize_type(jtyp)>0.or.nsize_type(jtyp)>0 ) then
-        write(stdout,'(i5.3,i5,7x,5i8,2x,l1)')   myPE,jtyp ,lsize_type(jtyp),nsize_type(jtyp), &
-                                           msize_diag(jtyp),lsize_diag(jtyp),nsize_diag(jtyp)
-      endif
-    enddo
-
-    call iMPI_reduceSUM_(lsize_type,root=0,comm=gsi_comm_world)
-    call iMPI_reduceSUM_(nsize_type,root=0,comm=gsi_comm_world)
-    call iMPI_reduceSUM_(lsize_diag,root=0,comm=gsi_comm_world)
-    call iMPI_reduceSUM_(nsize_diag,root=0,comm=gsi_comm_world)
-    call iMPI_reduceSUM_(msize_diag,root=0,comm=gsi_comm_world)
-
-    if(myPE==0) then
-      do jtyp=lbound(lsize_type,1),ubound(lsize_type,1)
+  if(check_sizes_) then
+     do jtyp=lbound(lsize_type,1),ubound(lsize_type,1)
         if( msize_diag(jtyp)>0.or.lsize_diag(jtyp)>0.or.nsize_diag(jtyp)>0 .or. &
                                   lsize_type(jtyp)>0.or.nsize_type(jtyp)>0 ) then
-          write(stdout,'(2x,a,i5,7x,5i8,2x,l1)')    '***',jtyp ,lsize_type(jtyp),nsize_type(jtyp), &
-                                               msize_diag(jtyp),lsize_diag(jtyp),nsize_diag(jtyp)
+           write(stdout,'(i5.3,i5,7x,5i8,2x,l1)')   mype,jtyp ,lsize_type(jtyp),nsize_type(jtyp), &
+                                              msize_diag(jtyp),lsize_diag(jtyp),nsize_diag(jtyp)
         endif
-      enddo
-    endif
+     enddo
 
-    deallocate(lsize_type)
-    deallocate(nsize_type)
-    deallocate(lsize_diag)
-    deallocate(nsize_diag)
-    deallocate(msize_diag)
+     call impi_reducesum_(lsize_type,root=0,comm=gsi_comm_world)
+     call impi_reducesum_(nsize_type,root=0,comm=gsi_comm_world)
+     call impi_reducesum_(lsize_diag,root=0,comm=gsi_comm_world)
+     call impi_reducesum_(nsize_diag,root=0,comm=gsi_comm_world)
+     call impi_reducesum_(msize_diag,root=0,comm=gsi_comm_world)
+
+     if(mype==0) then
+        do jtyp=lbound(lsize_type,1),ubound(lsize_type,1)
+           if( msize_diag(jtyp)>0.or.lsize_diag(jtyp)>0.or.nsize_diag(jtyp)>0 .or. &
+                                     lsize_type(jtyp)>0.or.nsize_type(jtyp)>0 ) then
+              write(stdout,'(2x,a,i5,7x,5i8,2x,l1)')    '***',jtyp ,lsize_type(jtyp),nsize_type(jtyp), &
+                                                   msize_diag(jtyp),lsize_diag(jtyp),nsize_diag(jtyp)
+           endif
+        enddo
+     endif
+
+     deallocate(lsize_type)
+     deallocate(nsize_type)
+     deallocate(lsize_diag)
+     deallocate(nsize_diag)
+     deallocate(msize_diag)
   endif
 
-  if(SYNCH_MESSAGES) call MPI_Barrier(gsi_comm_world,ier)
-  if(DO_SUMMARY) call summary_(myname_)
+  if(synch_messages) call mpi_barrier(gsi_comm_world,ier)
+  if(do_summary) call summary_(myname_)
 
   if(lobserver) then
-    if(.not.force_read) then
-      !call destroyobs(   skipit=.true.)
-      call reset_(obsdiags_keep=.true.)
-    endif
+     if(.not.force_read) then
+        !call destroyobs(   skipit=.true.)
+        call reset_(obsdiags_keep=.true.)
+     endif
   endif
 !call stdout_close()
-_TIMER_OFF_(myname_)
+_timer_off_(myname_)
 _EXIT_(myname_)
-return
+  return
 end subroutine mread_
 
 subroutine reset_(obsdiags_keep)
@@ -682,26 +682,26 @@ subroutine reset_(obsdiags_keep)
   use obsmod, only: luse_obsdiag
   use obsmod, only: lobsdiag_allocated
 
-  use m_obsdiagNode, only: obsdiagLList_reset
-  use m_obsdiagNode, only: obsdiagLList_rewind
-  use m_obsLList, only: obsLList_reset
-  use m_obsNode , only: obsNode
-  use gsi_obOperTypeManager, only: obOper_typeMold
-  use gsi_obOperTypeManager, only: obOper_lbound
-  use gsi_obOperTypeManager, only: obOper_ubound
-  use m_obsNodeTypeManager , only: obsNode_typeMold
+  use m_obsdiagnode, only: obsdiagllist_reset
+  use m_obsdiagnode, only: obsdiagllist_rewind
+  use m_obsllist, only: obsllist_reset
+  use m_obsnode , only: obsnode
+  use gsi_obopertypemanager, only: oboper_typemold
+  use gsi_obopertypemanager, only: oboper_lbound
+  use gsi_obopertypemanager, only: oboper_ubound
+  use m_obsnodetypemanager , only: obsnode_typemold
 
-  _TIMER_USE_
+  _timer_use_
   implicit none
   logical,optional,intent(in):: obsdiags_keep
   character(len=*),parameter:: myname_=myname//'::reset_'
   integer(i_kind):: ii,jj
   logical:: obsdiags_keep_
   integer(i_kind):: ier
-  class(obsNode),pointer:: mNode_
-  class(obOper ),pointer:: mOper_
+  class(obsnode),pointer:: mnode_
+  class(oboper ),pointer:: moper_
 _ENTRY_(myname_)
-_TIMER_ON_(myname_)
+_timer_on_(myname_)
 
 _TRACEV_(myname_,'lobsdiag_allocated   =',lobsdiag_allocated)
 _TRACEV_(myname_,'lobsdiags_allocated_ =',lobsdiags_allocated_)
@@ -709,86 +709,86 @@ _TRACEV_(myname_,'lobsdiags_allocated_ =',lobsdiags_allocated_)
   ASSERT(nobs_type>0)
   ASSERT(nobs_bins>0)
 
-  ! Both objects, obsdiags and obsLLists are checked for their associated sizes
+  ! Both objects, obsdiags and obsllists are checked for their associated sizes
   ! and allocated shapes, regardless luse_obsdiag or not.  This is to simplify
   ! the algorithm logic.  The enforcements of (luse_obsdiag) are done on lower
   ! levels only.
 
   if(.not.lobstypes_allocated_) then
-    lobstypes_allocated_=.true.
-    if(.not.associated(obsLLists)) call die(myname_,'unexpectedly, .not.associated(obsLLists)')
+     lobstypes_allocated_=.true.
+     if(.not.associated(obsllists)) call die(myname_,'unexpectedly, .not.associated(obsllists)')
   endif
 
   if(.not.lobsdiags_allocated_) then
-    lobsdiags_allocated_=.true.
-    if(.not.associated(obsdiags )) call die(myname_,'unexpectedly, .not.associated(obsdiags)')
+     lobsdiags_allocated_=.true.
+     if(.not.associated(obsdiags )) call die(myname_,'unexpectedly, .not.associated(obsdiags)')
   endif
 
-  ASSERT(all(shape(obsdiags  )==shape(obsLLists  )))
-  ASSERT(     size(obsdiags,1)== size(obsLLists,1) )
-  ASSERT(     size(obsdiags,2)== size(obsLLists,2) )
+  ASSERT(all(shape(obsdiags  )==shape(obsllists  )))
+  ASSERT(     size(obsdiags,1)== size(obsllists,1) )
+  ASSERT(     size(obsdiags,2)== size(obsllists,2) )
 
   obsdiags_keep_=.false.
   if(present(obsdiags_keep)) obsdiags_keep_=obsdiags_keep
 
-  do ii=1,size(obsLLists,2)      ! nobs_bins
-    do jj=1,size(obsLLists,1)    ! nobs_type
-      if(luse_obsdiag) then
-        if(.not.obsdiags_keep_) then
-          call obsdiagLList_reset(obsdiags(jj,ii))
-          lobsdiag_allocated=.false.
+  do ii=1,size(obsllists,2)      ! nobs_bins
+     do jj=1,size(obsllists,1)    ! nobs_type
+        if(luse_obsdiag) then
+           if(.not.obsdiags_keep_) then
+              call obsdiagllist_reset(obsdiags(jj,ii))
+              lobsdiag_allocated=.false.
 
-        else
-          call obsdiagLList_rewind(obsdiags(jj,ii))
+           else
+              call obsdiagllist_rewind(obsdiags(jj,ii))
 
-          ! In cases of rewinding without resetting, an obsdiagLList can
-          ! be either initialized (lobsdiag_allocated), or not initialized
-          ! (.not.lobsdiag_allocated).  So the code here should not try
-          ! to alter the value of lobsdiag_allocated.
+              ! In cases of rewinding without resetting, an obsdiagllist can
+              ! be either initialized (lobsdiag_allocated), or not initialized
+              ! (.not.lobsdiag_allocated).  So the code here should not try
+              ! to alter the value of lobsdiag_allocated.
+           endif
         endif
-      endif
 
 !++++
-      mOper_ => obOper_typeMold(jj)
-        if(.not.associated(mOper_)) then
-          call perr(myname_,'obOper_typeMold(j) not associated, j =',jj)
-          call perr(myname_,'                       obOper_lbound =',obOper_lbound)
-          call perr(myname_,'                       obOper_ubound =',obOper_ubound)
-          call  die(myname_)
+        moper_ => oboper_typemold(jj)
+        if(.not.associated(moper_)) then
+           call perr(myname_,'oboper_typemold(j) not associated, j =',jj)
+           call perr(myname_,'                       oboper_lbound =',oboper_lbound)
+           call perr(myname_,'                       oboper_ubound =',oboper_ubound)
+           call  die(myname_)
         endif
 
-      mNode_ => mOper_%nodeMold()
-        if(.not.associated(mNode_)) then
-          call perr(myname_,'mOper_%nodeMold() not associated, j =',jj)
-          call perr(myname_,'                    mOper_%mytype() =',mOper_%mytype())
-          call  die(myname_)
+        mnode_ => moper_%nodemold()
+        if(.not.associated(mnode_)) then
+           call perr(myname_,'moper_%nodemold() not associated, j =',jj)
+           call perr(myname_,'                    moper_%mytype() =',moper_%mytype())
+           call  die(myname_)
         endif
       
-      mOper_ => null()
+        moper_ => null()
 
 !++++
 
-      call obsLList_reset(obsLLists(jj,ii),mold=mNode_, stat=ier)
+        call obsllist_reset(obsllists(jj,ii),mold=mnode_, stat=ier)
         if(ier/=0) then
-          call perr(myname_,'call obsLList_reset(), stat =',ier)
-          call perr(myname_,'                       ibin =',ii)
-          call perr(myname_,'                      jtype =',jj)
-          call perr(myname_,'              mold%mytype() =',mNode_%mytype())
-          call  die(myname_)
+           call perr(myname_,'call obsllist_reset(), stat =',ier)
+           call perr(myname_,'                       ibin =',ii)
+           call perr(myname_,'                      jtype =',jj)
+           call perr(myname_,'              mold%mytype() =',mnode_%mytype())
+           call  die(myname_)
         endif
 
-      mNode_ => null()
-    enddo
+        mnode_ => null()
+     enddo
   enddo
-_TIMER_OFF_(myname_)
+_timer_off_(myname_)
 _EXIT_(myname_)
-return
+  return
 end subroutine reset_
 
 subroutine lsort_()
 !$$$  subprogram documentation block
 !
-! abstract: sort entries of obsdiags(:,:) and obsLLists(:,:)
+! abstract: sort entries of obsdiags(:,:) and obsllists(:,:)
 !
 ! program history log:
 !
@@ -799,51 +799,51 @@ subroutine lsort_()
   use gsi_unformatted, only: unformatted_open
   use obsmod, only: luse_obsdiag
 
-  use m_obsLList, only: obsLList_lsort
-  use m_obsdiagNode, only: obsdiagLList_lsize
-  use m_obsdiagNode, only: obsdiagLList_lsort
+  use m_obsllist, only: obsllist_lsort
+  use m_obsdiagnode, only: obsdiagllist_lsize
+  use m_obsdiagnode, only: obsdiagllist_lsort
 
-  _TIMER_USE_
+  _timer_use_
   implicit none
 
   character(len=*), parameter :: myname_=myname//"::lsort_"
 
   integer(i_kind) :: ii,jj !,iobs,lobs,ierr
 _ENTRY_(myname_)
-_TIMER_ON_(myname_)
+_timer_on_(myname_)
 ! ----------------------------------------------------------
-  call lobsdiags_statusCheck_(myname_,allocated=.true.)
+  call lobsdiags_statuscheck_(myname_,allocated=.true.)
 
   if (luse_obsdiag) then
 
-     ASSERT(all(shape(obsdiags)==shape(obsLLists)))
-     ASSERT(size(obsdiags,1)==size(obsLLists,1))
-     ASSERT(size(obsdiags,2)==size(obsLLists,2))
+     ASSERT(all(shape(obsdiags)==shape(obsllists)))
+     ASSERT(size(obsdiags,1)==size(obsllists,1))
+     ASSERT(size(obsdiags,2)==size(obsllists,2))
 
   endif
 
   do jj=1,size(obsdiags,1)
      do ii=1,size(obsdiags,2)
-        call obsdiagLList_lsort(obsdiags(jj,ii),itype=jj,ibin=ii)
+        call obsdiagllist_lsort(obsdiags(jj,ii),itype=jj,ibin=ii)
      enddo
   enddo
 
-  do jj=1,size(obsLLists,1)
-     do ii=1,size(obsLLists,2)
-       call obsLList_lsort(obsLLists(jj,ii),itype=jj,ibin=ii)
+  do jj=1,size(obsllists,1)
+     do ii=1,size(obsllists,2)
+        call obsllist_lsort(obsllists(jj,ii),itype=jj,ibin=ii)
      enddo
   enddo
 
 ! ----------------------------------------------------------
-_TIMER_OFF_(myname_)
+_timer_off_(myname_)
 _EXIT_(myname_)
-return
+  return
 end subroutine lsort_
 
 subroutine write_(cdfile,luseonly,force)
 !$$$  subprogram documentation block
 !
-! abstract: Write obsdiags data structure to file.
+! abstract: write obsdiags data structure to file.
 !
 ! program history log:
 !   2007-07-05  tremolet
@@ -863,22 +863,22 @@ subroutine write_(cdfile,luseonly,force)
 !
 !$$$
 
-use mpeu_util, only: tell,die,perr,stdout_open,stdout_close
-_TIMER_USE_
+  use mpeu_util, only: tell,die,perr,stdout_open,stdout_close
+_timer_use_
 
   use gsi_unformatted, only: unformatted_open
   use mpimod, only: mype
   use gsi_4dvar, only: l4dvar
   use  jfunc, only: jiter, miter
 
-  use m_obsLList, only: obsLList_write
-  use m_obsdiagNode, only: obsdiagLList_lsize
-  use m_obsdiagNode, only: obsdiagLList_write
+  use m_obsllist, only: obsllist_write
+  use m_obsdiagnode, only: obsdiagllist_lsize
+  use m_obsdiagnode, only: obsdiagllist_write
 
-  use m_latlonRange, only: latlonRange
-  use m_latlonRange, only: latlonRange_reset
-  use m_latlonRange, only: latlonRange_gatherWrite
-  use m_latlonRange, only: latlonRange_gatherDump
+  use m_latlonrange, only: latlonrange
+  use m_latlonrange, only: latlonrange_reset
+  use m_latlonrange, only: latlonrange_gatherwrite
+  use m_latlonrange, only: latlonrange_gatherdump
 
   implicit none
   character(len=*), intent(in) :: cdfile        ! := "obsdiags.<miter>"
@@ -887,102 +887,102 @@ _TIMER_USE_
 
   character(len=*), parameter :: myname_=myname//"::write_"
 
-integer(i_kind) :: iunit,istat
-integer(i_kind) :: ii,jj,ier
-logical :: luseonly_
-logical :: force_write
-type(latlonRange):: luseRange
+  integer(i_kind) :: iunit,istat
+  integer(i_kind) :: ii,jj,ier
+  logical :: luseonly_
+  logical :: force_write
+  type(latlonrange):: luserange
 ! ----------------------------------------------------------
 _ENTRY_(myname_)
-_TIMER_ON_(myname_)
+_timer_on_(myname_)
 !call stdout_open("obsdiags_write")
   force_write=.false.
   if(present(force)) force_write=force
-  call lobsdiags_statusCheck_(myname_,allocated=.true.)
+  call lobsdiags_statuscheck_(myname_,allocated=.true.)
 
-        ASSERT(all(shape(obsdiags)==shape(obsLLists)))
-        ASSERT(size(obsdiags,1)==size(obsLLists,1))
-        ASSERT(size(obsdiags,2)==size(obsLLists,2))
+  ASSERT(all(shape(obsdiags)==shape(obsllists)))
+  ASSERT(size(obsdiags,1)==size(obsllists,1))
+  ASSERT(size(obsdiags,2)==size(obsllists,2))
 
   luseonly_=.false.
   if(present(luseonly)) luseonly_=luseonly
  
   call unformatted_open( unit=iunit, &
-        file=trim(filename_(cdfile,myPE)), &
+        file=trim(filename_(cdfile,mype)), &
         class='.obsdiags.', &
         action='write', &
         status='unknown', &
         newunit=.true., &       ! with newunit=.true., unit returns a value assigned by Fortran.
         iostat=istat,silent=.true.)
-                if(istat/=0) then
-                  call perr(myname_,'unformatted_open(), file =',filename_(cdfile,myPE))
-                  call perr(myname_,'                 newunit =',iunit)
-                  call perr(myname_,'                  iostat =',istat)
-                  call  die(myname_)
-                endif
+  if(istat/=0) then
+     call perr(myname_,'unformatted_open(), file =',filename_(cdfile,mype))
+     call perr(myname_,'                 newunit =',iunit)
+     call perr(myname_,'                  iostat =',istat)
+     call  die(myname_)
+  endif
 
-  if(DO_SUMMARY) call summary_(myname_)
+  if(do_summary) call summary_(myname_)
 
   do ii=1,size(obsdiags,2)
-    do jj=1,size(obsdiags,1)
-      call obsdiagLList_write(obsdiags(jj,ii),iunit,luseonly_,jiter,miter,jj,ii,luseRange=luseRange)
+     do jj=1,size(obsdiags,1)
+        call obsdiagllist_write(obsdiags(jj,ii),iunit,luseonly_,jiter,miter,jj,ii,luserange=luserange)
 
-      if (force_write .or. l4dvar) then
-        call obsLList_write(obsLLists(jj,ii),iunit,luseonly_,jj,luseRange=luseRange)
-      endif
+        if (force_write .or. l4dvar) then
+           call obsllist_write(obsllists(jj,ii),iunit,luseonly_,jj,luserange=luserange)
+        endif
 
-      write(iunit)ii,jj   ! a jj_obstype-block trailer
-    enddo
+        write(iunit)ii,jj   ! a jj_obstype-block trailer
+     enddo
   enddo
 
   close(iunit)
 
-        ! latlonRange_gatherWrite() implies a mpi_barrier() action.
-  call latlonRange_gatherWrite(luseRange,hdfilename_(cdfile),root=0,comm=gsi_comm_world)
+        ! latlonrange_gatherwrite() implies a mpi_barrier() action.
+  call latlonrange_gatherwrite(luserange,hdfilename_(cdfile),root=0,comm=gsi_comm_world)
 
-#ifdef SHOW_LLRANGE
+#ifdef show_llrange
         ! Text-dump to diagnose the values
-  call latlonRange_gatherDump(          "cvgLLRange",root=0,comm=gsi_comm_world)
-  call latlonRange_gatherDump(luseRange,"obsLLRange",root=0,comm=gsi_comm_world)
+  call latlonrange_gatherdump(          "cvgllrange",root=0,comm=gsi_comm_world)
+  call latlonrange_gatherdump(luserange,"obsllrange",root=0,comm=gsi_comm_world)
 #endif
 
-  call latlonRange_reset(luseRange)
+  call latlonrange_reset(luserange)
 
-  if(SYNCH_MESSAGES) call MPI_Barrier(gsi_comm_world,ier)
-  if (mype==0) call tell(myname_,'Finish writing obsdiags to file ',filename_(cdfile,myPE))
+  if(synch_messages) call mpi_barrier(gsi_comm_world,ier)
+  if (mype==0) call tell(myname_,'Finish writing obsdiags to file ',filename_(cdfile,mype))
 
 ! ----------------------------------------------------------
 !call stdout_close()
-_TIMER_OFF_(myname_)
+_timer_off_(myname_)
 _EXIT_(myname_)
-return
+  return
 end subroutine write_
 
-subroutine read_(cdfile,iPE,redistr,fileislocal,force,jiter_expected,verbose,jread)
+subroutine read_(cdfile,ipe,redistr,fileislocal,force,jiter_expected,verbose,jread)
   use mpeu_util, only: tell,perr,die
   use mpeu_util, only: stdout
   use mpimod, only: mype
   use gsi_4dvar, only: l4dvar
   use gsi_unformatted, only: unformatted_open
   use  jfunc, only: jiter,miter
-  _TIMER_USE_
+  _timer_use_
 
   use obsmod, only: lobserver
 
-  use m_obsLList, only: obsLList_read
-  use m_obsLList, only: obsLList_lsize
-  use m_obsLList, only: obsLList_lcount
+  use m_obsllist, only: obsllist_read
+  use m_obsllist, only: obsllist_lsize
+  use m_obsllist, only: obsllist_lcount
 
-  use m_obsdiagNode, only: obs_diag
-  use m_obsdiagNode, only: obsdiagLList_read
-  use m_obsdiagNode, only: obsdiagLList_lsize
-  use m_obsdiagNode, only: obsdiagLList_lcount
-  use m_obsdiagNode, only: obsdiagLookup_build
-  use m_obsdiagNode, only: obsdiagLookup_clean
+  use m_obsdiagnode, only: obs_diag
+  use m_obsdiagnode, only: obsdiagllist_read
+  use m_obsdiagnode, only: obsdiagllist_lsize
+  use m_obsdiagnode, only: obsdiagllist_lcount
+  use m_obsdiagnode, only: obsdiaglookup_build
+  use m_obsdiagnode, only: obsdiaglookup_clean
 
   implicit none
   character(len=*), intent(in ):: cdfile        ! prefix of the input file
-  integer(i_kind ), intent(in ):: iPE           ! iPE of the input file
+  integer(i_kind ), intent(in ):: ipe           ! ipe of the input file
   logical         , intent(in ):: redistr       ! data redistribution is expected
   logical         , intent(in ):: fileislocal   ! the file to read, is known local
 
@@ -992,158 +992,158 @@ subroutine read_(cdfile,iPE,redistr,fileislocal,force,jiter_expected,verbose,jre
   integer(i_kind ), optional, intent(inout):: jread     ! jiter read from the input
 
   character(len=*),parameter:: myname_=myname//'::read_'
-  character(len=*),parameter:: diag_timer_=myname_//'.obsdiagLList_read'
-  character(len=*),parameter:: list_timer_=myname_//'.obsLList_read'
+  character(len=*),parameter:: diag_timer_=myname_//'.obsdiagllist_read'
+  character(len=*),parameter:: list_timer_=myname_//'.obsllist_read'
   integer(i_kind):: ii,jj
   integer(i_kind):: ki,kj
   integer(i_kind):: iunit,istat
   integer(i_kind):: jread_
   integer(i_kind):: lsize_type_,nsize_type_
   integer(i_kind):: lsize_diag_,nsize_diag_,msize_diag_
-  type(obs_diag),pointer:: leadNode => NULL()
+  type(obs_diag),pointer:: leadnode => null()
   logical:: force_read
   logical:: verbose_
 _ENTRY_(myname_)
-_TIMER_ON_(myname_)
+_timer_on_(myname_)
 
-  call lobsdiags_statusCheck_(myname_,allocated=.true.)
+  call lobsdiags_statuscheck_(myname_,allocated=.true.)
   force_read=.false.
   if(present(force)) force_read=force
 
   verbose_=.false.
   if(present(verbose)) verbose_=verbose
 
-        ASSERT(all(shape(obsdiags)==shape(obsLLists)))
-        ASSERT(size(obsdiags,1)==size(obsLLists,1))
-        ASSERT(size(obsdiags,2)==size(obsLLists,2))
-        if(CHECK_SIZES_) then
-          ASSERT(size(obsdiags,1)==size(lsize_type ))
-          ASSERT(size(obsdiags,1)==size(nsize_type ))
-          ASSERT(size(obsdiags,1)==size(lsize_diag ))
-          ASSERT(size(obsdiags,1)==size(nsize_diag ))
-        endif
+  ASSERT(all(shape(obsdiags)==shape(obsllists)))
+  ASSERT(size(obsdiags,1)==size(obsllists,1))
+  ASSERT(size(obsdiags,2)==size(obsllists,2))
+  if(check_sizes_) then
+     ASSERT(size(obsdiags,1)==size(lsize_type ))
+     ASSERT(size(obsdiags,1)==size(nsize_type ))
+     ASSERT(size(obsdiags,1)==size(lsize_diag ))
+     ASSERT(size(obsdiags,1)==size(nsize_diag ))
+  endif
 
   call unformatted_open( unit=iunit, &
-        file=trim(filename_(cdfile,iPE)), &
+        file=trim(filename_(cdfile,ipe)), &
         class='.obsdiags.', &
         action='read', &
         status='old', &
         newunit=.true., &       ! with newunit=.true., unit returns a value assigned by Fortran.
         iostat=istat,silent=.true.)
-                if(istat/=0) then
-                  call perr(myname_,'unformatted_open(), file =',trim(filename_(cdfile,iPE)))
-                  call perr(myname_,'                    myPE =',myPE)
-                  call perr(myname_,'                     iPE =',iPE)
-                  call perr(myname_,'                   miter =',miter)
-                  call perr(myname_,'                 redistr =',redistr)
-                  call perr(myname_,'                 newunit =',iunit)
-                  call perr(myname_,'                  iostat =',istat)
-                  call  die(myname_)
-                endif
+  if(istat/=0) then
+     call perr(myname_,'unformatted_open(), file =',trim(filename_(cdfile,ipe)))
+     call perr(myname_,'                    mype =',mype)
+     call perr(myname_,'                     ipe =',ipe)
+     call perr(myname_,'                   miter =',miter)
+     call perr(myname_,'                 redistr =',redistr)
+     call perr(myname_,'                 newunit =',iunit)
+     call perr(myname_,'                  iostat =',istat)
+     call  die(myname_)
+  endif
 
-  if(verbose_) call tell(myname_,'Reading obsdiags, file =',trim(filename_(cdfile,iPE)))
+  if(verbose_) call tell(myname_,'Reading obsdiags, file =',trim(filename_(cdfile,ipe)))
 
-  leadNode => null()
+  leadnode => null()
   do ii=1,size(obsdiags,2)
-    do jj=1,size(obsdiags,1)
-      if(CHECK_SIZES_) then
-        lsize_type_= obsLList_lcount(obsLLists(jj,ii),luseonly=.true.,recount=.true.)
-        nsize_type_= obsLList_lsize (obsLLists(jj,ii)                )
+     do jj=1,size(obsdiags,1)
+        if(check_sizes_) then
+           lsize_type_= obsllist_lcount(obsllists(jj,ii),luseonly=.true.,recount=.true.)
+           nsize_type_= obsllist_lsize (obsllists(jj,ii)                )
 
-        lsize_diag_= obsdiagLList_lcount(obsdiags(jj,ii),luseonly=.true.,recount=.true.)
-        !msize_diag_= obsdiagLList_lcount(obsdiags(jj,ii),museonly=.true.)
-        nsize_diag_= obsdiagLList_lsize (obsdiags(jj,ii)                )
-      endif
-
-      call obsdiagLList_read(obsdiags(jj,ii),iunit,redistr,jiter,miter,jj,ii,jread_,leadNode=leadNode, &
-        jiter_expected=jiter_expected)
-      if(present(jread)) then
-        if(jread/=jread_) then
-          if(jread>0) then
-            call perr(myname_,'not the same iteration, jiter =',jiter)
-            call perr(myname_,'                  saved jread =',jread)
-            call perr(myname_,'                current jread =',jread_)
-            call  die(myname_)
-          endif
-          jread=jread_
+           lsize_diag_= obsdiagllist_lcount(obsdiags(jj,ii),luseonly=.true.,recount=.true.)
+           !msize_diag_= obsdiagllist_lcount(obsdiags(jj,ii),museonly=.true.)
+           nsize_diag_= obsdiagllist_lsize (obsdiags(jj,ii)                )
         endif
-      endif
 
-      call obsdiagLookup_build(obsdiags(jj,ii),leadNode=leadNode,jiter=jread)
-          leadNode => null()     ! nullified after its use, to avoid leadNode dangling arround.
-
-      if (force_read .or. l4dvar.and..not.(lobserver.and.jiter==1)) then
-        call obsLList_read(obsLLists(jj,ii),iunit,redistr,obsdiags(jj,ii),jj)
-      endif
-
-      call obsdiagLookup_clean(obsdiags(jj,ii))
-
-      read(iunit)ki,kj
-      if(ki/=ii .or. kj/=jj) then
-        call perr(myname_,'mismatched block id, file =',filename_(cdfile,iPE))
-        if(kj/=jj) then
-        call perr(myname_,'               reading kj =',kj)
-        call perr(myname_,'             expecting jj =',jj)
+        call obsdiagllist_read(obsdiags(jj,ii),iunit,redistr,jiter,miter,jj,ii,jread_,leadnode=leadnode, &
+           jiter_expected=jiter_expected)
+        if(present(jread)) then
+           if(jread/=jread_) then
+              if(jread>0) then
+                 call perr(myname_,'not the same iteration, jiter =',jiter)
+                 call perr(myname_,'                  saved jread =',jread)
+                 call perr(myname_,'                current jread =',jread_)
+                 call  die(myname_)
+              endif
+              jread=jread_
+           endif
         endif
-        if(ki/=ii) then
-        call perr(myname_,'               reading ki =',ki)
-        call perr(myname_,'             expecting ii =',ii)
+
+        call obsdiaglookup_build(obsdiags(jj,ii),leadnode=leadnode,jiter=jread)
+        leadnode => null()     ! nullified after its use, to avoid leadnode dangling arround.
+
+        if (force_read .or. l4dvar.and..not.(lobserver.and.jiter==1)) then
+           call obsllist_read(obsllists(jj,ii),iunit,redistr,obsdiags(jj,ii),jj)
         endif
-        call perr(myname_,'                     file =',filename_(cdfile,iPE))
-        call perr(myname_,'                   cdfile =',cdfile)
-        call perr(myname_,'                     myPE =',myPE)
-        call perr(myname_,'                      iPE =',iPE)
-        call perr(myname_,'                    miter =',miter)
-        call perr(myname_,'                  redistr =',redistr)
-        call perr(myname_,'                  newunit =',iunit)
-        call perr(myname_,'                   iostat =',istat)
-        call  die(myname_)
-      endif
 
-      ASSERT(1<=jj.and.jj<=nobs_type)
+        call obsdiaglookup_clean(obsdiags(jj,ii))
 
-      if(CHECK_SIZES_) then
-        lsize_type_= obsLList_lcount(obsLLists(jj,ii),luseonly=.true.)-lsize_type_
-        nsize_type_= obsLList_lsize (obsLLists(jj,ii)                )-nsize_type_
-
-        lsize_diag_= obsdiagLList_lcount(obsdiags(jj,ii),luseonly=.true.)-lsize_diag_
-        !msize_diag_= obsdiagLList_lcount(obsdiags(jj,ii),museonly=.true.)-msize_diag_
-        nsize_diag_= obsdiagLList_lsize (obsdiags(jj,ii)                )-nsize_diag_
-
-        if( fileislocal  .or. lsize_type_>0.or.nsize_type_>0 .or. &
-            msize_diag_>0.or. lsize_diag_>0.or.nsize_diag_>0 ) then
-          write(stdout,'(i5.3,2i5,2x,5i6,2x,l1)') iPE,jj,ii,lsize_type_,nsize_type_, &
-                                                msize_diag_,lsize_diag_,nsize_diag_,fileislocal
+        read(iunit)ki,kj
+        if(ki/=ii .or. kj/=jj) then
+           call perr(myname_,'mismatched block id, file =',filename_(cdfile,ipe))
+           if(kj/=jj) then
+              call perr(myname_,'               reading kj =',kj)
+              call perr(myname_,'             expecting jj =',jj)
+           endif
+           if(ki/=ii) then
+              call perr(myname_,'               reading ki =',ki)
+              call perr(myname_,'             expecting ii =',ii)
+           endif
+           call perr(myname_,'                     file =',filename_(cdfile,ipe))
+           call perr(myname_,'                   cdfile =',cdfile)
+           call perr(myname_,'                     mype =',mype)
+           call perr(myname_,'                      ipe =',ipe)
+           call perr(myname_,'                    miter =',miter)
+           call perr(myname_,'                  redistr =',redistr)
+           call perr(myname_,'                  newunit =',iunit)
+           call perr(myname_,'                   iostat =',istat)
+           call  die(myname_)
         endif
+
+        ASSERT(1<=jj.and.jj<=nobs_type)
+
+        if(check_sizes_) then
+           lsize_type_= obsllist_lcount(obsllists(jj,ii),luseonly=.true.)-lsize_type_
+           nsize_type_= obsllist_lsize (obsllists(jj,ii)                )-nsize_type_
+
+           lsize_diag_= obsdiagllist_lcount(obsdiags(jj,ii),luseonly=.true.)-lsize_diag_
+           !msize_diag_= obsdiagllist_lcount(obsdiags(jj,ii),museonly=.true.)-msize_diag_
+           nsize_diag_= obsdiagllist_lsize (obsdiags(jj,ii)                )-nsize_diag_
+
+           if( fileislocal  .or. lsize_type_>0.or.nsize_type_>0 .or. &
+               msize_diag_>0.or. lsize_diag_>0.or.nsize_diag_>0 ) then
+              write(stdout,'(i5.3,2i5,2x,5i6,2x,l1)') ipe,jj,ii,lsize_type_,nsize_type_, &
+                                                    msize_diag_,lsize_diag_,nsize_diag_,fileislocal
+           endif
       
-        lsize_type(jj)= lsize_type(jj) +lsize_type_
-        nsize_type(jj)= nsize_type(jj) +nsize_type_
+           lsize_type(jj)= lsize_type(jj) +lsize_type_
+           nsize_type(jj)= nsize_type(jj) +nsize_type_
 
-        lsize_diag(jj)= lsize_diag(jj) +lsize_diag_
-        !msize_diag(jj)= msize_diag(jj) +msize_diag_
-        nsize_diag(jj)= nsize_diag(jj) +nsize_diag_
-      endif
+           lsize_diag(jj)= lsize_diag(jj) +lsize_diag_
+           !msize_diag(jj)= msize_diag(jj) +msize_diag_
+           nsize_diag(jj)= nsize_diag(jj) +nsize_diag_
+        endif
 
-    enddo       ! jj=1,size(obsdiags,1)
+     enddo       ! jj=1,size(obsdiags,1)
   enddo         ! ii=1,size(obsdiags,2)
 
   close(iunit)
 ! ----------------------------------------------------------
-_TIMER_OFF_(myname_)
+_timer_off_(myname_)
 _EXIT_(myname_)
-return
+  return
 end subroutine read_
 
-function filename_(prefix,iPE)
-!>> name of partitioned (obsdiags,obsLLists) files
+function filename_(prefix,ipe)
+!>> name of partitioned (obsdiags,obsllists) files
   implicit none
   character(len=:),allocatable:: filename_
   character(len=*)    , intent(in ):: prefix
-  integer(kind=i_kind), intent(in ):: iPE
+  integer(kind=i_kind), intent(in ):: ipe
 
-  character(len=4):: chPE
-  write(chPE,'(i4.4)') iPE
-  filename_=trim(adjustl(prefix))//'.'//trim(chPE)
+  character(len=4):: chpe
+  write(chpe,'(i4.4)') ipe
+  filename_=trim(adjustl(prefix))//'.'//trim(chpe)
 end function filename_
 
 function hdfilename_(prefix)
@@ -1156,16 +1156,16 @@ function hdfilename_(prefix)
 end function hdfilename_
 
 subroutine summary_(title)
-!-- get a summary of obsdiags(:,:) and obsLLists(:,:)
-use obsmod, only: luse_obsdiag
-use mpeu_util, only: tell,die,perr,stdout_open,stdout_close
-_TIMER_USE_
+!-- get a summary of obsdiags(:,:) and obsllists(:,:)
+  use obsmod, only: luse_obsdiag
+  use mpeu_util, only: tell,die,perr,stdout_open,stdout_close
+_timer_use_
 
   use gsi_unformatted, only: unformatted_open
   use gsi_4dvar, only: nobs_bins
 
-  use m_obsLList, only: obsLList_lsize => obsLList_lcount
-  use m_obsdiagNode, only: obsdiagLList_lsize => obsdiagLList_lcount
+  use m_obsllist, only: obsllist_lsize => obsllist_lcount
+  use m_obsdiagnode, only: obsdiagllist_lsize => obsdiagllist_lcount
 
   implicit none
   character(len=*), intent(in) :: title
@@ -1176,154 +1176,154 @@ _TIMER_USE_
   integer(i_kind),dimension(nobs_type,nobs_bins):: ldiag,ndiag
   integer(i_kind),dimension(nobs_type,nobs_bins):: lobss,nobss
 _ENTRY_(myname_)
-_TIMER_ON_(myname_)
+_timer_on_(myname_)
 ! ----------------------------------------------------------
 
-  call lobsdiags_statusCheck_(myname_,allocated=.true.)
+  call lobsdiags_statuscheck_(myname_,allocated=.true.)
 
   if (luse_obsdiag) then
-        ASSERT(all(shape(obsdiags)==shape(obsLLists)))
-        ASSERT(size(obsdiags,1)==size(obsLLists,1))
-        ASSERT(size(obsdiags,2)==size(obsLLists,2))
+     ASSERT(all(shape(obsdiags)==shape(obsllists)))
+     ASSERT(size(obsdiags,1)==size(obsllists,1))
+     ASSERT(size(obsdiags,2)==size(obsllists,2))
   endif
 
   do ii=1,size(obsdiags,2)
-    do jj=1,size(obsdiags,1)
-      ldiag(jj,ii) = obsdiagLList_lsize(obsdiags(jj,ii),luseonly=.true. ,recount=.true.)
-      ndiag(jj,ii) = obsdiagLList_lsize(obsdiags(jj,ii),luseonly=.false.,recount=.true.)
-    enddo
+     do jj=1,size(obsdiags,1)
+        ldiag(jj,ii) = obsdiagllist_lsize(obsdiags(jj,ii),luseonly=.true. ,recount=.true.)
+        ndiag(jj,ii) = obsdiagllist_lsize(obsdiags(jj,ii),luseonly=.false.,recount=.true.)
+     enddo
   enddo
 
-  do ii=1,size(obsLLists,2)
-    do jj=1,size(obsLLists,1)
-      lobss(jj,ii) = obsLList_lsize(obsLLists(jj,ii),luseonly=.true. ,recount=.true.)
-      nobss(jj,ii) = obsLList_lsize(obsLLists(jj,ii),luseonly=.false.,recount=.true.)
-    enddo
+  do ii=1,size(obsllists,2)
+     do jj=1,size(obsllists,1)
+        lobss(jj,ii) = obsllist_lsize(obsllists(jj,ii),luseonly=.true. ,recount=.true.)
+        nobss(jj,ii) = obsllist_lsize(obsllists(jj,ii),luseonly=.false.,recount=.true.)
+     enddo
   enddo
 
   call gather_write_(title,lobss,ldiag,nobss,ndiag,root=0,comm=gsi_comm_world)
 
 ! ----------------------------------------------------------
-_TIMER_OFF_(myname_)
+_timer_off_(myname_)
 _EXIT_(myname_)
-return
+  return
 end subroutine summary_
 
 subroutine gather_write_(title,lobss,ldiag,nobss,ndiag,root,comm)
-  use mpimod   , only: mype,nPE
+  use mpimod   , only: mype,npe
   use kinds    , only: i_kind
-  use mpeu_mpif, only: MPI_ikind
-  _TIMER_USE_
+  use mpeu_mpif, only: mpi_ikind
+  _timer_use_
   implicit none
   character(len=*),intent(in):: title
   integer(kind=i_kind),dimension(:,:),intent(in):: lobss,ldiag
   integer(kind=i_kind),dimension(:,:),intent(in):: nobss,ndiag
-  integer(kind=MPI_ikind),intent(in):: root
-  integer(kind=MPI_ikind),intent(in):: comm
+  integer(kind=mpi_ikind),intent(in):: root
+  integer(kind=mpi_ikind),intent(in):: comm
 
   character(len=*),parameter:: myname_=myname//'::gather_write_'
-  integer(kind=i_kind):: jj,ii,iPE
-  integer(kind=i_kind) :: mtyp,mbin,mPEs
+  integer(kind=i_kind):: jj,ii,ipe
+  integer(kind=i_kind) :: mtyp,mbin,mpes
   integer(kind=i_kind),allocatable,dimension(:,:,:):: ldiagm,ndiagm
   integer(kind=i_kind),allocatable,dimension(:,:,:):: lobssm,nobssm
 
 _ENTRY_(myname_)
-_TIMER_ON_(myname_)
+_timer_on_(myname_)
   mtyp=size(lobss,1)
   mbin=size(lobss,2)
-        ASSERT(mtyp==size(nobss,1))
-        ASSERT(mbin==size(nobss,2))
-        ASSERT(mtyp==size(ldiag,1))
-        ASSERT(mbin==size(ldiag,2))
-        ASSERT(mtyp==size(ndiag,1))
-        ASSERT(mbin==size(ndiag,2))
+  ASSERT(mtyp==size(nobss,1))
+  ASSERT(mbin==size(nobss,2))
+  ASSERT(mtyp==size(ldiag,1))
+  ASSERT(mbin==size(ldiag,2))
+  ASSERT(mtyp==size(ndiag,1))
+  ASSERT(mbin==size(ndiag,2))
 
-  mPEs=0        ! its value is significant only on root
-  if(myPE==root) mPEs=nPE
+  mpes=0        ! its value is significant only on root
+  if(mype==root) mpes=npe
 
-  allocate(lobssm(mtyp,mbin,0:mPEs-1))
-  allocate(ldiagm(mtyp,mbin,0:mPEs-1))
-  allocate(nobssm(mtyp,mbin,0:mPEs-1))
-  allocate(ndiagm(mtyp,mbin,0:mPEs-1))
+  allocate(lobssm(mtyp,mbin,0:mpes-1))
+  allocate(ldiagm(mtyp,mbin,0:mpes-1))
+  allocate(nobssm(mtyp,mbin,0:mpes-1))
+  allocate(ndiagm(mtyp,mbin,0:mpes-1))
 
-  call iMPI_gather_(lobss,lobssm,root,comm)
-  call iMPI_gather_(nobss,nobssm,root,comm)
-  call iMPI_gather_(ldiag,ldiagm,root,comm)
-  call iMPI_gather_(ndiag,ndiagm,root,comm)
+  call impi_gather_(lobss,lobssm,root,comm)
+  call impi_gather_(nobss,nobssm,root,comm)
+  call impi_gather_(ldiag,ldiagm,root,comm)
+  call impi_gather_(ndiag,ndiagm,root,comm)
 
-  if(myPE==root) then
-    do iPE=0,nPE-1
-      write(stdout,'(2a,i6)'     ) title,'(): local obs/diag counts, iPE =',iPE
-      write(stdout,'(2a,9(1x,a))') title,'(): typ', ('|  -----lo -----ld  -----no -----nd',ii=1,mbin)
-      do jj=1,mtyp
-        write(stdout,'(2a,i3,9(1x,a,2(1x,2i8)))') &
-                                   title,'(): ',jj , &
-          ("|",lobssm(jj,ii,iPE),ldiagm(jj,ii,iPE), &
-               nobssm(jj,ii,iPE),ndiagm(jj,ii,iPE), ii=1,mbin)
-      enddo
-    enddo
+  if(mype==root) then
+     do ipe=0,npe-1
+        write(stdout,'(2a,i6)'     ) title,'(): local obs/diag counts, ipe =',ipe
+        write(stdout,'(2a,9(1x,a))') title,'(): typ', ('|  -----lo -----ld  -----no -----nd',ii=1,mbin)
+        do jj=1,mtyp
+           write(stdout,'(2a,i3,9(1x,a,2(1x,2i8)))') &
+                                      title,'(): ',jj , &
+             ("|",lobssm(jj,ii,ipe),ldiagm(jj,ii,ipe), &
+                  nobssm(jj,ii,ipe),ndiagm(jj,ii,ipe), ii=1,mbin)
+        enddo
+     enddo
   endif
 
   deallocate(lobssm)
   deallocate(ldiagm)
   deallocate(nobssm)
   deallocate(ndiagm)
-_TIMER_OFF_(myname_)
+_timer_off_(myname_)
 _EXIT_(myname_)
 end subroutine gather_write_
 
-subroutine iMPI_barrier_(comm)
-  use mpeu_mpif, only: MPI_ikind
+subroutine impi_barrier_(comm)
+  use mpeu_mpif, only: mpi_ikind
   use mpeu_util, only: die
   implicit none
-  integer(kind=MPI_ikind),intent(in):: comm
+  integer(kind=mpi_ikind),intent(in):: comm
 
-  character(len=*),parameter:: myname_=myname//"::iMPI_barrier_"
-  integer(kind=MPI_ikind):: ier
+  character(len=*),parameter:: myname_=myname//"::impi_barrier_"
+  integer(kind=mpi_ikind):: ier
 
-  call MPI_barrier(comm,ier)
-        if(ier/=0) call die(myname_,'MPI_barrier() error, ierror =',ier)
-end subroutine iMPI_barrier_
+  call mpi_barrier(comm,ier)
+  if(ier/=0) call die(myname_,'mpi_barrier() error, ierror =',ier)
+end subroutine impi_barrier_
 
-subroutine iMPI_gather_(isend,irecv,root,comm)
-  use mpeu_mpif,only: MPI_ikind,MPI_type
+subroutine impi_gather_(isend,irecv,root,comm)
+  use mpeu_mpif,only: mpi_ikind,mpi_type
   use mpeu_util, only: die
   use kinds, only: i_kind
   implicit none
   integer(kind=i_kind),dimension(:,:  ),intent(in ):: isend
   integer(kind=i_kind),dimension(:,:,:),intent(out):: irecv
-  integer(kind=MPI_ikind),intent(in):: root
-  integer(kind=MPI_ikind),intent(in):: comm
+  integer(kind=mpi_ikind),intent(in):: root
+  integer(kind=mpi_ikind),intent(in):: comm
 
-  character(len=*),parameter:: myname_=myname//"::iMPI_gather_"
-  integer(kind=MPI_ikind):: itype,isize,ierr
+  character(len=*),parameter:: myname_=myname//"::impi_gather_"
+  integer(kind=mpi_ikind):: itype,isize,ierr
 
   isize=size(isend)
-  itype=MPI_type(isend)
-  call MPI_gather(isend,isize,itype, &
+  itype=mpi_type(isend)
+  call mpi_gather(isend,isize,itype, &
                   irecv,isize,itype, root,comm,ierr)
-        if(ierr/=0) call die(myname_,'MPI_gather() error, ierror =',ierr)
-end subroutine iMPI_gather_
+  if(ierr/=0) call die(myname_,'mpi_gather() error, ierror =',ierr)
+end subroutine impi_gather_
 
-subroutine iMPI_reduceSUM_(iredu,root,comm)
-  use mpeu_mpif,only: MPI_ikind,MPI_type,MPI_SUM
+subroutine impi_reducesum_(iredu,root,comm)
+  use mpeu_mpif,only: mpi_ikind,mpi_type,mpi_sum
   use mpeu_util, only: die
   use kinds, only: i_kind
   implicit none
   integer(kind=i_kind),dimension(:),intent(inout):: iredu
-  integer(kind=MPI_ikind),intent(in):: root
-  integer(kind=MPI_ikind),intent(in):: comm
+  integer(kind=mpi_ikind),intent(in):: root
+  integer(kind=mpi_ikind),intent(in):: comm
 
-  character(len=*),parameter:: myname_=myname//"::iMPI_reduceSUM_"
-  integer(kind=MPI_ikind):: itype,isize,ierr
+  character(len=*),parameter:: myname_=myname//"::impi_reducesum_"
+  integer(kind=mpi_ikind):: itype,isize,ierr
   !integer(kind=kind(iredu)),dimension(size(iredu)):: irecv
 
   isize=size(iredu)
-  itype=MPI_type(iredu)
-  call MPI_reduce((iredu),iredu,isize,itype, MPI_SUM, root,comm,ierr)
-        if(ierr/=0) call die(myname_,'MPI_reduce(MPI_SUM) error, ierror =',ierr)
+  itype=mpi_type(iredu)
+  call mpi_reduce((iredu),iredu,isize,itype, mpi_sum, root,comm,ierr)
+  if(ierr/=0) call die(myname_,'mpi_reduce(mpi_sum) error, ierror =',ierr)
   !iredu(:)=irecv(:)
-end subroutine iMPI_reduceSUM_
+end subroutine impi_reducesum_
 
 subroutine create_obsmod_vars()
 !$$$  subprogram documentation block
@@ -1336,7 +1336,7 @@ subroutine create_obsmod_vars()
 ! program history log:
 !   2003-09-25  derber
 !   2004-05-13  treadon, documentation
-!   2015-10-09  j guo   - moved here from MODULE OBSMOD with modifcations
+!   2015-10-09  j guo   - moved here from module obsmod with modifcations
 !
 !   input argument list:
 !
@@ -1347,13 +1347,13 @@ subroutine create_obsmod_vars()
 !   machine:  ibm rs/6000 sp
 !
 !$$$ end documentation block
-    use gsi_4dvar, only: nobs_bins
-    implicit none
-    lobstypes_allocated_=.true.
-    lobsdiags_allocated_=.true.
-    allocate(obsllists(nobs_type,nobs_bins))
-    allocate(obsdiags (nobs_type,nobs_bins))
-    return
+  use gsi_4dvar, only: nobs_bins
+  implicit none
+  lobstypes_allocated_=.true.
+  lobsdiags_allocated_=.true.
+  allocate(obsllists(nobs_type,nobs_bins))
+  allocate(obsdiags (nobs_type,nobs_bins))
+  return
 end subroutine create_obsmod_vars
 
 subroutine destroy_obsmod_vars()
@@ -1389,47 +1389,47 @@ subroutine inquire_obsdiags(kiter)
 !
 !$$$ end documentation block
 
-use constants, only:  one,two,three,four,five
-use mpimod, only: mpi_max,mpi_comm_world,ierror,mype
-use mpeu_mpif, only: mpi_type, MPI_IKIND
-implicit none
+  use constants, only:  one,two,three,four,five
+  use mpimod, only: mpi_max,mpi_comm_world,ierror,mype
+  use mpeu_mpif, only: mpi_type, mpi_ikind
+  implicit none
 
-integer(i_kind), intent(in   ) :: kiter
+  integer(i_kind), intent(in   ) :: kiter
 
-real(r_kind) :: sizei, sizer, sizel, sizep, ziter, zsize, ztot
-integer(i_kind) :: ii,jj,iobsa(2),iobsb(2)
-type(obs_diag), pointer :: obsptr => null()
+  real(r_kind) :: sizei, sizer, sizel, sizep, ziter, zsize, ztot
+  integer(i_kind) :: ii,jj,iobsa(2),iobsb(2)
+  type(obs_diag), pointer :: obsptr => null()
 
 ! Any better way to determine size or i_kind, r_kind, etc... ?
-sizei=four
-sizer=8.0_r_kind
-sizel=one
-sizep=four
+  sizei=four
+  sizer=8.0_r_kind
+  sizel=one
+  sizep=four
 
-iobsa(:)=0
-do ii=1,size(obsdiags,2)
-   do jj=1,size(obsdiags,1)
-      obsptr => obsdiags(jj,ii)%head
-      do while (associated(obsptr))
-         iobsa(1)=iobsa(1)+1
-         if (ANY(obsptr%muse(:))) iobsa(2)=iobsa(2)+1
-         obsptr => obsptr%next
-      enddo
-   enddo
-enddo
+  iobsa(:)=0
+  do ii=1,size(obsdiags,2)
+     do jj=1,size(obsdiags,1)
+        obsptr => obsdiags(jj,ii)%head
+        do while (associated(obsptr))
+           iobsa(1)=iobsa(1)+1
+           if (any(obsptr%muse(:))) iobsa(2)=iobsa(2)+1
+           obsptr => obsptr%next
+        enddo
+     enddo
+  enddo
 
-call mpi_reduce(iobsa,iobsb,2_MPI_IKIND,mpi_type(iobsa),mpi_max,0_MPI_IKIND,mpi_comm_world,ierror)
+  call mpi_reduce(iobsa,iobsb,2_mpi_ikind,mpi_type(iobsa),mpi_max,0_mpi_ikind,mpi_comm_world,ierror)
 
-if (mype==0) then
-   ziter=real(kiter,r_kind)
-   zsize = sizer*(three*ziter+two) + sizei + sizel*(ziter+one) + sizep*five
-   ztot=real(iobsb(1),r_kind)*zsize
-   ztot=ztot/(1024.0_r_kind*1024.0_r_kind)
+  if (mype==0) then
+     ziter=real(kiter,r_kind)
+     zsize = sizer*(three*ziter+two) + sizei + sizel*(ziter+one) + sizep*five
+     ztot=real(iobsb(1),r_kind)*zsize
+     ztot=ztot/(1024.0_r_kind*1024.0_r_kind)
  
-   write(6,*)'obsdiags: Bytes per element=',NINT(zsize)
-   write(6,*)'obsdiags: length total, used=',iobsb(1),iobsb(2)
-   write(6,'(A,F8.1,A)')'obsdiags: Estimated memory usage= ',ztot,' Mb'
-endif
+     write(6,*)'obsdiags: Bytes per element=',nint(zsize)
+     write(6,*)'obsdiags: length total, used=',iobsb(1),iobsb(2)
+     write(6,'(A,F8.1,A)')'obsdiags: Estimated memory usage= ',ztot,' Mb'
+  endif
 
 end subroutine inquire_obsdiags
 

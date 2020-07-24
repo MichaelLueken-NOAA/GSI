@@ -5,7 +5,7 @@ module mod_fv3_lola
 !   prgmmr: parrish
 !
 ! abstract:  This module contains routines to interpolate from a single
-!             fv3 D grid tile to a rotated lat-lon analysis grid which completely
+!             fv3 d grid tile to a rotated lat-lon analysis grid which completely
 !             covers the fv3 tile.  Points beyond the fv3 tile are
 !             filled with nearest fv3 edge values, but have no actual
 !             impact on the analysis.
@@ -34,7 +34,7 @@ module mod_fv3_lola
 !
 !$$$ end documentation block
 
-!       DIAGRAM:  D-Grid layout:
+!       Diagram:  d-grid layout:
 !
 !   1                  nx
 !   .                   .   (U,H)
@@ -42,21 +42,21 @@ module mod_fv3_lola
 ! 1                     nx +1
 ! .                       .    (V)
 
-!   U   U   U   U   U   U        + ny +1 (for U)
-! V H V H V H V H V H V H V      + ny    (for V,H)
-!   U   U   U   U   U   U                            xh(i) = i            dx=1
-! V H V H V H V H V H V H V                          xu(i) = i
-!   U   U   U   U   U   U                            xv(i) = i-0.5
-! V H V H V H V H V H V H V
-!   U   U   U   U   U   U                            yh(j) = j            dy=1
-! V H V H V H V H V H V H V                          yu(j) = j-0.5
-!   U   U   U   U   U   U                            yv(j) = j
-! V H V H V H V H V H V H V
-!   U   U   U   U   U   U
-! V H V H V H V H V H V H V      + 1     (for V,H)
-!   U   U   U   U   U   U        + 1     (for U)
+!   u   u   u   u   u   u        + ny +1 (for u)
+! v h v h v h v h v h v h v      + ny    (for v,h)
+!   u   u   u   u   u   u                            xh(i) = i            dx=1
+! v h v h v h v h v h v h v                          xu(i) = i
+!   u   u   u   u   u   u                            xv(i) = i-0.5
+! v h v h v h v h v h v h v
+!   u   u   u   u   u   u                            yh(j) = j            dy=1
+! v h v h v h v h v h v h v                          yu(j) = j-0.5
+!   u   u   u   u   u   u                            yv(j) = j
+! v h v h v h v h v h v h v
+!   u   u   u   u   u   u
+! v h v h v h v h v h v h v      + 1     (for v,h)
+!   u   u   u   u   u   u        + 1     (for u)
 
-! U(nx ,ny +1),V(nx +1,ny ),H(nx ,ny )
+! u(nx ,ny +1),v(nx +1,ny ),h(nx ,ny )
 
   use kinds, only: r_kind,i_kind
   implicit none
@@ -88,10 +88,10 @@ subroutine generate_anl_grid(nx,ny,grid_lon,grid_lont,grid_lat,grid_latt)
 !
 ! program history log:
 !   2017-05-02  parrish
-!   2017-10-10  wu   - 1. setup analysis A-grid, 
-!                      2. compute/setup FV3 to A grid interpolation parameters
-!                      3. compute/setup A to FV3 grid interpolation parameters         
-!                      4. setup weightings for wind conversion from FV3 to earth
+!   2017-10-10  wu   - 1. setup analysis a-grid, 
+!                      2. compute/setup fv3 to a grid interpolation parameters
+!                      3. compute/setup A to fv3 grid interpolation parameters         
+!                      4. setup weightings for wind conversion from fv3 to earth
 !   2019-11-01  wu   - add checks to present the mean longitude correctly to fix
 !                       problem near lon=0
 !
@@ -188,7 +188,7 @@ subroutine generate_anl_grid(nx,ny,grid_lon,grid_lont,grid_lat,grid_latt)
                   centlon,centlat,nx,ny)
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!  compute analysis A-grid  lats, lons
+!!  compute analysis a-grid  lats, lons
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 !--------------------------obtain analysis grid dimensions nxa,nya
@@ -199,12 +199,12 @@ subroutine generate_anl_grid(nx,ny,grid_lon,grid_lont,grid_lat,grid_latt)
   if(mype==0) print *,'nlat,nlon=nya,nxa= ',nlat,nlon
 
 !--------------------------obtain analysis grid spacing
-  dlat=(maxval(gcrlat)-minval(gcrlat))/(ny-1)
-  dlon=(maxval(gcrlon)-minval(gcrlon))/(nx-1)
+  dlat=(maxval(gcrlat)-minval(gcrlat))/real((ny-1),r_kind)
+  dlon=(maxval(gcrlon)-minval(gcrlon))/real((nx-1),r_kind)
   adlat=dlat*grid_ratio_fv3_regional
   adlon=dlon*grid_ratio_fv3_regional
 
-!-------setup analysis A-grid; find center of the domain
+!-------setup analysis a-grid; find center of the domain
   nlonh=nlon/2
   nlath=nlat/2
 
@@ -225,11 +225,11 @@ subroutine generate_anl_grid(nx,ny,grid_lon,grid_lont,grid_lat,grid_latt)
   endif
 
 !
-!-----setup analysis A-grid from center of the domain
+!-----setup analysis a-grid from center of the domain
 !
   allocate(rlat_in(nlat,nlon),rlon_in(nlat,nlon))
   do j=1,nlon
-     alon=(j-nlonh)*adlon-clon
+     alon=real((j-nlonh),r_kind)*adlon-clon
      do i=1,nlat
         rlon_in(i,j)=alon
      enddo
@@ -238,7 +238,7 @@ subroutine generate_anl_grid(nx,ny,grid_lon,grid_lont,grid_lat,grid_latt)
 
   do j=1,nlon
      do i=1,nlat
-        rlat_in(i,j)=(i-nlath)*adlat-clat
+        rlat_in(i,j)=real((i-nlath),r_kind)*adlat-clat
      enddo
   enddo
 
@@ -318,15 +318,15 @@ subroutine generate_anl_grid(nx,ny,grid_lon,grid_lont,grid_lat,grid_latt)
      end do
   end do
 
-!!!!  define analysis A grid  !!!!!!!!!!!!!
+!!!!  define analysis a grid  !!!!!!!!!!!!!
   do j=1,nxa
-     xa_a(j)=(float(j-nlonh)-cx)*grid_ratio_fv3_regional
+     xa_a(j)=(real((j-nlonh),r_kind)-cx)*grid_ratio_fv3_regional
   end do
   do i=1,nya
-     ya_a(i)=(float(i-nlath)-cy)*grid_ratio_fv3_regional
+     ya_a(i)=(real((i-nlath),r_kind)-cy)*grid_ratio_fv3_regional
   end do
 
-!!!!!compute fv3 to A grid interpolation parameters !!!!!!!!!
+!!!!!compute fv3 to a grid interpolation parameters !!!!!!!!!
   allocate  (   fv3dx(nxa,nya),fv3dx1(nxa,nya),fv3dy(nxa,nya),fv3dy1(nxa,nya) )
   allocate  (   fv3ix(nxa,nya),fv3ixp(nxa,nya),fv3jy(nxa,nya),fv3jyp(nxa,nya) )
   allocate(yy(ny))
@@ -336,138 +336,138 @@ subroutine generate_anl_grid(nx,ny,grid_lon,grid_lont,grid_lat,grid_latt)
   ib1=1
   do j=1,nya
      do i=1,nxa
-      do n=1,3 
-         gxa=xa_a(i)
-         if(gxa < xbh_b(1,jb1))then
-            gxa= 1
-         else if(gxa > xbh_b(nx,jb1))then
-            gxa= nx
-         else
-            call grdcrd1(gxa,xbh_b(1,jb1),nx,1)
-         endif
-         ib2=ib1
-         ib1=gxa
-         do jj=1,ny
-            yy(jj)=ybh_b(ib1,jj)
-         enddo
-         gya=ya_a(j)
-         if(gya < yy(1))then
-            gya= 1
-         else if(gya > yy(ny))then
-            gya= ny
-         else
-            call grdcrd1(gya,yy,ny,1)
-         endif
-         jb2=jb1
-         jb1=gya
+        do n=1,3 
+           gxa=xa_a(i)
+           if(gxa < xbh_b(1,jb1))then
+              gxa= one
+           else if(gxa > xbh_b(nx,jb1))then
+              gxa= real(nx,r_kind)
+           else
+              call grdcrd1(gxa,xbh_b(1,jb1),nx,1)
+           endif
+           ib2=ib1
+           ib1=gxa
+           do jj=1,ny
+              yy(jj)=ybh_b(ib1,jj)
+           enddo
+           gya=ya_a(j)
+           if(gya < yy(1))then
+              gya= one
+           else if(gya > yy(ny))then
+              gya= real(ny,r_kind)
+           else
+              call grdcrd1(gya,yy,ny,1)
+           endif
+           jb2=jb1
+           jb1=gya
 
-         if((ib1 == ib2) .and. (jb1 == jb2)) exit
-         if(n==3 ) then     
+           if((ib1 == ib2) .and. (jb1 == jb2)) exit
+           if(n==3 ) then     
 !!!!!!!   if not converge, find the nearest corner point
-            d(1)=(xa_a(i)-xbh_b(ib1,jb1))**2+(ya_a(j)-ybh_b(ib1,jb1))**2
-            d(2)=(xa_a(i)-xbh_b(ib1+1,jb1))**2+(ya_a(j)-ybh_b(ib1+1,jb1))**2
-            d(3)=(xa_a(i)-xbh_b(ib1,jb1+1))**2+(ya_a(j)-ybh_b(ib1,jb1+1))**2
-            d(4)=(xa_a(i)-xbh_b(ib1+1,jb1+1))**2+(ya_a(j)-ybh_b(ib1+1,jb1+1))**2
-            kk=1 
-            do k=2,4
-               if(d(k)<d(kk))kk=k
-            enddo
+              d(1)=(xa_a(i)-xbh_b(ib1,jb1))**2+(ya_a(j)-ybh_b(ib1,jb1))**2
+              d(2)=(xa_a(i)-xbh_b(ib1+1,jb1))**2+(ya_a(j)-ybh_b(ib1+1,jb1))**2
+              d(3)=(xa_a(i)-xbh_b(ib1,jb1+1))**2+(ya_a(j)-ybh_b(ib1,jb1+1))**2
+              d(4)=(xa_a(i)-xbh_b(ib1+1,jb1+1))**2+(ya_a(j)-ybh_b(ib1+1,jb1+1))**2
+              kk=1 
+              do k=2,4
+                 if(d(k)<d(kk))kk=k
+              enddo
 !!!!!!!!!!! Find the cell for interpolation
-            gxa=xa_a(i)
-            gya=ya_a(j)
-            if(kk==1)then
-               call grdcrd1(gxa,xbh_b(1,jb1),nx,1)
-               do jj=1,ny
-                  yy(jj)=ybh_b(ib1,jj)
-               enddo
-               call grdcrd1(gya,yy,ny,1)
-            else if(kk==2)then
-               call grdcrd1(gxa,xbh_b(1,jb1),nx,1)
-               do jj=1,ny
-                  yy(jj)=ybh_b(ib1+1,jj)
-               enddo
-               call grdcrd1(gya,yy,ny,1)
-            else if(kk==3)then
-               call grdcrd1(gxa,xbh_b(1,jb1+1),nx,1)
-               do jj=1,ny
-                  yy(jj)=ybh_b(ib1,jj)
-               enddo
-               call grdcrd1(gya,yy,ny,1)
-            else if(kk==4)then
-               call grdcrd1(gxa,xbh_b(1,jb1+1),nx,1)
-               do jj=1,ny
-                  yy(jj)=ybh_b(ib1+1,jj)
-               enddo
-               call grdcrd1(gya,yy,ny,1)
-            endif
-            exit
-         endif  !n=3   
-      enddo  ! n
+              gxa=xa_a(i)
+              gya=ya_a(j)
+              if(kk==1)then
+                 call grdcrd1(gxa,xbh_b(1,jb1),nx,1)
+                 do jj=1,ny
+                    yy(jj)=ybh_b(ib1,jj)
+                 enddo
+                 call grdcrd1(gya,yy,ny,1)
+              else if(kk==2)then
+                 call grdcrd1(gxa,xbh_b(1,jb1),nx,1)
+                 do jj=1,ny
+                    yy(jj)=ybh_b(ib1+1,jj)
+                 enddo
+                 call grdcrd1(gya,yy,ny,1)
+              else if(kk==3)then
+                 call grdcrd1(gxa,xbh_b(1,jb1+1),nx,1)
+                 do jj=1,ny
+                    yy(jj)=ybh_b(ib1,jj)
+                 enddo
+                 call grdcrd1(gya,yy,ny,1)
+              else if(kk==4)then
+                 call grdcrd1(gxa,xbh_b(1,jb1+1),nx,1)
+                 do jj=1,ny
+                    yy(jj)=ybh_b(ib1+1,jj)
+                 enddo
+                 call grdcrd1(gya,yy,ny,1)
+              endif
+              exit
+           endif  !n=3   
+        enddo  ! n
 
-      fv3ix(i,j)=int(gxa)
-      fv3ix(i,j)=min(max(1,fv3ix(i,j)),nx)
-      fv3ixp(i,j)=min(nx,fv3ix(i,j)+1)
-      fv3jy(i,j)=int(gya)
-      fv3jy(i,j)=min(max(1,fv3jy(i,j)),ny)
-      fv3jyp(i,j)=min(ny,fv3jy(i,j)+1)
+        fv3ix(i,j)=int(gxa)
+        fv3ix(i,j)=min(max(1,fv3ix(i,j)),nx)
+        fv3ixp(i,j)=min(nx,fv3ix(i,j)+1)
+        fv3jy(i,j)=int(gya)
+        fv3jy(i,j)=min(max(1,fv3jy(i,j)),ny)
+        fv3jyp(i,j)=min(ny,fv3jy(i,j)+1)
 
-      if(bilinear)then
-         fv3dy(i,j)=max(zero,min(one,gya-fv3jy(i,j)))
-         fv3dy1(i,j)=one-fv3dy(i,j)
-         fv3dx(i,j)=max(zero,min(one,gxa-fv3ix(i,j)))
-         fv3dx1(i,j)=one-fv3dx(i,j)
-      else ! inverse-distance weighting average 
-         ib1=fv3ix(i,j)
-         ib2=fv3ixp(i,j)
-         jb1=fv3jy(i,j)
-         jb2=fv3jyp(i,j)
-         if(xa_a(i)==xbh_b(ib1,jb1) .and. ya_a(j)==ybh_b(ib1,jb1))then
-            fv3dy(i,j)=zero
-            fv3dy1(i,j)=zero
-            fv3dx(i,j)=one
-            fv3dx1(i,j)=zero
-         else if(xa_a(i)==xbh_b(ib2,jb1) .and. ya_a(j)==ybh_b(ib2,jb1))then
-            fv3dy(i,j)=zero
-            fv3dy1(i,j)=zero
-            fv3dx(i,j)=zero
-            fv3dx1(i,j)=one
-         else if(xa_a(i)==xbh_b(ib1,jb2) .and. ya_a(j)==ybh_b(ib1,jb2))then
-            fv3dy(i,j)=one 
-            fv3dy1(i,j)=zero
-            fv3dx(i,j)=zero
-            fv3dx1(i,j)=zero
-         else if(xa_a(i)==xbh_b(ib2,jb2) .and. ya_a(j)==ybh_b(ib2,jb2))then
-            fv3dy(i,j)=zero
-            fv3dy1(i,j)=one 
-            fv3dx(i,j)=zero
-            fv3dx1(i,j)=zero
-         else 
-            d(1)=one/((xa_a(i)-xbh_b(ib1,jb1))**2+(ya_a(j)-ybh_b(ib1,jb1))**2)
-            d(2)=one/((xa_a(i)-xbh_b(ib2,jb1))**2+(ya_a(j)-ybh_b(ib2,jb1))**2)
-            d(3)=one/((xa_a(i)-xbh_b(ib1,jb2))**2+(ya_a(j)-ybh_b(ib1,jb2))**2)
-            d(4)=one/((xa_a(i)-xbh_b(ib2,jb2))**2+(ya_a(j)-ybh_b(ib2,jb2))**2)
-            ds=one/(d(1)+d(2)+d(3)+d(4))
-            fv3dy(i,j)=d(3)*ds
-            fv3dy1(i,j)=d(4)*ds
-            fv3dx(i,j)=d(1)*ds
-            fv3dx1(i,j)=d(2)*ds
-         endif
-      endif !bilinear
+        if(bilinear)then
+           fv3dy(i,j)=max(zero,min(one,gya-fv3jy(i,j)))
+           fv3dy1(i,j)=one-fv3dy(i,j)
+           fv3dx(i,j)=max(zero,min(one,gxa-fv3ix(i,j)))
+           fv3dx1(i,j)=one-fv3dx(i,j)
+        else ! inverse-distance weighting average 
+           ib1=fv3ix(i,j)
+           ib2=fv3ixp(i,j)
+           jb1=fv3jy(i,j)
+           jb2=fv3jyp(i,j)
+           if(xa_a(i)==xbh_b(ib1,jb1) .and. ya_a(j)==ybh_b(ib1,jb1))then
+              fv3dy(i,j)=zero
+              fv3dy1(i,j)=zero
+              fv3dx(i,j)=one
+              fv3dx1(i,j)=zero
+           else if(xa_a(i)==xbh_b(ib2,jb1) .and. ya_a(j)==ybh_b(ib2,jb1))then
+              fv3dy(i,j)=zero
+              fv3dy1(i,j)=zero
+              fv3dx(i,j)=zero
+              fv3dx1(i,j)=one
+           else if(xa_a(i)==xbh_b(ib1,jb2) .and. ya_a(j)==ybh_b(ib1,jb2))then
+              fv3dy(i,j)=one 
+              fv3dy1(i,j)=zero
+              fv3dx(i,j)=zero
+              fv3dx1(i,j)=zero
+           else if(xa_a(i)==xbh_b(ib2,jb2) .and. ya_a(j)==ybh_b(ib2,jb2))then
+              fv3dy(i,j)=zero
+              fv3dy1(i,j)=one 
+              fv3dx(i,j)=zero
+              fv3dx1(i,j)=zero
+           else 
+              d(1)=one/((xa_a(i)-xbh_b(ib1,jb1))**2+(ya_a(j)-ybh_b(ib1,jb1))**2)
+              d(2)=one/((xa_a(i)-xbh_b(ib2,jb1))**2+(ya_a(j)-ybh_b(ib2,jb1))**2)
+              d(3)=one/((xa_a(i)-xbh_b(ib1,jb2))**2+(ya_a(j)-ybh_b(ib1,jb2))**2)
+              d(4)=one/((xa_a(i)-xbh_b(ib2,jb2))**2+(ya_a(j)-ybh_b(ib2,jb2))**2)
+              ds=one/(d(1)+d(2)+d(3)+d(4))
+              fv3dy(i,j)=d(3)*ds
+              fv3dy1(i,j)=d(4)*ds
+              fv3dx(i,j)=d(1)*ds
+              fv3dx1(i,j)=d(2)*ds
+           endif
+        endif !bilinear
 
      end do ! i
   end do ! j
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1111
-!!!!!compute A to fv3 grid interpolation parameters !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1111
+!!!!!compute a to fv3 grid interpolation parameters !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1111
   allocate  (   a3dx(ny,nx),a3dx1(ny,nx),a3dy(ny,nx),a3dy1(ny,nx) )
   allocate  (   a3ix(ny,nx),a3ixp(ny,nx),a3jy(ny,nx),a3jyp(ny,nx) )
   do i=1,nx
      do j=1,ny
         gxa=xbh_b(i,j)
         if(gxa < xa_a(1))then
-           gxa= 1
+           gxa= one
         else if(gxa > xa_a(nxa))then
-           gxa= nxa
+           gxa= real(nxa,r_kind)
         else
            call grdcrd1(gxa,xa_a,nxa,1)
         endif
@@ -483,9 +483,9 @@ subroutine generate_anl_grid(nx,ny,grid_lon,grid_lont,grid_lat,grid_latt)
     do j=1,ny
         gya=ybh_b(i,j)
         if(gya < ya_a(1))then
-           gya= 1
+           gya= one
         else if(gya > ya_a(nya))then
-           gya= nya
+           gya= real(nya,r_kind)
         else
            call grdcrd1(gya,ya_a,nya,1)
         endif
@@ -498,7 +498,7 @@ subroutine generate_anl_grid(nx,ny,grid_lon,grid_lont,grid_lat,grid_latt)
   end do
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!! find coefficients for wind conversion btw FV3 & earth
+!!! find coefficients for wind conversion btw fv3 & earth
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   allocate  (   cangu(nx,ny+1),sangu(nx,ny+1),cangv(nx+1,ny),sangv(nx+1,ny) )
@@ -513,7 +513,7 @@ subroutine generate_anl_grid(nx,ny,grid_lon,grid_lont,grid_lat,grid_latt)
      enddo
   enddo
 
-!  2   find angles to E-W and N-S for U edges
+!  2   find angles to e-w and n-s for u edges
   sq180=180._r_kind**2 
   do j=1,ny+1
      do i=1,nx
@@ -542,7 +542,7 @@ subroutine generate_anl_grid(nx,ny,grid_lon,grid_lont,grid_lat,grid_latt)
      enddo
   enddo
  
-!  3   find angles to E-W and N-S for V edges
+!  3   find angles to e-w and n-s for v edges
   do j=1,ny
      do i=1,nx+1
         rlat=half*(grid_lat(i,j)+grid_lat(i,j+1))
@@ -574,7 +574,7 @@ subroutine earthuv2fv3(u,v,nx,ny,u_out,v_out)
 ! subprogram:    earthuv2fv3
 !   prgmmr: wu                      2017-06-15
 !
-! abstract: project earth UV to fv3 UV and interpolate to edge of the cell
+! abstract: project earth uv to fv3 uv and interpolate to edge of the cell
 !
 ! program history log:
 !   
@@ -633,7 +633,7 @@ subroutine fv3uv2earth(u,v,nx,ny,u_out,v_out)
 ! subprogram:    fv3uv2earth
 !   prgmmr: wu                      2017-06-15
 !
-! abstract: project fv3 UV to earth UV and interpolate to the center of the cells
+! abstract: project fv3 uv to earth uv and interpolate to the center of the cells
 !
 ! program history log:
 !   
@@ -677,10 +677,10 @@ subroutine fv3_h_to_ll(b_in,a,nb,mb,na,ma)
 ! subprogram:    fv3_h_to_ll
 !   prgmmr: wu                      2017-05-30
 !
-! abstract: interpolate from rotated fv3 grid to A grid. 
+! abstract: interpolate from rotated fv3 grid to a grid. 
 !     Interpolation choices 1)bilinear both ways 
 !                           2)inverse-distance weighting average
-!     reverse E-W and N-S directions & reverse i,j for output array a(nlat,nlon)
+!     reverse e-w and n-s directions & reverse i,j for output array a(nlat,nlon)
 !
 ! program history log:
 !   
@@ -711,7 +711,7 @@ subroutine fv3_h_to_ll(b_in,a,nb,mb,na,ma)
   integer(i_kind) i,j,ir,jr,mbp,nbp
   real(r_kind)    b(nb,mb)
 
-!!!!!!!!! reverse E-W and N-S
+!!!!!!!!! reverse e-w and n-s
   mbp=mb+1
   nbp=nb+1
   do j=1,mb
@@ -721,7 +721,7 @@ subroutine fv3_h_to_ll(b_in,a,nb,mb,na,ma)
         b(ir,jr)=b_in(i,j)
      end do
   end do
-!!!!!!!!! interpolate to A grid & reverse ij for array a(lat,lon)
+!!!!!!!!! interpolate to a grid & reverse ij for array a(lat,lon)
   if(bilinear)then ! bilinear interpolation
      do j=1,ma
         do i=1,na
@@ -746,8 +746,8 @@ subroutine fv3_ll_to_h(a,b,nxa,nya,nxb,nyb,rev_flg)
 ! subprogram:    fv3_ll_to_h
 !   prgmmr: wu                      2017-05-30
 !
-! abstract: interpolate from analysis A grid to rotated fv3 grid. 
-!    Interpolation is bilinear both ways.  Reverse E-W and N-S and
+! abstract: interpolate from analysis a grid to rotated fv3 grid. 
+!    Interpolation is bilinear both ways.  Reverse e-w and n-s and
 !     reverse i,j for output array b(nxb,nyb)
 !
 ! program history log:
@@ -780,7 +780,7 @@ subroutine fv3_ll_to_h(a,b,nxa,nya,nxb,nyb,rev_flg)
   integer(i_kind) i,j,ir,jr,nybp,nxbp,ijr
 
   if(rev_flg)then
-!!!!!!!!!! output in reverse E-W, N-S and reversed i,j !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!! output in reverse e-w, n-s and reversed i,j !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
      nybp=nyb+1
      nxbp=nxb+1
      do i=1,nyb
@@ -793,7 +793,7 @@ subroutine fv3_ll_to_h(a,b,nxa,nya,nxb,nyb,rev_flg)
         end do
      end do
   else
-!!!!!!!!!! output order as input W-E S-N and (i:lat,j:lon) !!!!!!!!!!!
+!!!!!!!!!! output order as input w-e s-n and (i:lat,j:lon) !!!!!!!!!!!
      do j=1,nxb
         ijr=(j-1)*nyb
         do i=1,nyb
@@ -822,9 +822,9 @@ subroutine rotate2deg(rlon_in,rlat_in,rlon_out,rlat_out,rlon0,rlat0,nx,ny)
 !
 !  Method is as follows:
 !  1.  define x,y,z coordinate system with origin at center of sphere,
-!      x intersecting sphere at 0 deg N,  0 deg E,
-!      y intersecting sphere at 0 deg N, 90 deg E,
-!      z intersecting sphere at 90 deg N  (north pole).
+!      x intersecting sphere at 0 deg n,  0 deg e,
+!      y intersecting sphere at 0 deg n, 90 deg e,
+!      z intersecting sphere at 90 deg n  (north pole).
 
 !   4 steps:
 
@@ -836,7 +836,7 @@ subroutine rotate2deg(rlon_in,rlat_in,rlon_out,rlat_out,rlon0,rlat0,nx,ny)
 
 !   4.  compute rlon_out, rlat_out from xtt,ytt,ztt
 
-!   This is the desired new orientation, where (0N, 0E) maps to point
+!   This is the desired new orientation, where (0n, 0e) maps to point
 !         (rlon0,rlat0) in original coordinate and the new equator is tangent to
 !          the original latitude circle rlat0 at original longitude rlon0.
 ! attributes:

@@ -144,15 +144,15 @@ module m_latlonrange
 
 #include "myassert.H"
 
-#define _TIMER_ON_
-#ifdef  _TIMER_ON_
-#undef  _TIMER_ON_
-#undef  _TIMER_OFF_
-#define _TIMER_ON_(id)  call timer_ini(id)
-#define _TIMER_OFF_(id) call timer_fnl(id)
+#define _timer_on_
+#ifdef  _timer_on_
+#undef  _timer_on_
+#undef  _timer_off_
+#define _timer_on_(id)  call timer_ini(id)
+#define _timer_off_(id) call timer_fnl(id)
 #else
-#define _TIMER_ON_(id)
-#define _TIMER_OFF_(id)
+#define _timer_on_(id)
+#define _timer_off_(id)
 #endif
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   character(len=*),parameter :: myname='m_latlonrange'
@@ -364,7 +364,7 @@ subroutine gatherwrite_(llrange,hdfile,root,comm)
   integer(kind=i_kind),allocatable,dimension(:,:):: irecv
   real   (kind=r_kind),            dimension(5  ):: rsend
   real   (kind=r_kind),allocatable,dimension(:,:):: rrecv
-_TIMER_ON_(myname_)
+_timer_on_(myname_)
 
   lsize=0
   if(mype==root) lsize=npes
@@ -411,7 +411,7 @@ _TIMER_ON_(myname_)
   endif
 
   deallocate(irecv,rrecv)
-_TIMER_OFF_(myname_)
+_timer_off_(myname_)
 end subroutine gatherwrite_
 
 subroutine readbcast_(hdfile,allranges,root,comm)
@@ -428,7 +428,7 @@ subroutine readbcast_(hdfile,allranges,root,comm)
   integer(kind=i_kind):: ier,lu,irec,jrec,nrec
   integer(kind=i_kind),allocatable,dimension(:,:):: ibufr
   real   (kind=r_kind),allocatable,dimension(:,:):: rbufr
-_TIMER_ON_(myname_)
+_timer_on_(myname_)
   
   nrec=0
   if(mype==root) then
@@ -479,7 +479,7 @@ _TIMER_ON_(myname_)
                               alon_max=rbufr(5,irec)  )
   enddo
   deallocate(ibufr,rbufr)
-_TIMER_OFF_(myname_)
+_timer_off_(myname_)
 end subroutine readbcast_
 
 subroutine alldump_(allranges,varname)
@@ -495,7 +495,7 @@ subroutine alldump_(allranges,varname)
   character(len=*),parameter:: myname_=myname//"::alldump_"
   integer(i_kind):: irec
   character(len=:), allocatable:: varlead_
-_TIMER_ON_(myname_)
+_timer_on_(myname_)
 
   varlead_=stdout_lead(varname)
 
@@ -505,7 +505,7 @@ _TIMER_ON_(myname_)
      write(stdout,'(a,i4,l2,i8,5f12.4)') varlead_, irec,islocal_(  allranges(irec)),allranges(irec)
   enddo
   write  (stdout,'(a,1x,a)')            varlead_,'========'
-_TIMER_OFF_(myname_)
+_timer_off_(myname_)
 end subroutine alldump_
 
 subroutine gatherdump_local_(varname,root,comm)
@@ -516,10 +516,10 @@ subroutine gatherdump_local_(varname,root,comm)
   integer(kind=i_kind),intent(in):: comm
 
   character(len=*),parameter:: myname_=myname//"::gatherdump_local_"
-_TIMER_ON_(myname_)
+_timer_on_(myname_)
   if(.not.localrange_defined_) call localrange_config_()
   call gatherdump_(localrange_,varname,root,comm)
-_TIMER_OFF_(myname_)
+_timer_off_(myname_)
 end subroutine gatherdump_local_
 
 subroutine gatherdump_(llrange,varname,root,comm)
@@ -546,7 +546,7 @@ subroutine gatherdump_(llrange,varname,root,comm)
   real   (kind=r_kind),            dimension(5  ):: rsend
   real   (kind=r_kind),allocatable,dimension(:,:):: rrecv
   character(len=:),allocatable:: varlead_
-_TIMER_ON_(myname_)
+_timer_on_(myname_)
 
   lsize=0
   if(mype==root) lsize=npes
@@ -580,7 +580,7 @@ _TIMER_ON_(myname_)
   endif
 
   deallocate(irecv,rrecv)
-_TIMER_OFF_(myname_)
+_timer_off_(myname_)
 end subroutine gatherdump_
 
 end module m_latlonrange

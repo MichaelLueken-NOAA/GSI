@@ -13,7 +13,7 @@ module mod_strong
 !
 ! program history log:
 !   2007-02-15 parrish
-!   2012-02-08 kleist - add option tlnmc_option to control how TLNMC is applied
+!   2012-02-08 kleist - add option tlnmc_option to control how tlnmc is applied
 !   2013-07-02 parrish - change tlnmc_type to reg_tlnmc_type.  tlnmc_type no
 !                          longer used for global application of tlnmc.
 !   2014-12-03  derber  - remove unused variables
@@ -32,43 +32,43 @@ module mod_strong
 !   sub dinmi_ad         - adjoint of dinmi
 !   sub dinmi0           - lower level--balance increment from input tendencies
 !   sub balm_1           - compute balance diagnostic variable
-!   sub getbcf           - compute matrices B,C,F as defined in above reference
+!   sub getbcf           - compute matrices b,c,f as defined in above reference
 !   sub scale_vars       - scale variables as defined in reference
 !   sub scale_vars_ad    - adjoint of scale variables
 !   sub unscale_vars     - unscale variables
 !   sub unscale_vars_ad  - adjoint of unscale variables
-!   sub f_mult           - multiply by F matrix
-!   sub c_mult           - multiply by C matrix
+!   sub f_mult           - multiply by f matrix
+!   sub c_mult           - multiply by c matrix
 !   sub i_mult           - multiply by sqrt(-1)
-!   sub solve_f2c2       - solve (F*F+C*C)*x = y
+!   sub solve_f2c2       - solve (f*f+c*c)*x = y
 !
 ! Variable Definitions:
-!   def l_tlnmc          - Logical for TLNMC (set to true if namelist option tlnmc_option
+!   def l_tlnmc          - Logical for tlnmc (set to true if namelist option tlnmc_option
 !                          is 1, 2, or 3
 !   def reg_tlnmc_type   - =1 for regional 1st version of strong constraint
 !                          =2 for regional 2nd version of strong constraint
 !   def nstrong          - number of iterations of strong constraint initialization
-!   def scheme           - which scheme (B, C or D) is being used (see reference above)
+!   def scheme           - which scheme (b, c or d) is being used (see reference above)
 !   def period_max       - max period (hours) of gravity modes to be balanced
 !   def period_width     - width of smooth transition (hours, centered on period_max)
 !                          from balanced to unbalanced gravity modes
 !   def baldiag_full     - flag to toggle balance diagnostics for the full fields
 !   def baldiag_inc      - flag to toggle balance diagnostics for the analysis increment
-!   def tlnmc_option - Integer option for Incremental Normal Mode Constraint (inmc) / TLNMC
+!   def tlnmc_option - Integer option for incremental normal mode constraint (inmc) / tlnmc
 !                            when in hybrid ensemble mode:
 !                          =0: no constraint at all
-!                          =1: TLNMC on static contribution to increment (or if non-hybrid)
-!                          =2: TLNMC on total increment (single time level only, or 3D mode)
-!                          =3: TLNMC on total increment over all nobs_bins (if 4D mode)
+!                          =1: tlnmc on static contribution to increment (or if non-hybrid)
+!                          =2: tlnmc on total increment (single time level only, or 3d mode)
+!                          =3: tlnmc on total increment over all nobs_bins (if 4d mode)
 ! attributes:
 !   language: f90
 !   machine:  ibm RS/6000 SP
 !
 !$$$ end documentation block
 
-use kinds,only: r_kind,i_kind
-use constants, only: zero,half,one,two,four,r3600,omega,pi,rearth,one_tenth
-implicit none
+  use kinds,only: r_kind,i_kind
+  use constants, only: zero,half,one,two,four,r3600,omega,pi,rearth,one_tenth
+  implicit none
 
 ! set default to private
   private
@@ -158,10 +158,10 @@ contains
 !
 !         scale:      vort,div,phi --> vort_hat,div_hat,phi_hat
 !
-!         solve:     (F*F+C*C)*x = F*vort_hat + C*phi_hat
+!         solve:     (f*f+c*c)*x = f*vort_hat + c*phi_hat
 !         then:
-!               phi_hat_g = C*x
-!              vort_hat_g = F*x
+!               phi_hat_g = c*x
+!              vort_hat_g = f*x
 !               div_hat_g = div_hat
 !
 !         unscale:    vort_hat_g, div_hat_g, phi_hat_g --> vort_g, div_g, phi_g
@@ -224,10 +224,10 @@ contains
 !
 !         scale:      vort,div,phi --> vort_hat,div_hat,phi_hat
 !
-!         solve:     (F*F+C*C)*x = F*vort_hat + C*phi_hat
+!         solve:     (f*f+c*c)*x = f*vort_hat + c*phi_hat
 !         then:
-!               phi_hat_g = C*x
-!              vort_hat_g = F*x
+!               phi_hat_g = c*x
+!              vort_hat_g = f*x
 !               div_hat_g = div_hat
 !
 !         unscale:    vort_hat_g, div_hat_g, phi_hat_g --> vort_g, div_g, phi_g
@@ -286,10 +286,10 @@ contains
 !
 !         scale:      vort,div,phi --> vort_hat,div_hat,phi_hat
 !
-!         solve:     (F*F+C*C)*x = F*vort_hat + C*phi_hat
+!         solve:     (f*f+c*c)*x = f*vort_hat + c*phi_hat
 !         then:
-!               phi_hat_g = C*x
-!              vort_hat_g = F*x
+!               phi_hat_g = c*x
+!              vort_hat_g = f*x
 !               div_hat_g = div_hat
 !
 !         unscale:    vort_hat_g, div_hat_g, phi_hat_g --> vort_g, div_g, phi_g
@@ -343,11 +343,11 @@ contains
 !  for gravity wave projection: vort,div,phi --> vort_g,div_g,phi_g
 !  -----------------------------------------------------------------------------
 !
-!    solve:  (F*F+C*C)*x = F*vort_hat + C*phi_hat
+!    solve:  (f*f+c*c)*x = f*vort_hat + c*phi_hat
 !
 !    then:
-!          phi_hat_g  = C*x
-!         vort_hat_g  = F*x
+!          phi_hat_g  = c*x
+!         vort_hat_g  = f*x
 !          div_hat_g  = div_hat
 !         
 ! program history log:
@@ -397,11 +397,11 @@ contains
 !
 !    scale:      vort,div,phi --> vort_hat,div_hat,phi_hat
 !
-!    solve:  (F*F+C*C)*x = F*vort_hat + C*phi_hat
+!    solve:  (f*f+c*c)*x = f*vort_hat + c*phi_hat
 !
 !    then:
-!               phi_hat_g = C*x
-!              vort_hat_g = F*x
+!               phi_hat_g = c*x
+!              vort_hat_g = f*x
 !               div_hat_g = div_hat
 !
 !      unscale:    vort_hat_g, div_hat_g, phi_hat_g --> vort_g, div_g, phi_g
@@ -452,13 +452,13 @@ contains
 !
 !      scale:      vort_t,div_t,phi_t --> vort_t_hat,div_t_hat,phi_t_hat
 !
-!      solve:  (F*F+C*C)*del_div_hat = sqrt(-1)*(F*vort_t_hat + C*phi_t_hat)
+!      solve:  (f*f+c*c)*del_div_hat = sqrt(-1)*(f*vort_t_hat + c*phi_t_hat)
 !
-!      solve:  (F*F+C*C)*x = sqrt(-1)*div_t_hat - B*del_div_hat
+!      solve:  (f*f+c*c)*x = sqrt(-1)*div_t_hat - b*del_div_hat
 !
 !      then:
-!            del_phi_hat  = C*x
-!            del_vort_hat = F*x
+!            del_phi_hat  = c*x
+!            del_vort_hat = f*x
 !
 !      unscale: del_vort_hat,del_div_hat,del_phi_hat --> del_vort,del_div,del_phi
 !         
@@ -509,13 +509,13 @@ contains
 !
 !       scale:      vort_t,div_t,phi_t --> vort_t_hat,div_t_hat,phi_t_hat
 !
-!       solve:  (F*F+C*C)*del_div_hat = sqrt(-1)*(F*vort_t_hat + C*phi_t_hat)
+!       solve:  (f*f+c*c)*del_div_hat = sqrt(-1)*(f*vort_t_hat + c*phi_t_hat)
 !
-!       solve:  (F*F+C*C)*x = sqrt(-1)*div_t_hat - B*del_div_hat
+!       solve:  (f*f+c*c)*x = sqrt(-1)*div_t_hat - b*del_div_hat
 !
 !       then:
-!          del_phi_hat  = C*x
-!          del_vort_hat = F*x
+!          del_phi_hat  = c*x
+!          del_vort_hat = f*x
 !
 !       unscale: del_vort_hat,del_div_hat,del_phi_hat --> del_vort,del_div,del_phi
 !         
@@ -573,13 +573,13 @@ contains
 ! abstract:
 !      for implicit nmi correction: vort_t,div_t,phi_t --> del_vort,del_div,del_phi
 !
-!      solve:  (F*F+C*C)*del_div_hat = sqrt(-1)*(F*vort_t_hat + C*phi_t_hat)
+!      solve:  (f*f+c*c)*del_div_hat = sqrt(-1)*(f*vort_t_hat + c*phi_t_hat)
 !
-!      solve:  (F*F+C*C)*x = sqrt(-1)*div_t_hat - B*del_div_hat
+!      solve:  (f*f+c*c)*x = sqrt(-1)*div_t_hat - b*del_div_hat
 !
 !      then:
-!          del_phi_hat  = C*x
-!          del_vort_hat = F*x
+!          del_phi_hat  = c*x
+!          del_vort_hat = f*x
 !         
 ! program history log:
 !   2008-05-05  safford -- add subprogram doc block, rm unused uses
@@ -629,7 +629,7 @@ contains
 !   prgrmmr:
 !
 ! abstract:      obtain balance diagnostic for each wave number n,m using 
-!                method 1 (eq 4.23 of Temperton,1989)
+!                method 1 (eq 4.23 of temperton,1989)
 !
 !                balnm1 = abs(vort_t_hat)(n,m)**2 + abs(div_t_hat)(n,m)**2 + 
 !                         abs(phi_t_hat)(n,m)**2
@@ -700,24 +700,24 @@ contains
     integer(i_kind) n,nstart
     real(r_kind) eps,rn,rm,rn1
 
-!   scheme B:   b = 2*omega*m/(n*(n+1))
+!   scheme b:   b = 2*omega*m/(n*(n+1))
 !               f = 2*omega*sqrt(n*n-1)*eps/n
 !               c = gspeed*sqrt(n*(n+1))/erad
 
-!   scheme C:   b = 0
+!   scheme c:   b = 0
 !               f = 2*omega*sqrt(n*n-1)*eps/n
 !               c = gspeed*sqrt(n*(n+1))/erad
 
-!   scheme D:   b = 0
+!   scheme d:   b = 0
 !               f = 2*omega*eps
 !               c = gspeed*sqrt(n*(n+1))/erad
 
 !     in the above, eps = sqrt((n*n-m*m)/(4*n*n-1))
 
     nstart=max(m,1)
-    rm=m
+    rm=real(m,r_kind)
     do n=nstart,mmax
-       rn=n
+       rn=real(n,r_kind)
        eps=sqrt((rn*rn-rm*rm )/(four*rn*rn-one))
        rn1=sqrt(rn*(rn+one))
        if(scheme=='B') then
@@ -757,12 +757,12 @@ contains
 ! abstract:
 !        input scaling:
 !
-!           for schemes B, C:
+!           for schemes b, c:
 !               vort_hat(n) = erad*vort(n)/sqrt(n*(n+1))
 !               div_hat(n)  = sqrt(-1)*erad*div(n)/sqrt(n*(n+1))
 !               phi_hat(n)  = phi(n)/gspeed
 !
-!           for scheme D:
+!           for scheme d:
 !               vort_hat(n) = erad*vort(n)
 !               div_hat(n)  = sqrt(-1)*erad*div(n)
 !               phi_hat(n)  = phi(n)*sqrt(n*(n+1))/gspeed
@@ -830,12 +830,12 @@ contains
 !
 ! abstract:
 !        input scaling:
-!               for schemes B, C:
+!               for schemes b, c:
 !                 vort_hat(n) = erad*vort(n)/sqrt(n*(n+1))
 !                 div_hat(n)  = sqrt(-1)*erad*div(n)/sqrt(n*(n+1))
 !                 phi_hat(n)  = phi(n)/gspeed
 !
-!              for scheme D:
+!              for scheme d:
 !                 vort_hat(n) = erad*vort(n)
 !                 div_hat(n)  = sqrt(-1)*erad*div(n)
 !                 phi_hat(n)  = phi(n)*sqrt(n*(n+1))/gspeed
@@ -892,11 +892,11 @@ contains
 !
 ! abstract:
 !      output scaling:
-!            for schemes B, C:
+!            for schemes b, c:
 !                vort(n,m) = sqrt(n*(n+1))*vort_hat(n,m)/erad
 !                div(n,m)  = -sqrt(-1)*sqrt(n*(n+1))*div_hat(n,m)/erad
 !                phi(n,m)  = gspeed*phi_hat(n,m)
-!            for scheme C:
+!            for scheme c:
 !                vort(n,m) = vort_hat(n,m)/erad
 !                div(n,m)  = -sqrt(-1)*div_hat(n,m)/erad
 !                phi(n,m)  = gspeed*phi_hat(n,m)/sqrt(n*(n+1))
@@ -955,11 +955,11 @@ contains
 !
 ! abstract:
 !      output scaling:
-!          for schemes B, C:
+!          for schemes b, c:
 !              vort(n,m) = sqrt(n*(n+1))*vort_hat(n,m)/erad
 !              div(n,m)  = -sqrt(-1)*sqrt(n*(n+1))*div_hat(n,m)/erad
 !              phi(n,m)  = gspeed*phi_hat(n,m)
-!          for scheme C:
+!          for scheme c:
 !              vort(n,m) = vort_hat(n,m)/erad
 !              div(n,m)  = -sqrt(-1)*div_hat(n,m)/erad
 !              phi(n,m)  = gspeed*phi_hat(n,m)/sqrt(n*(n+1))
@@ -1017,7 +1017,7 @@ contains
 !
 !   prgrmmr:
 !
-! abstract:      x = F*y
+! abstract:      x = f*y
 !         
 ! program history log:
 !   2008-05-05  safford -- add subprogram doc block, rm unused uses
@@ -1078,7 +1078,7 @@ contains
 !
 !   prgrmmr:
 !
-! abstract:      x = C*y
+! abstract:      x = c*y
 !         
 ! program history log:
 !   2008-05-05  safford -- add subprogram doc block, rm unused uses
@@ -1173,7 +1173,7 @@ contains
 !
 !   prgrmmr:
 !
-! abstract:      solve (F*F+C*C)*x = y
+! abstract:      solve (f*f+c*c)*x = y
 !         
 ! program history log:
 !   2008-05-05  safford -- add subprogram doc block, rm unused uses
@@ -1223,7 +1223,7 @@ contains
        x(2,nstart)=z(2,nstart)/a(nstart)
     else
 
-!       compute main diagonal of F*F + C*C
+!       compute main diagonal of f*f + c*c
 
        a(nstart)=f(nstart+1)*f(nstart+1)+c(nstart)*c(nstart)
        if(nstart+1 < mmax) then
@@ -1233,7 +1233,7 @@ contains
        end if
        a(mmax)=f(mmax)*f(mmax)+c(mmax)*c(mmax)
 
-!       compute only non-zero off-diagonal of F*F + C*C
+!       compute only non-zero off-diagonal of f*f + c*c
 
        if(nstart+2<=mmax) then
           do n=nstart+2,mmax
