@@ -45,9 +45,9 @@ module mod_vtrans
 !   sub create_vtrans            - allocate and load vert mode variables
 !   sub destroy_vtrans           - deallocate vert mode variables
 !   sub getabc                   -
-!   sub vtrans_inv               - physical space u,v,T,p --> vert transformed u,v,phi
+!   sub vtrans_inv               - physical space u,v,t,p --> vert transformed u,v,phi
 !   sub vtrans_inv_ad            - adjoint of vtrans_inv
-!   sub vtrans                   - vert transformed u,v,phi --> physical space u,v,T,p
+!   sub vtrans                   - vert transformed u,v,phi --> physical space u,v,t,p
 !   sub vtrans_ad                - adjoint of vtrans
 !
 ! Variable Definitions:
@@ -55,7 +55,7 @@ module mod_vtrans
 !   def speeds                   - phase speeds of vertical modes
 !   def vmodes                   - vertical modes
 !   def dualmodes                - dual vertical modes
-!   def phihat2t                 - matrix operator to convert phihat to T
+!   def phihat2t                 - matrix operator to convert phihat to t
 !
 ! attributes:
 !   language: f90
@@ -124,62 +124,62 @@ contains
 !
 ! abstract:  using linearization of dynamics about rest state, derive
 !             coupling matrix and obtain eigenvectors/values
-!             (linearization follows Juang, 2005, NCEP Office Note 445)
-!            The conversion from mass variable to T,p follows the 
-!            Machenhauer-Phillips approach, pointed out by R. Errico
+!             (linearization follows juang, 2005, ncep office note 445)
+!            The conversion from mass variable to t,p follows the 
+!            machenhauer-phillips approach, pointed out by r. errico
 !            in a conversation on 7-11-2006.
 !
 !           Briefly, the linear equations used to define the vertical
 !            modes are
 !
-!             dD/dt = -laplacian ( H*p + A*T )                          (1)
+!             dd/dt = -laplacian ( h*p + a*t )                          (1)
 !
-!             dT/dt = -B*D                                              (2)
+!             dt/dt = -b*d                                              (2)
 !
-!             dp/dt = -S*D                                              (3)
+!             dp/dt = -s*d                                              (3)
 !
-!                 where D is divergence, p is surface pressure, T is virtual temperature,
+!                 where d is divergence, p is surface pressure, t is virtual temperature,
 !
-!                    and the matrices H, A, B, S are as defined in ON 445.
+!                    and the matrices h, a, b, s are as defined in on 445.
 !
 !           Taking the time derivative of (1) and substituting from (2) and (3)
 !           yields an equation for just divergence,
 !
-!              d2D/dt2 = -Q * laplacian(D)
+!              d2d/dt2 = -q * laplacian(d)
 !
-!                 Q = H*S + A*B
+!                 q = h*s + a*b
 !
-!           The vertical modes are the right eigenvectors of Q and the
-!           scale geopotential values for each vertical mode are the eigenvalues of Q.
+!           The vertical modes are the right eigenvectors of q and the
+!           scale geopotential values for each vertical mode are the eigenvalues of q.
 !
-!                 Q = U*E*V(transpose)
+!                 q = u*e*v(transpose)
 !
 !           To transform from physical space to vertical modes, first form
 !           the mass variable
 !
-!                 M = H*p + A*T
+!                 m = h*p + a*t
 !
 !           Then the transform variables are
 !
-!            (Mhat,uhat,vhat) = V(transpose)*(M,u,v)
+!            (mhat,uhat,vhat) = v(transpose)*(m,u,v)
 !
 !           To return from mode space to physical space, we have
 !
-!             (M,u,v) = U*(Mhat,uhat,vhat)
+!             (m,u,v) = u*(mhat,uhat,vhat)
 !
-!           Finally, to get T,p from M using the Machenhauer-Phillips approach,
+!           Finally, to get t,p from m using the machenhauer-phillips approach,
 !
-!              T = B*Q**(-1)*M
+!              t = b*q**(-1)*m
 !
-!              p = S*Q**(-1)*M
+!              p = s*q**(-1)*m
 !
-!           The above is only strictly valid for T and p small perturbations in gravity modes
+!           The above is only strictly valid for t and p small perturbations in gravity modes
 !           only, but that is the application for which this code is intended.
 !
 !
 ! program history log:
 !   2006-06-26  parrish
-!   2007-02-26  yang    - replace IBM subroutine of dgeev by GSI dgeev
+!   2007-02-26  yang    - replace ibm subroutine of dgeev by gsi dgeev
 !   2010-04-01  treadon - move strip to gridmod
 !   2012-11-19  parrish - compute vertical mode information on pe 0 only, and
 !                          then broadcast results to other processors.
@@ -234,8 +234,8 @@ contains
     real(r_kind),allocatable,dimension(:):: swww,swwwd
     real(r_kind),allocatable,dimension(:,:):: szzz,szzzd
     integer(i_kind),allocatable:: numlevs(:)
-    real(r_kind),dimension(:,:  ),pointer:: ges_ps_nt=>NULL()
-    real(r_kind),dimension(:,:,:),pointer:: ges_tv_nt=>NULL()
+    real(r_kind),dimension(:,:  ),pointer:: ges_ps_nt=>null()
+    real(r_kind),dimension(:,:,:),pointer:: ges_tv_nt=>null()
     integer(i_kind) workpe,ier,istatus
     integer(i_kind) lpivot(nsig),mpivot(nsig)
     real(r_quad) qmatinv_quad(nsig,nsig),detqmat_quad
@@ -261,13 +261,13 @@ contains
 !    obtain vertical coordinate constants ahat,bhat,chat
     if(mype==workpe) call getabc(ahat,bhat,chat)
 
-!   get global mean T and ps
+!   get global mean t and ps
 
     allocate(hwork(g1%inner_vars,g1%nlat,g1%nlon,g1%kbegin_loc:g1%kend_alloc))
 
 !   count:
 !  Not clear if area weighting would be better.
-    count=one/float(nlat*nlon)
+    count=one/real(nlat*nlon,r_kind)
 
     ier=0
     call gsi_bundlegetpointer (gsi_metguess_bundle(ntguessig),'ps',ges_ps_nt, istatus)
@@ -293,7 +293,7 @@ contains
        end do
        psbar=ten*count*psbar
        do k=1,nsig+1
-          pbar(k)=ahat(k)+bhat(k)*psbar     !  + chat(k)*(T/T0)**(1/kappa)   --- add later
+          pbar(k)=ahat(k)+bhat(k)*psbar     !  + chat(k)*(t/t0)**(1/kappa)   --- add later
        end do
     end if
 
@@ -332,109 +332,109 @@ contains
     allocate(phihat2t(nsig,nvmodes_keep),phihat2p(nvmodes_keep))
     allocate(p2phihat(nvmodes_keep),t2phihat(nsig,nvmodes_keep))
 
-if(mype==workpe) then    ! BEGIN MYPE=workpe SECTION !!!!!!!!!!!!!
+    if(mype==workpe) then    ! Begin mype=workpe section !!!!!!!!!!!!!
 
-    hmat=zero ; smat=zero ; amat=zero ; bmat=zero
+       hmat=zero ; smat=zero ; amat=zero ; bmat=zero
 
-! Get matrices for variable transforms/vertical modes
-    call get_semimp_mats(tbar,pbar,bhat,chat,amat,bmat,hmat,smat)
+!      Get matrices for variable transforms/vertical modes
+       call get_semimp_mats(tbar,pbar,bhat,chat,amat,bmat,hmat,smat)
 
-!   qmat = hmat*smat + amat*bmat
+!      qmat = hmat*smat + amat*bmat
 
-    do j=1,nsig
-       do i=1,nsig
-          qmat(i,j)=hmat(i)*smat(j)
-          do k=1,nsig
-             qmat(i,j)=qmat(i,j)+amat(i,k)*bmat(k,j)
+       do j=1,nsig
+          do i=1,nsig
+             qmat(i,j)=hmat(i)*smat(j)
+             do k=1,nsig
+                qmat(i,j)=qmat(i,j)+amat(i,k)*bmat(k,j)
+             end do
           end do
        end do
-    end do
 
-!  get inverse of Q using iminv_quad
+!      get inverse of q using iminv_quad
 
-    qmatinv_quad=qmat
-    call iminv_quad(qmatinv_quad,nsig,detqmat_quad,lpivot,mpivot)
-    qmatinv=qmatinv_quad
+       qmatinv_quad=qmat
+       call iminv_quad(qmatinv_quad,nsig,detqmat_quad,lpivot,mpivot)
+       qmatinv=qmatinv_quad
 
-!   check inverse
+!      check inverse
 
- !errormax=zero
- !do j=1,nsig
- !   do i=1,nsig
- !      sum=zero
- !      if(i==j) sum=-one
- !      do k=1,nsig
- !         sum=sum+qmat(i,k)*qmatinv(k,j)
- !      end do
- !      errormax=max(abs(sum),errormax)
- !   end do
- !end do
- !write(6,*)' error in qmatinv =',errormax
+       !errormax=zero
+       !do j=1,nsig
+       !   do i=1,nsig
+       !      sum=zero
+       !      if(i==j) sum=-one
+       !      do k=1,nsig
+       !         sum=sum+qmat(i,k)*qmatinv(k,j)
+       !      end do
+       !      errormax=max(abs(sum),errormax)
+       !   end do
+       !end do
+       !write(6,*)' error in qmatinv =',errormax
 
-!     next get eigenvalues and eigenvectors.
+!      next get eigenvalues and eigenvectors.
 
-   allocate(swww(nvmodes_keep),swwwd(nvmodes_keep))
-   allocate(szzz(nsig,nvmodes_keep),szzzd(nsig,nvmodes_keep))
-   call special_eigvv(qmat,hmat,smat,nsig,swww,szzz,swwwd,szzzd,nvmodes_keep)
+       allocate(swww(nvmodes_keep),swwwd(nvmodes_keep))
+       allocate(szzz(nsig,nvmodes_keep),szzzd(nsig,nvmodes_keep))
+       call special_eigvv(qmat,hmat,smat,nsig,swww,szzz,swwwd,szzzd,nvmodes_keep)
 
-   do k=1,nvmodes_keep
-      depths(k)=swww(k)
-      speeds(k)=sqrt(depths(k))
-      do j=1,nsig
-         vmodes(j,k)=szzz(j,k)
-         dualmodes(j,k)=szzzd(j,k)
-      end do
-   end do
+       do k=1,nvmodes_keep
+          depths(k)=swww(k)
+          speeds(k)=sqrt(depths(k))
+          do j=1,nsig
+             vmodes(j,k)=szzz(j,k)
+             dualmodes(j,k)=szzzd(j,k)
+          end do
+       end do
 
-!   next compute p2phihat and t2phihat
+!      next compute p2phihat and t2phihat
 
-  t2phihat=zero
-  p2phihat=zero
-  do n=1,nvmodes_keep
-     do k=1,nsig
-        do j=1,nsig
-           t2phihat(k,n)=t2phihat(k,n)+szzzd(j,n)*amat(j,k)
-        end do
-        p2phihat(n)=p2phihat(n)+szzzd(k,n)*hmat(k)
-     end do
-  end do
-  p2phihat=ten*p2phihat ! in this code, p is in units of mb, but in gsi, p is in cb -- change later
+       t2phihat=zero
+       p2phihat=zero
+       do n=1,nvmodes_keep
+          do k=1,nsig
+             do j=1,nsig
+                t2phihat(k,n)=t2phihat(k,n)+szzzd(j,n)*amat(j,k)
+             end do
+             p2phihat(n)=p2phihat(n)+szzzd(k,n)*hmat(k)
+          end do
+       end do
+       p2phihat=ten*p2phihat ! in this code, p is in units of mb, but in gsi, p is in cb -- change later
 
-!   finally compute phihat2p, phihat2t
+!      finally compute phihat2p, phihat2t
 
-  do j=1,nsig
-     do i=1,nsig
-        bqmatinv(i,j)=zero
-        do k=1,nsig
-           bqmatinv(i,j)=bqmatinv(i,j)+bmat(i,k)*qmatinv(k,j)
-        end do
-     end do
-  end do
-  do j=1,nsig
-     sqmatinv(j)=zero
-     do i=1,nsig
-        sqmatinv(j)=sqmatinv(j)+smat(i)*qmatinv(i,j)
-     end do
-  end do
+       do j=1,nsig
+          do i=1,nsig
+             bqmatinv(i,j)=zero
+             do k=1,nsig
+                bqmatinv(i,j)=bqmatinv(i,j)+bmat(i,k)*qmatinv(k,j)
+             end do
+          end do
+       end do
+       do j=1,nsig
+          sqmatinv(j)=zero
+          do i=1,nsig
+             sqmatinv(j)=sqmatinv(j)+smat(i)*qmatinv(i,j)
+          end do
+       end do
 
-  do j=1,nvmodes_keep
-     sum=zero
-     do k=1,nsig
-        sum=sum+sqmatinv(k)*szzz(k,j)
-     end do
-     phihat2p(j)=sum
-     do i=1,nsig
-        sum=zero
-        do k=1,nsig
-           sum=sum+bqmatinv(i,k)*szzz(k,j)
-        end do
-        phihat2t(i,j)=sum
-     end do
-  end do
-  phihat2p=one_tenth*phihat2p ! local units are mb, but gsi units are cb--fix later
-end if  ! END MYPE=workpe SECTION !!!!!!!!!!!!!
+       do j=1,nvmodes_keep
+          sum=zero
+          do k=1,nsig
+             sum=sum+sqmatinv(k)*szzz(k,j)
+          end do
+          phihat2p(j)=sum
+          do i=1,nsig
+             sum=zero
+             do k=1,nsig
+                sum=sum+bqmatinv(i,k)*szzz(k,j)
+             end do
+             phihat2t(i,j)=sum
+          end do
+       end do
+       phihat2p=one_tenth*phihat2p ! local units are mb, but gsi units are cb--fix later
+    end if  ! End mype=workpe section !!!!!!!!!!!!!
 
-!  BROADCAST RESULTS FROM ABOVE SECTION TO ALL PES
+!   Broadcast results from above section to all pes
 
     call mpi_bcast(depths,nvmodes_keep,mpi_rtype,workpe,mpi_comm_world,ierror)
     call mpi_bcast(speeds,nvmodes_keep,mpi_rtype,workpe,mpi_comm_world,ierror)
@@ -496,7 +496,7 @@ end if  ! END MYPE=workpe SECTION !!!!!!!!!!!!!
 !   input argument list:
 !
 !   output argument list:
-!     ahat       -   p(i,j,k)  = ahat(k) + bhat(k)*psfc(i,j)+chat(k)*(T(i,j,k)/T0(k))**(1/kappa)
+!     ahat       -   p(i,j,k)  = ahat(k) + bhat(k)*psfc(i,j)+chat(k)*(t(i,j,k)/t0(k))**(1/kappa)
 !     bhat       -
 !     chat       -
 !
@@ -1042,10 +1042,10 @@ end subroutine special_eigvv
 subroutine iterative_improvement0(a,mu,aminv,aminvt,na,iret,errormax)
 !$$$  subprogram documentation block
 !                .      .    .                                       .
-! subprogram:    iterative_improvement0  compute inverse of a - mu*I
+! subprogram:    iterative_improvement0  compute inverse of a - mu*i
 !   prgmmr: parrish        org: np22         date:  2012-12-18
 !
-! abstract:  Compute inverse of matrix a - mu*I, where mu is current estimate of eigenvalue
+! abstract:  Compute inverse of matrix a - mu*i, where mu is current estimate of eigenvalue
 !            in inverse iteration algorithm. 
 !            
 !
@@ -1089,7 +1089,7 @@ subroutine iterative_improvement0(a,mu,aminv,aminvt,na,iret,errormax)
   zero_quad=0._r_quad
   one_quad=1._r_quad
 
-!  compute (A-mu*I)**(-1)
+!  compute (a-mu*i)**(-1)
 
   iret=0
 
@@ -1220,7 +1220,7 @@ subroutine iterative_improvement(mu,mu_next,aminv,aminvt,bv,bw,na,istop)
 
 end subroutine iterative_improvement
 
-      subroutine iminv_quad (a,n,d,l,m)                                              
+subroutine iminv_quad (a,n,d,l,m)                                              
 !$$$  subprogram documentation block
 !                .      .    .
 ! subprogram:    iminv    invert a matrix
@@ -1258,155 +1258,155 @@ end subroutine iterative_improvement
 !
 !$$$ end documentation block
 
-        use kinds,only: r_quad,i_kind
-        implicit none
+  use kinds,only: r_quad,i_kind
+  implicit none
 
-        integer(i_kind)             ,intent(in   ) :: n
-        integer(i_kind),dimension(n),intent(inout) :: l,m
-        real(r_quad)                ,intent(inout) :: d
-        real(r_quad),dimension(n*n) ,intent(inout) :: a
+  integer(i_kind)             ,intent(in   ) :: n
+  integer(i_kind),dimension(n),intent(inout) :: l,m
+  real(r_quad)                ,intent(inout) :: d
+  real(r_quad),dimension(n*n) ,intent(inout) :: a
 
-        integer(i_kind):: nk,k,j,iz,i,ij
-        integer(i_kind):: kj,ik,jr,jq,jk,ki,kk,jp,ji
+  integer(i_kind):: nk,k,j,iz,i,ij
+  integer(i_kind):: kj,ik,jr,jq,jk,ki,kk,jp,ji
 
-        real(r_quad):: biga,hold
-        real(r_quad):: zero_quad,one_quad
-        real(r_quad) dmax
+  real(r_quad):: biga,hold
+  real(r_quad):: zero_quad,one_quad
+  real(r_quad) dmax
 !                                                                               
-!        if a double precision version of this routine is desired, the          
-!        ! in column 1 should be removed from the double precision              
-!        statement which follows.                                               
+! if a double precision version of this routine is desired, the          
+! ! in column 1 should be removed from the double precision              
+! statement which follows.                                               
 !                                                                               
-!     double precision a, d, biga, hold                                         
+! double precision a, d, biga, hold                                         
 !                                                                               
-!        the ! must also be removed from double precision statements            
-!        appearing in other routines used in conjunction with this              
-!        routine.                                                               
+! the ! must also be removed from double precision statements            
+! appearing in other routines used in conjunction with this              
+! routine.                                                               
 !                                                                               
-!        the double precision version of this sr........ must also              
-!        contain double precision fortran functions.  abs in statemen           
-!        10 must be changed to dabs  .                                          
+! the double precision version of this sr........ must also              
+! contain double precision fortran functions.  abs in statemen           
+! 10 must be changed to dabs  .                                          
 !                                                                               
-!        ...............................................................        
+! ...............................................................        
 
-         zero_quad=0.0_r_quad
-         one_quad=1.0_r_quad
-         dmax=(10.0_r_quad)**50
+  zero_quad=0.0_r_quad
+  one_quad=1.0_r_quad
+  dmax=(10.0_r_quad)**50
 !                                                                               
-!        search for largest element                                             
+! search for largest element                                             
 !                                                                               
-         d=one_quad
-         nk=-n
-         do 80 k=1,n
-            nk=nk+n
-            l(k)=k
-            m(k)=k
-            kk=nk+k
-            biga=a(kk)
-            do 20 j=k,n
-               iz=n*(j-1)
-               do 20 i=k,n
-                  ij=iz+i
-   10             if(abs(biga)-abs(a(ij))) 15,20,20
-   15             biga=a(ij)
-                  l(k)=i
-                  m(k)=j
-   20       continue
+  d=one_quad
+  nk=-n
+  do 80 k=1,n
+     nk=nk+n
+     l(k)=k
+     m(k)=k
+     kk=nk+k
+     biga=a(kk)
+     do 20 j=k,n
+        iz=n*(j-1)
+        do 20 i=k,n
+           ij=iz+i
+  10       if(abs(biga)-abs(a(ij))) 15,20,20
+  15       biga=a(ij)
+           l(k)=i
+           m(k)=j
+  20    continue
 !
-!        interchange rows
+!       interchange rows
 !
-            j=l(k)
-            if(j-k) 35,35,25
-   25       ki=k-n
-            do 30 i=1,n
-               ki=ki+n
-               hold=-a(ki)
-               ji=ki-k+j
-               a(ki)=a(ji)
-   30          a(ji) =hold
+        j=l(k)
+        if(j-k) 35,35,25
+  25    ki=k-n
+        do 30 i=1,n
+           ki=ki+n
+           hold=-a(ki)
+           ji=ki-k+j
+           a(ki)=a(ji)
+  30       a(ji) =hold
 !
 !        interchange columns
 !
-   35          i=m(k)
-               if(i-k) 45,45,38
-   38          jp=n*(i-1)
-               do 40 j=1,n
-                  jk=nk+j
-                  ji=jp+j
-                  hold=-a(jk)
-                  a(jk)=a(ji)
-   40             a(ji) =hold
+  35       i=m(k)
+           if(i-k) 45,45,38
+  38       jp=n*(i-1)
+           do 40 j=1,n
+              jk=nk+j
+              ji=jp+j
+              hold=-a(jk)
+              a(jk)=a(ji)
+  40          a(ji) =hold
 !
 !        divide column by minus pivot (value of pivot element is
 !        contained in biga)
 !
-   45             if(biga) 48,46,48
-   46             d=zero_quad
-                  return
-   48             do 55 i=1,n
-                     if(i-k) 50,55,50
-   50                ik=nk+i
-                     a(ik)=a(ik)/(-biga)
-   55             continue
+  45          if(biga) 48,46,48
+  46          d=zero_quad
+              return
+  48          do 55 i=1,n
+                 if(i-k) 50,55,50
+  50             ik=nk+i
+                 a(ik)=a(ik)/(-biga)
+  55          continue
 !
 !        reduce matrix
 !
-                  do 65 i=1,n
-                     ik=nk+i
-                     ij=i-n
-                     do 65 j=1,n
-                        ij=ij+n
-                        if(i-k) 60,65,60
-   60                   if(j-k) 62,65,62
-   62                   kj=ij-i+k
-                        a(ij)=a(ik)*a(kj)+a(ij)
-   65             continue
+              do 65 i=1,n
+                 ik=nk+i
+                 ij=i-n
+                 do 65 j=1,n
+                    ij=ij+n
+                    if(i-k) 60,65,60
+  60                if(j-k) 62,65,62
+  62                kj=ij-i+k
+                    a(ij)=a(ik)*a(kj)+a(ij)
+  65          continue
 !
 !        divide row by pivot
 !
-                  kj=k-n
-                  do 75 j=1,n
-                     kj=kj+n
-                     if(j-k) 70,75,70
-   70                a(kj)=a(kj)/biga
-   75             continue
+              kj=k-n
+              do 75 j=1,n
+                 kj=kj+n
+                 if(j-k) 70,75,70
+  70             a(kj)=a(kj)/biga
+  75          continue
 !
 !        product of pivots
 !
-                  d=min(dmax,abs(d*biga))
+              d=min(dmax,abs(d*biga))
 !
 !        replace pivot by reciprocal
 !
-                  a(kk)=one_quad/biga
-   80    continue
+              a(kk)=one_quad/biga
+  80  continue
 !
 !        final row and column interchange
 !
-         k=n
-         do 
-  100       k=(k-1)
-            if(k) 150,150,105
-  105       i=l(k)
-            if(i-k) 120,120,108
-  108       jq=n*(k-1)
-            jr=n*(i-1)
-            do 110 j=1,n
-               jk=jq+j
-               hold=a(jk)
-               ji=jr+j
-               a(jk)=-a(ji)
-               a(ji) =hold
-  110       continue
-  120       j=m(k)
-            if(j-k) 100,100,125
-  125       ki=k-n
-            do 130 i=1,n
-               ki=ki+n
-               hold=a(ki)
-               ji=ki-k+j
-               a(ki)=-a(ji)
-               a(ji) =hold
-  130       continue
-         end do
-  150    return
-      end subroutine iminv_quad
+      k=n
+      do 
+  100    k=(k-1)
+         if(k) 150,150,105
+  105    i=l(k)
+         if(i-k) 120,120,108
+  108    jq=n*(k-1)
+         jr=n*(i-1)
+         do 110 j=1,n
+            jk=jq+j
+            hold=a(jk)
+            ji=jr+j
+            a(jk)=-a(ji)
+            a(ji) =hold
+  110    continue
+  120    j=m(k)
+         if(j-k) 100,100,125
+  125    ki=k-n
+         do 130 i=1,n
+            ki=ki+n
+            hold=a(ki)
+            ji=ki-k+j
+            a(ki)=-a(ji)
+            a(ji) =hold
+  130    continue
+      end do
+  150 return
+end subroutine iminv_quad

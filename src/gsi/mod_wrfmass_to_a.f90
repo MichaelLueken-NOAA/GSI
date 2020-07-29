@@ -5,7 +5,7 @@ module mod_wrfmass_to_a
 !   prgmmr: parrish
 !
 ! abstract:  This module contains routines to interpolate from the wrf mass c grid to analysis a grid
-!             which exactly covers either the H or V component of the wrf mass grid, but optionally
+!             which exactly covers either the h or v component of the wrf mass grid, but optionally
 !             at a coarser resolution.
 !            The resolution of the a grid is controlled by the variable grid_ratio_wrfmass, which is 
 !             an input variable to subroutine init_wrfmass_to_a in this module.
@@ -86,8 +86,8 @@ subroutine init_wrfmass_to_a(grid_ratio_wrfmass,nxb_in,nyb_in)
 
 !--------------------------obtain analysis grid dimensions nxa,nxb
 
-  nxa=1+nint((nxb-one)/grid_ratio_wrfmass)
-  nya=1+nint((nyb-one)/grid_ratio_wrfmass)
+  nxa=1+nint((real(nxb,r_kind)-one)/grid_ratio_wrfmass)
+  nya=1+nint((real(nyb,r_kind)-one)/grid_ratio_wrfmass)
   nxa_wrfmass=nxa
   nya_wrfmass=nya
 
@@ -97,31 +97,31 @@ subroutine init_wrfmass_to_a(grid_ratio_wrfmass,nxb_in,nyb_in)
   allocate(ybh_a(nyb),ybh_b(nyb),ybv_a(nyb),ybv_b(nyb),ya_a(nya),ya_b(nya))
 
   do j=1,nxb
-     xbh_b(j)=j
+     xbh_b(j)=real(j,r_kind)
   end do
   do j=1,nxa
-     xa_a(j)=j
+     xa_a(j)=real(j,r_kind)
   end do
   do i=1,nyb
-     ybh_b(i)=i
+     ybh_b(i)=real(i,r_kind)
   end do
   do i=1,nya
-     ya_a(i)=i
+     ya_a(i)=real(i,r_kind)
   end do
 
-  ratio_x_wrfmass=(nxb-one)/(nxa-one)
+  ratio_x_wrfmass=(real(nxb,r_kind)-one)/(real(nxa,r_kind)-one)
   do j=1,nxa
-        xa_b(j)=one+(j-one)*ratio_x_wrfmass
+     xa_b(j)=one+(real(j,r_kind)-one)*ratio_x_wrfmass
   end do
   do j=1,nxb
-        xbh_a(j)=one+(j-one)/ratio_x_wrfmass
+     xbh_a(j)=one+(real(j,r_kind)-one)/ratio_x_wrfmass
   end do
-  ratio_y_wrfmass=(nyb-one)/(nya-one)
+  ratio_y_wrfmass=(real(nyb,r_kind)-one)/(real(nya,r_kind)-one)
   do i=1,nya
-        ya_b(i)=one+(i-one)*ratio_y_wrfmass
+     ya_b(i)=one+(real(i,r_kind)-one)*ratio_y_wrfmass
   end do
   do i=1,nyb
-        ybh_a(i)=one+(i-one)/ratio_y_wrfmass
+     ybh_a(i)=one+(real(i,r_kind)-one)/ratio_y_wrfmass
   end do
 
 end subroutine init_wrfmass_to_a
@@ -132,14 +132,14 @@ subroutine wrfmass_h_to_a(hb,ha)
 ! subprogram:    wrfmass_h_to_a
 !   prgmmr: parrish
 !
-! abstract: interpolate from wrf mass H grid to analysis grid
+! abstract: interpolate from wrf mass h grid to analysis grid
 !
 ! program history log:
 !   2009-08-06  lueken - added subprogram doc block
 !   2010-09-10  parrish, add documentation
 !
 !   input argument list:
-!    hb - input wrfmass H grid variable
+!    hb - input wrfmass h grid variable
 !
 !   output argument list:
 !    ha - output interpolated variable on analysis grid
@@ -161,7 +161,7 @@ subroutine wrfmass_h_to_a(hb,ha)
 
   do j=1,nxb
      do i=1,nyb
-        bh(i,j)=hb(j,i)
+        bh(i,j)=real(hb(j,i),r_kind)
      end do
   end do
   call b_to_a_interpolate(bh,ha,nxb,nyb,nxa,nya,xbh_b,ybh_b,xa_b,ya_b)
@@ -174,13 +174,13 @@ subroutine wrfmass_h_to_a4(hb,ha)
 ! subprogram:    wrfmass_h_to_a4
 !   prgmmr: parrish
 !
-! abstract: interpolate from wrf mass H grid to analysis grid
+! abstract: interpolate from wrf mass h grid to analysis grid
 !
 ! program history log:
 !   2013-03-26  Hu     , start based on nmmb_h_to_a
 !
 !   input argument list:
-!    hb - input wrfmass H grid variable
+!    hb - input wrfmass h grid variable
 !
 !   output argument list:
 !    ha - output interpolated variable on analysis grid
@@ -203,13 +203,13 @@ subroutine wrfmass_h_to_a4(hb,ha)
 
   do j=1,nxb
      do i=1,nyb
-        bh(i,j)=hb(j,i)
+        bh(i,j)=real(hb(j,i),r_kind)
      end do
   end do
   call b_to_a_interpolate(bh,ha8,nxb,nyb,nxa,nya,xbh_b,ybh_b,xa_b,ya_b)
   do j=1,nxa
      do i=1,nya
-        ha(j,i)=ha8(i,j)
+        ha(j,i)=real(ha8(i,j),r_single)
      end do
   end do
 
@@ -228,7 +228,7 @@ subroutine wrfmass_h_to_a8(hb,ha)
 !   2010-09-10  parrish, add documentation
 !
 !   input argument list:
-!    hb - input wrfmass H grid variable
+!    hb - input wrfmass h grid variable
 !
 !   output argument list:
 !    ha - output interpolated variable on analysis grid
@@ -268,9 +268,9 @@ subroutine wrfmass_obs_to_a8(obsba,nreal,maxobs,ilat,ilon,numobs)
 !   2013-03-27  Hu     , start
 !
 !   input argument list:
-!    obsb - input observation in wrf mass H grid
-!    nreal,maxobs - elements and number of obs in wrf mass H grid
-!    ilat,ilon - j and i in wrf mass H grid
+!    obsb - input observation in wrf mass h grid
+!    nreal,maxobs - elements and number of obs in wrf mass h grid
+!    ilat,ilon - j and i in wrf mass h grid
 !
 !   output argument list:
 !    obsa - output mapped variable on analysis grid
@@ -312,7 +312,7 @@ subroutine wrfmass_obs_to_a8(obsba,nreal,maxobs,ilat,ilon,numobs)
      i=int(ria(n)+0.5_r_kind)
      j=int(rja(n)+0.5_r_kind)
 
-     adist=(ria(n)-float(i))*(ria(n)-float(i))+(rja(n)-float(j))*(rja(n)-float(j))
+     adist=(ria(n)-real(i,r_kind))*(ria(n)-real(i,r_kind))+(rja(n)-real(j,r_kind))*(rja(n)-real(j,r_kind))
      if(adist < dist(i,j)) then
         dist(i,j)=adist
         ija(i,j)=n
@@ -324,8 +324,8 @@ subroutine wrfmass_obs_to_a8(obsba,nreal,maxobs,ilat,ilon,numobs)
      do i=1,nxa
         if(ija(i,j) > 0) then
            n=n+1
-           obsba(ilon,n)=float(i)
-           obsba(ilat,n)=float(j)
+           obsba(ilon,n)=real(i,r_kind)
+           obsba(ilat,n)=real(j,r_kind)
            do k=3,nreal
               obsba(k,n)=obsa(k,ija(i,j))
            enddo
@@ -343,7 +343,7 @@ subroutine wrfmass_a_to_h(ha,hb)
 ! subprogram:    wrfmass_a_to_h
 !   prgmmr: parrish
 !
-! abstract: interpolate from analysis grid to wrfmass H grid
+! abstract: interpolate from analysis grid to wrfmass h grid
 !
 ! program history log:
 !   2009-08-06  lueken - added subprogram doc block
@@ -353,7 +353,7 @@ subroutine wrfmass_a_to_h(ha,hb)
 !    ha - variable on analysis grid
 !
 !   output argument list:
-!    hb - interpolated variable on wrfmass H grid
+!    hb - interpolated variable on wrfmass h grid
 !
 ! attributes:
 !   language: f90
@@ -373,7 +373,7 @@ subroutine wrfmass_a_to_h(ha,hb)
   call b_to_a_interpolate(ha,bh,nxa,nya,nxb,nyb,xa_a,ya_a,xbh_a,ybh_a)
   do j=1,nxb
      do i=1,nyb
-        hb(j,i)=bh(i,j)
+        hb(j,i)=real(bh(i,j),r_single)
      end do
   end do
 
@@ -385,7 +385,7 @@ subroutine wrfmass_a_to_h4(ha,hb)
 ! subprogram:    wrfmass_a_to_h4
 !   prgmmr: parrish
 !
-! abstract: interpolate from analysis grid to wrfmass H grid
+! abstract: interpolate from analysis grid to wrfmass h grid
 !
 ! program history log:
 !   2013-03-26  hu      - start based on nmmb_a_to_h
@@ -394,7 +394,7 @@ subroutine wrfmass_a_to_h4(ha,hb)
 !    ha - variable on analysis grid
 !
 !   output argument list:
-!    hb - interpolated variable on wrfmass H grid
+!    hb - interpolated variable on wrfmass h grid
 !
 ! attributes:
 !   language: f90
@@ -414,13 +414,13 @@ subroutine wrfmass_a_to_h4(ha,hb)
 
   do j=1,nxa
      do i=1,nya
-        ha8(i,j)=ha(j,i)
+        ha8(i,j)=real(ha(j,i),r_kind)
      end do
   end do
   call b_to_a_interpolate(ha8,bh,nxa,nya,nxb,nyb,xa_a,ya_a,xbh_a,ybh_a)
   do j=1,nxb
      do i=1,nyb
-        hb(j,i)=bh(i,j)
+        hb(j,i)=real(bh(i,j),r_single)
      end do
   end do
 
@@ -432,7 +432,7 @@ subroutine wrfmass_map_a_to_h4(ha,hb)
 ! subprogram:    wrfmass_a_to_h4
 !   prgmmr: parrish
 !
-! abstract: interpolate from analysis grid to wrfmass H grid
+! abstract: interpolate from analysis grid to wrfmass h grid
 !
 ! program history log:
 !   2013-03-26  hu      - start based on nmmb_a_to_h
@@ -441,7 +441,7 @@ subroutine wrfmass_map_a_to_h4(ha,hb)
 !    ha - variable on analysis grid
 !
 !   output argument list:
-!    hb - interpolated variable on wrfmass H grid
+!    hb - interpolated variable on wrfmass h grid
 !
 ! attributes:
 !   language: f90
@@ -461,13 +461,13 @@ subroutine wrfmass_map_a_to_h4(ha,hb)
 
   do j=1,nxa
      do i=1,nya
-        ha8(i,j)=ha(j,i)
+        ha8(i,j)=real(ha(j,i),r_kind)
      end do
   end do
   call b_to_a_map(ha8,bh,nxa,nya,nxb,nyb,xa_a,ya_a,xbh_a,ybh_a)
   do j=1,nxb
      do i=1,nyb
-        hb(j,i)=bh(i,j)
+        hb(j,i)=real(bh(i,j),r_single)
      end do
   end do
 
@@ -480,7 +480,7 @@ subroutine b_to_a_interpolate(b,a,mb,nb,ma,na,xb,yb,xa,ya)
 !   prgmmr: parrish
 !
 ! abstract: interpolate from variable b to variable a.  This routine is
-!    used for interpolating both ways, wrfmass H/V grid to analysis and back.
+!    used for interpolating both ways, wrfmass h/v grid to analysis and back.
 !    Direction is controlled by input arguments.  Interpolation is bilinear
 !    both ways.
 !
@@ -555,12 +555,12 @@ subroutine b_to_a_map(b,a,mb,nb,ma,na,xb,yb,xa,ya)
 !   prgmmr: parrish
 !
 ! abstract: map from variable b to variable a.  This routine is
-!    used for map both ways, wrfmass H/V grid to analysis and back.
+!    used for map both ways, wrfmass h/v grid to analysis and back.
 !    Direction is controlled by input arguments.
 !
 ! program history log:
 !   2009-08-06  lueken - added subprogram doc block
-!   2013-01-23  parrish - change from grdcrd to grdcrd1 (to allow successful debug compile on WCOSS)
+!   2013-01-23  parrish - change from grdcrd to grdcrd1 (to allow successful debug compile on wcoss)
 !
 !   input argument list:
 !    mb,nb - b dimensions
@@ -580,7 +580,7 @@ subroutine b_to_a_map(b,a,mb,nb,ma,na,xb,yb,xa,ya)
 
 !  interpolate from b-grid to a-grid
 
-!   NOTE:  xa is in xb units, ya is in yb units
+!   Note:  xa is in xb units, ya is in yb units
 
   use constants, only: zero,one
   implicit none
