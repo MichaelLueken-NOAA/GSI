@@ -271,8 +271,6 @@ subroutine cdiff_sd2ew0(nlev,mype)
 
   end do
 
-!  if(mype==0) write(0,*)' nn,nlat_tot,nlat,nlev=',nn,nlat_tot,nlat,nlev
-
   nlat_0=-1
   nlat_1=-2
   nn=0
@@ -293,12 +291,6 @@ subroutine cdiff_sd2ew0(nlev,mype)
         end do
      end if
   end do
-! write(0,*) '  mype,nlat_0,nlat_1,nlat_1-nlat0+1=',mype,nlat_0,nlat_1,nlat_1-nlat_0+1
-! if(mype==0) then
-!    do i=1,nlat_tot
-!       write(0,'(" i,list_sd2ew(:,i)=",i5,4i6)')i,list_sd2ew(1:4,i)
-!    end do
-! end if
 
 end subroutine cdiff_sd2ew0
 
@@ -891,8 +883,6 @@ subroutine cdiff_sd2ns0(nlev,mype)
 
   end do
 
-!  if(mype==0) write(0,*)' nn,nlon_tot,nlon,nlonh,nlev=',nn,nlon_tot,nlon,nlonh,nlev
-
   nlon_0=-1
   nlon_1=-2
   nn=0
@@ -913,12 +903,6 @@ subroutine cdiff_sd2ns0(nlev,mype)
         end do
      end if
   end do
-!  write(0,*) '  mype,nlon_0,nlon_1,nlon_1-nlon0+1=',mype,nlon_0,nlon_1,nlon_1-nlon_0+1
-!  if(mype==0) then
-!     do i=1,nlon_tot
-!        write(0,'(" i,list_sd2ns(:,i)=",i5,4i6)')i,list_sd2ns(1:4,i)
-!     end do
-!  end if
 
 end subroutine cdiff_sd2ns0
 
@@ -1550,8 +1534,8 @@ subroutine mp_compact_dlon(b,dbdx,vector)
                     polu=polu+grid3(ix)*coslon(ix)
                     polv=polv+grid3(ix)*sinlon(ix)
                  end do
-                 polu=polu/float(nlon)
-                 polv=polv/float(nlon)
+                 polu=polu/real(nlon,r_kind)
+                 polv=polv/real(nlon,r_kind)
                  do ix=1,nlon
                     grid3pol(ix)=polu*coslon(ix)+polv*sinlon(ix)
                  end do
@@ -1673,8 +1657,8 @@ subroutine mp_compact_dlon_ad(b,dbdx,vector)
                     polu=polu+grid3pol(ix)*coslon(ix)
                     polv=polv+grid3pol(ix)*sinlon(ix)
                  end do
-                 polu=polu/float(nlon)
-                 polv=polv/float(nlon)
+                 polu=polu/real(nlon,r_kind)
+                 polv=polv/real(nlon,r_kind)
                  do ix=1,nlon
                     grid3(ix)=grid3(ix)+polu*coslon(ix)+polv*sinlon(ix)
                  end do
@@ -1697,7 +1681,7 @@ subroutine mp_compact_dlon_ad(b,dbdx,vector)
 ! Transfer scaler input field to work array.
 ! Zero other work arrays.
            do ix=1,nlon
-!             NOTE:  Adjoint of first derivative is its negative
+!             Note:  Adjoint of first derivative is its negative
               b(i12,ix,k)=b(i12,ix,k)-work3(ix)
            end do
         end if
@@ -1977,8 +1961,8 @@ subroutine mp_uv_pole(u,v)
            polsu=polsu+u(2,ix,k)*coslon(ix)+v(2,ix,k)*sinlon(ix)
            polsv=polsv+u(2,ix,k)*sinlon(ix)-v(2,ix,k)*coslon(ix)
         end do
-        polsu=polsu/float(nlon)
-        polsv=polsv/float(nlon)
+        polsu=polsu/real(nlon,r_kind)
+        polsv=polsv/real(nlon,r_kind)
         do ix=1,nlon
            u(1,ix,k)=polsu*coslon(ix)+polsv*sinlon(ix)
            v(1,ix,k)=polsu*sinlon(ix)-polsv*coslon(ix)
@@ -1993,8 +1977,8 @@ subroutine mp_uv_pole(u,v)
            polnu=polnu+u(1,ix,k)*coslon(ix)-v(1,ix,k)*sinlon(ix)
            polnv=polnv+u(1,ix,k)*sinlon(ix)+v(1,ix,k)*coslon(ix)
         end do
-        polnu=polnu/float(nlon)
-        polnv=polnv/float(nlon)
+        polnu=polnu/real(nlon,r_kind)
+        polnv=polnv/real(nlon,r_kind)
         do ix=1,nlon
            u(2,ix,k)= polnu*coslon(ix)+polnv*sinlon(ix)
            v(2,ix,k)=-polnu*sinlon(ix)+polnv*coslon(ix)
@@ -2055,8 +2039,8 @@ subroutine mp_uv_pole_ad(u,v)
            u(1,ix,k)=zero
            v(1,ix,k)=zero
         end do
-        polsu=polsu/float(nlon)
-        polsv=polsv/float(nlon)
+        polsu=polsu/real(nlon,r_kind)
+        polsv=polsv/real(nlon,r_kind)
         do ix=1,nlon
            u(2,ix,k)=u(2,ix,k)+polsu*coslon(ix)+polsv*sinlon(ix)
            v(2,ix,k)=v(2,ix,k)+polsu*sinlon(ix)-polsv*coslon(ix)
@@ -2073,8 +2057,8 @@ subroutine mp_uv_pole_ad(u,v)
            u(2,ix,k)=zero
            v(2,ix,k)=zero
         end do
-        polnu=polnu/float(nlon)
-        polnv=polnv/float(nlon)
+        polnu=polnu/real(nlon,r_kind)
+        polnv=polnv/real(nlon,r_kind)
         do ix=1,nlon
            u(1,ix,k)=u(1,ix,k)+polnu*coslon(ix)+polnv*sinlon(ix)
            v(1,ix,k)=v(1,ix,k)-polnu*sinlon(ix)+polnv*coslon(ix)
