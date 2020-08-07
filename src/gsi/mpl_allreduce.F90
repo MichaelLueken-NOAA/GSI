@@ -25,22 +25,22 @@ module mpl_allreducemod
 !$$$ end documentation block
 implicit none
 
-PRIVATE
-PUBLIC mpl_allreduce
-PUBLIC mpl_allgather
-PUBLIC mpl_reduce
+private
+public mpl_allreduce
+public mpl_allgather
+public mpl_reduce
 
-INTERFACE mpl_allreduce
-MODULE PROCEDURE rmpl_allreduce,qmpl_allreduce1d,qmpl_allreduce2d
-END INTERFACE
+interface mpl_allreduce
+module procedure rmpl_allreduce,qmpl_allreduce1d,qmpl_allreduce2d
+END interface
 
-INTERFACE mpl_allgather
-MODULE PROCEDURE mpl_allgatherq
-END INTERFACE
+interface mpl_allgather
+module procedure mpl_allgatherq
+END interface
 
-INTERFACE mpl_reduce  ! same as mpl_allreduce routines except reduces to 1 processor
-MODULE PROCEDURE rmpl_reduce,qmpl_reduce1d,qmpl_reduce2d
-END INTERFACE
+interface mpl_reduce  ! same as mpl_allreduce routines except reduces to 1 processor
+module procedure rmpl_reduce,qmpl_reduce1d,qmpl_reduce2d
+END interface
 
 contains
 
@@ -87,7 +87,7 @@ subroutine rmpl_allreduce(klen,rpvals)
      call mpi_allgather(rpvals,klen,mpi_rtype, &
                         zwork,klen,mpi_rtype, mpi_comm_world,ierror)
 
-!    Sum (note this is NOT reproducible across different numbers of processors)
+!    Sum (note this is not reproducible across different numbers of processors)
      do ii=1,klen
         rpvals(ii)=zwork(ii,1)
      end do
@@ -100,7 +100,7 @@ subroutine rmpl_allreduce(klen,rpvals)
   endif
 
 ! ----------------------------------------------------------
-return
+  return
 end subroutine rmpl_allreduce
 ! ----------------------------------------------------------
 subroutine qmpl_allreduce1d(klen,qpvals)
@@ -176,7 +176,7 @@ subroutine qmpl_allreduce1d(klen,qpvals)
   endif
 
 ! ----------------------------------------------------------
-return
+  return
 end subroutine qmpl_allreduce1d
 ! ----------------------------------------------------------
 subroutine qmpl_allreduce2d(ilen,klen,pvals,pvnew)
@@ -243,9 +243,9 @@ subroutine qmpl_allreduce2d(ilen,klen,pvals,pvnew)
   if (present(pvnew)) then
 
      do kk=1,klen
-       do ii=1,ilen
-         pvnew(ii,kk)=pval2(ii,kk,1)
-       end do
+        do ii=1,ilen
+           pvnew(ii,kk)=pval2(ii,kk,1)
+        end do
      end do
      do nn=2,npe
         do kk=1,klen
@@ -258,9 +258,9 @@ subroutine qmpl_allreduce2d(ilen,klen,pvals,pvnew)
   else
 
      do kk=1,klen
-       do ii=1,ilen
-         pvals(ii,kk)=pval2(ii,kk,1)
-       end do
+        do ii=1,ilen
+           pvals(ii,kk)=pval2(ii,kk,1)
+        end do
      end do
      do nn=2,npe
         do kk=1,klen
@@ -273,7 +273,7 @@ subroutine qmpl_allreduce2d(ilen,klen,pvals,pvnew)
   endif 
 
 ! ----------------------------------------------------------
-return
+  return
 end subroutine qmpl_allreduce2d
 
 subroutine mpl_allgatherq(idim,jdim,zloc,zall)
@@ -381,23 +381,23 @@ subroutine rmpl_reduce(klen,iroot,rpvals)
                         zwork,klen,mpi_rtype, iroot,mpi_comm_world,ierror)
 
      if(mype == iroot)then
-!    Sum (note this is NOT reproducible across different numbers of processors)
-       do ii=1,klen
-          rpvals(ii)=zwork(ii,1)
-       end do
-       do jj=2,npe
-          do ii=1,klen
-             rpvals(ii)=rpvals(ii)+zwork(ii,jj)
-          end do
-       end do
+!    Sum (note this is not reproducible across different numbers of processors)
+        do ii=1,klen
+           rpvals(ii)=zwork(ii,1)
+        end do
+        do jj=2,npe
+           do ii=1,klen
+              rpvals(ii)=rpvals(ii)+zwork(ii,jj)
+           end do
+        end do
      else
-       rpvals = 0._r_kind
+        rpvals = 0._r_kind
      end if
 
   endif
 
 ! ----------------------------------------------------------
-return
+  return
 end subroutine rmpl_reduce
 ! ----------------------------------------------------------
 subroutine qmpl_reduce1d(klen,iroot,qpvals)
@@ -472,13 +472,13 @@ subroutine qmpl_reduce1d(klen,iroot,qpvals)
            end do
         end do
      else
-       qpvals = 0._r_kind
+        qpvals = 0._r_kind
      end if
 
   endif
 
 ! ----------------------------------------------------------
-return
+  return
 end subroutine qmpl_reduce1d
 ! ----------------------------------------------------------
 subroutine qmpl_reduce2d(ilen,klen,iroot,pvals,pvnew)
@@ -490,7 +490,7 @@ subroutine qmpl_reduce2d(ilen,klen,iroot,pvals,pvnew)
 ! abstract: Reproducible (across different pe's) reduce
 !
 ! program history log:
-!   2008-12-09  todling - embed Derber's reproducible sum in subroutine
+!   2008-12-09  todling - embed derber's reproducible sum in subroutine
 !
 !   input argument list:
 !    ilen  - first dimension of array pvals
@@ -551,9 +551,9 @@ subroutine qmpl_reduce2d(ilen,klen,iroot,pvals,pvnew)
      if (present(pvnew)) then
 
         do kk=1,klen
-          do ii=1,ilen
-            pvnew(ii,kk)=pval2(ii,kk,1)
-          end do
+           do ii=1,ilen
+              pvnew(ii,kk)=pval2(ii,kk,1)
+           end do
         end do
         do nn=2,npe
            do kk=1,klen
@@ -566,9 +566,9 @@ subroutine qmpl_reduce2d(ilen,klen,iroot,pvals,pvnew)
      else
 
         do kk=1,klen
-          do ii=1,ilen
-            pvals(ii,kk)=pval2(ii,kk,1)
-          end do
+           do ii=1,ilen
+              pvals(ii,kk)=pval2(ii,kk,1)
+           end do
         end do
         do nn=2,npe
            do kk=1,klen
@@ -582,7 +582,7 @@ subroutine qmpl_reduce2d(ilen,klen,iroot,pvals,pvnew)
   end if
 
 ! ----------------------------------------------------------
-return
+  return
 end subroutine qmpl_reduce2d
 
 end module mpl_allreducemod

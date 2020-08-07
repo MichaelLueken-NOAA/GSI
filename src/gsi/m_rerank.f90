@@ -1,5 +1,5 @@
 module m_rerank
-! From Jing Guo - use kinds for GSI consitency (Todling)
+! From Jing Guo - use kinds for gsi consistency (todling)
 ! 01Aug2011 - Lueken  - changed F90 to f90 (no machine logic
 ! 28Apr2011 - Todling - overload to handle single precision
   use kinds, only : r_double,r_single,i_kind
@@ -24,7 +24,7 @@ module m_rerank
   end interface rerank
 
   character(len=*),parameter :: myname='m_rerank'
-CONTAINS
+contains
 
   function rerank_2in1r4_(i2) result(i1)
     implicit none
@@ -267,15 +267,15 @@ CONTAINS
   end function rerank_1in4r8_
 !>>>
   subroutine assert_eq_(lsize,lrank,who,what)
-  implicit none
-  integer(i_kind),intent(in)::lsize,lrank
-  character(len=*),intent(in)::who,what
-  if(lsize==lrank) return
-  write(*,*)' lsize= ',lsize
-  write(*,*)' lrank= ',lrank
-  write(*,*)' whois= ',who
-  write(*,*)' whats= ',what
-  call exit(2)
+    implicit none
+    integer(i_kind),intent(in)::lsize,lrank
+    character(len=*),intent(in)::who,what
+    if(lsize==lrank) return
+    write(*,*)' lsize= ',lsize
+    write(*,*)' lrank= ',lrank
+    write(*,*)' whois= ',who
+    write(*,*)' whats= ',what
+    call exit(2)
   end subroutine assert_eq_
 
 end module m_rerank

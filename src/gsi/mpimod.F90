@@ -3,7 +3,7 @@
 !-------------------------------------------------------------------------
 !BOP
 !
-! !MODULE:  mpimod --- GSI Module containing mpi related variables
+! !MODULE:  mpimod --- gsi module containing mpi related variables
 !
 ! !INTERFACE:
 !
@@ -16,7 +16,7 @@ module mpimod
 
 #ifdef ibm_sp
 ! Include standard mpi includes file.
-  use mpi
+  use mpi, only:
 #else
   use mpeu_mpif, only : mpi_rtype4 => mpi_real4
 #ifdef _REAL4_
@@ -64,13 +64,13 @@ module mpimod
 !   2005-01-24  kleist - fix bug in array initialization
 !   2005-02-15  todling - add use m_mpif, only for mpi_integer4,
 !                         mpi_offset_kind, ... (only applies
-!                         to non IBM SP machines)    
+!                         to non ibm sp machines)    
 !   2005-07-25  todling - add a couple more exports from m_mpif
-!                         (only applies to non IBM SP machines)
+!                         (only applies to non ibm sp machines)
 !   2006-04-06  middlecoff - remove mpi_request_null since not used
 !   2006-06-20  treadon - add mpi_itype
-!   2006-06-28  da Silva - Added 2 integers represing a layout: nxPE and nyPE.
-!   2009-02-19  jing guo - replaced m_mpif of GMAO_mpeu with gmaogsi_mpif.
+!   2006-06-28  da Silva - Added 2 integers represing a layout: nxpe and nype.
+!   2009-02-19  jing guo - replaced m_mpif of gmao_mpeu with gmaogsi_mpif.
 !   2009-04-21  derber - add communications for strong balance constraint (bal)
 !                        and unified uv (vec) transformation
 !   2010-04-01  treadon - remove routines reorder, reorder2, strip_single, strip,
@@ -78,7 +78,7 @@ module mpimod
 !                         routines are now found in gridmod
 !   2010-05-23  todling - nvarbal_id no longer wired to 1,2,3,4, rather linked
 !                         to where fields are in control vector
-!   2011-07-04  todling - allow proper setting of REAL*4 or REAL*8
+!   2011-07-04  todling - allow proper setting of real*4 or real*8
 !   2012-06-12  parrish - remove all communication variables, except for levs_id, nvar_id, and nvar_pe.
 !                         Remove subroutines init_mpi_vars and destroy_mpi_vars.
 !                         All communication variables that used to be here are now created in
@@ -123,13 +123,13 @@ module mpimod
 #endif
 
   integer(i_kind) ierror
-  integer(i_kind) :: npe         ! total num of MPI tasks
-  integer(i_kind) :: mype        ! number of MPI task
+  integer(i_kind) :: npe         ! total num of mpi tasks
+  integer(i_kind) :: mype        ! number of mpi task
 
-! Optional ESMF-like layout information: nxPE is the number of
-! processors used to decompose the longitudinal dimensional, while nyPE 
+! Optional esmf-like layout information: nxpe is the number of
+! processors used to decompose the longitudinal dimensional, while nype 
 ! the number of processors used to decompose the latitudinal dimension.
-! By construction, nPE = nxPE * nyPE.
+! By construction, npe = nxpe * nype.
 ! 
   integer(i_kind) :: nxpe=-1     ! optional layout information
   integer(i_kind) :: nype=-1     ! optional layout information
