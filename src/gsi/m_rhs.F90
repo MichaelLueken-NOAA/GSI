@@ -11,7 +11,7 @@ module m_rhs
 ! program history log:
 !   2010-03-22  j guo   - added this document block
 !   2010-04-22  tangborn- add co knobs
-!   2010-05-27  j guo   - cut off GPS related variables to m_gpsrhs
+!   2010-05-27  j guo   - cut off gps related variables to m_gpsrhs
 !   2018-08-10  j guo   - moved in all type-indices from setuprhsall().  These
 !                         type-indices are now defined from this module itself,
 !                         through an enum block.
@@ -113,7 +113,7 @@ module m_rhs
   real(r_kind),allocatable,dimension(:,:    ),save:: rhs_stats_co
   real(r_kind),allocatable,dimension(:      ),save:: rhs_toss_gps
 
-  enum, bind(C)
+  enum, bind(c)
     enumerator:: i_zero = 0
 
     enumerator:: i_ps
