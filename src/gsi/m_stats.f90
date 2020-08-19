@@ -56,7 +56,7 @@ contains
 !    use m_stats,only : stats_allreduce
 !
 !    type vectors
-!      real(r_kind),dimension(:),pointer :: v
+!       real(r_kind),dimension(:),pointer :: v
 !    endtype vectors
 !    type(vectors),dimension(:) :: a
 !
@@ -64,7 +64,7 @@ contains
 !    integer(i_kind) :: vnum
 !
 !    do i=1,size(a)
-!      call stats_sum(a(i)%v,vdot,vsum,vmin,vmax,vnum,add=i>1)
+!       call stats_sum(a(i)%v,vdot,vsum,vmin,vmax,vnum,add=i>1)
 !    enddo
 !    call stats_allreduce(vdot,vsum,vmin,vmax,vnum,comm)
 !
@@ -113,8 +113,8 @@ subroutine sum_(v,vdot,vsum,vmin,vmax,vdim,add)
   if(.not.add_) then
      vdot=zero
      vsum=zero
-     vmin=+HUGE(vmin)
-     vmax=-HUGE(vmax)
+     vmin=+huge(vmin)
+     vmax=-huge(vmax)
      vdim=0
   endif
 
