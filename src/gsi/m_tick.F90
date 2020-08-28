@@ -12,7 +12,7 @@ module m_tick
 !
 ! subroutines included:
 !   sub tick
-!   sub INCYMD
+!   sub incymd
 !   sub leap_year
 !
 ! attributes:
@@ -20,9 +20,9 @@ module m_tick
 !   machine:
 !
 !$$$ end documentation block
-use kinds, only: i_kind
+  use kinds, only: i_kind
 
-implicit none
+  implicit none
 
 ! set default to private
   private
@@ -33,7 +33,7 @@ contains
 
 #ifdef ibm_sp
 
-  subroutine tick (nymd, nhms, ndt)
+subroutine tick (nymd, nhms, ndt)
 !$$$ subprogram documentation block
 !               .      .    .                                       .
 ! subprogram:   tick
@@ -68,7 +68,7 @@ contains
 
 #else
 
-      subroutine tick (nymd, nhms, ndt)
+subroutine tick (nymd, nhms, ndt)
 !$$$ subprogram documentation block
 !               .      .    .                                       .
 ! subprogram:   tick
@@ -96,48 +96,48 @@ contains
   implicit none
 
 ! Input:
-      integer(i_kind),intent(in   ) :: ndt                     ! TIME-STEP
+  integer(i_kind),intent(in   ) :: ndt                  ! Time-step
 ! Input/Output:
-      integer(i_kind),intent(inout) :: nymd                 ! CURRENT YYYYMMDD
-      integer(i_kind),intent(inout) :: nhms                 ! CURRENT HHMMSS
+  integer(i_kind),intent(inout) :: nymd                 ! Current yyyymmdd
+  integer(i_kind),intent(inout) :: nhms                 ! Current hhmmss
 ! Local:
-      integer(i_kind) :: NSECF, NHMSF, NSEC, N
+  integer(i_kind) :: nsecf, nhmsf, nsec, n
 
 ! Origin:     L.L. Takacs
 ! Revision:   S.-J. Lin Mar 2000
 
-       NSECF(N)   = N/10000*3600 + MOD(N,10000)/100* 60 + MOD(N,100)
-       NHMSF(N)   = N/3600*10000 + MOD(N,3600 )/ 60*100 + MOD(N, 60)
+  nsecf(n)   = n/10000*3600 + mod(n,10000)/100* 60 + mod(n,100)
+  nhmsf(n)   = n/3600*10000 + mod(n,3600 )/ 60*100 + mod(n, 60)
 
-       NSEC = NSECF(NHMS) + ndt
+  nsec = nsecf(nhms) + ndt
 
-       IF (NSEC>86400)  THEN
-          DO WHILE (NSEC>86400)
-             NSEC = NSEC - 86400
-             NYMD = INCYMD (NYMD,1)
-          ENDDO
-       ENDIF
+  if (nsec>86400)  then
+     do while (nsec>86400)
+        nsec = nsec - 86400
+        nymd = invymd (nymd,1)
+     enddo
+  endif
 
-       IF (NSEC==86400)  THEN
-          NSEC = 0
-          NYMD = INCYMD (NYMD,1)
-       ENDIF
+  if (nsec==86400)  then
+     nsec = 0
+     nymd = invymd (nymd,1)
+  endif
 
-       IF (NSEC < 0)  THEN
-          DO WHILE (NSEC < 0)
-             NSEC = 86400 + NSEC
-             NYMD = INCYMD (NYMD,-1)
-          ENDDO
-       ENDIF
+  if (nsec < 0)  then
+     do while (nsec < 0)
+        nsec = 86400 + nsec
+        nymd = invymd (nymd,-1)
+     enddo
+  endif
 
-       NHMS = NHMSF (NSEC)
-      return
-      end subroutine tick
+  nhms = nhmsf (nsec)
+  return
+end subroutine tick
 
-      integer(i_kind) FUNCTION INCYMD (NYMD,M)
+integer(i_kind) function invymd (nymd,m)
 !$$$ subprogram documentation block
 !               .      .    .                                       .
-! subprogram:   INCYMD
+! subprogram:   invymd
 !   prgmmr:
 !
 ! abstract:
@@ -146,7 +146,7 @@ contains
 !   2009-08-06 lueken  - added subprogram doc block
 !
 !   input argument list:
-!    NYMD
+!    nymd
 !    M
 !
 !   output argument list:
@@ -158,50 +158,50 @@ contains
 !$$$ end documentation block
   implicit none
 
-!  PURPOSE
-!     INCYMD:  NYMD CHANGED BY ONE DAY
-!     MODYMD:  NYMD CONVERTED TO JULIAN DATE
-!  DESCRIPTION OF PARAMETERS
-!     NYMD     CURRENT DATE IN YYMMDD FORMAT
-!     M        +/- 1 (DAY ADJUSTMENT)
+!  Purpose
+!     invymd:  nymd changed by one day
+!     modymd:  nymd converted to julian date
+!  Description of parameters
+!     nymd     current date in yymmdd format
+!     m        +/- 1 (day adjustment)
 
-      INTEGER(i_kind) NDPM(12)
-      DATA    NDPM /31, 28, 31, 30, 31, 30, &
-                    31, 31, 30, 31, 30, 31/
-      INTEGER(i_kind),intent(in):: NYMD, M
-      INTEGER(i_kind) NY, NM, ND
+  integer(i_kind) ndpm(12)
+  data    ndpm /31, 28, 31, 30, 31, 30, &
+                31, 31, 30, 31, 30, 31/
+  integer(i_kind),intent(in):: nymd, m
+  integer(i_kind) ny, nm, nd
 
-      NY = NYMD / 10000
-      NM = MOD(NYMD,10000) / 100
-      ND = MOD(NYMD,100) + M
+  ny = nymd / 10000
+  nm = mod(nymd,10000) / 100
+  nd = mod(nymd,100) + m
 
-      IF (ND==0) THEN
-         NM = NM - 1
-         IF (NM==0) THEN
-            NM = 12
-            NY = NY - 1
-         ENDIF
-         ND = NDPM(NM)
-         IF (NM==2 .AND. leap_year(NY))  ND = 29
-      ENDIF
+  if (nd==0) then
+     nm = nm - 1
+     if (nm==0) then
+        nm = 12
+        ny = ny - 1
+     endif
+     nd = ndpm(nm)
+     if (nm==2 .and. leap_year(ny))  nd = 29
+  endif
 
-      IF (.not. (ND==29 .AND. NM==2 .AND. leap_year(ny)))  then
+  if (.not. (nd==29 .and. nm==2 .and. leap_year(ny)))  then
 
-         IF (ND>NDPM(NM)) THEN
-            ND = 1
-            NM = NM + 1
-            IF (NM>12) THEN
-               NM = 1
-               NY = NY + 1
-            ENDIF
-         ENDIF
+     if (nd>ndpm(nm)) then
+        nd = 1
+        nm = nm + 1
+        if (nm>12) then
+           nm = 1
+           ny = ny + 1
+        endif
+     endif
 
-      end if
-      INCYMD = NY*10000 + NM*100 + ND
-      RETURN
-      END function INCYMD
+  end if
+  invymd = ny*10000 + nm*100 + nd
+  return
+end function invymd
 
-      logical function leap_year(ny)
+logical function leap_year(ny)
 !$$$ subprogram documentation block
 !               .      .    .                                       .
 ! subprogram:   leap_year
@@ -226,24 +226,24 @@ contains
 ! Determine if year ny is a leap year
 !
 ! Author: S.-J. Lin
-      implicit none
+  implicit none
 
-      integer(i_kind),intent(in   ) :: ny
+  integer(i_kind),intent(in   ) :: ny
 
-      integer(i_kind) ny00
+  integer(i_kind) ny00
 
 !
 ! No leap years prior to 1900
 !
-      parameter ( ny00 = 1900 )   ! The threshold for starting leap-year 
+  parameter ( ny00 = 1900 )   ! The threshold for starting leap-year 
 
-      if( mod(ny,4) == 0 .and. ny >= ny00 ) then
-         leap_year = .true.
-      else
-         leap_year = .false.
-      endif
+  if( mod(ny,4) == 0 .and. ny >= ny00 ) then
+     leap_year = .true.
+  else
+     leap_year = .false.
+  endif
 
-      return 
-      end function leap_year
+  return 
+end function leap_year
 #endif
 end module m_tick

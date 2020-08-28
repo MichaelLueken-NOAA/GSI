@@ -1,11 +1,11 @@
- module native_endianness
+module native_endianness
 !$$$ module documentation block
 !           .      .    .                                       .
 ! module:   native_endianness
 !   prgmmr: parrish          org: wx22                date: 2012-10-11
 !
-! abstract:  This module was written by Dusan Jovic and has been adapted to GSI for internal translation
-!             of WRF ARW and NMM binary restart files as required to match the machine native 
+! abstract:  This module was written by dusan jovic and has been adapted to gsi for internal translation
+!             of wrf arw and nmm binary restart files as required to match the machine native 
 !             endian storage format.  The original code only converted from big-endian to little-endian.
 !             There are no restrictions in this version.
 !             This is required for these two types of files, because they are read/written to using mpi-io,
@@ -13,7 +13,7 @@
 !             for fortran unformatted read/write.
 !
 ! program history log:
-!   2012-10-11  parrish - copy/modify original module native_endianness provided by Dusan Jovic, NCEP/EMC 2012
+!   2012-10-11  parrish - copy/modify original module native_endianness provided by dusan jovic, ncep/emc 2012
 !   2012-10-19  parrish - additional modifications to improve efficiency.  Remove interface and make
 !                          to_native_endianness to work only with integer(4) arguments.
 !                          Put to_native_endianness_i4 outside module.
@@ -32,19 +32,19 @@
 !
 !$$$ end documentation block
 
- use kinds, only: i_byte,i_long
- implicit none
+use kinds, only: i_byte,i_long
+implicit none
 
- private
+private
 
- public byte_swap
- public is_little_endian
+public byte_swap
+public is_little_endian
 
- logical byte_swap
+logical byte_swap
 
- contains
+contains
 
- logical function is_little_endian()
+logical function is_little_endian()
 !$$$  subprogram documentation block
 !                .      .    .                                       .
 ! subprogram:    is_little_endian
@@ -76,15 +76,15 @@
 
    is_little_endian = (i1 == i2)
 
- end function is_little_endian
+end function is_little_endian
 
- end module native_endianness
+end module native_endianness
 
 !----------------------------------------------------------------------
 ! convert 4-byte integer scalar from big-endian to native-endian
 !----------------------------------------------------------------------
 
- subroutine to_native_endianness_i4(i4,num)
+subroutine to_native_endianness_i4(i4,num)
 !$$$  subprogram documentation block
 !                .      .    .                                       .
 ! subprogram:    to_native_endianness_i4
@@ -100,7 +100,7 @@
 !
 !   input argument list:
 !    i4 - input 4 byte integer array
-!    num - length of array i4  (NOTE:  type of num must be i_llong (8 byte integer) )
+!    num - length of array i4  (Note:  type of num must be i_llong (8 byte integer) )
 !
 !   output argument list:
 !    i4 - output 4 byte integer array with bytes in reverse order
@@ -111,33 +111,33 @@
 !
 !$$$ end documentation block
 
- use kinds, only: i_byte,i_long,i_llong
- implicit none
+   use kinds, only: i_byte,i_long,i_llong
+   implicit none
 
- integer(i_llong), intent(in) :: num
- integer(i_long), intent(inout) :: i4(num)
+   integer(i_llong), intent(in) :: num
+   integer(i_long), intent(inout) :: i4(num)
 
- integer(i_byte), dimension(4) :: byte_arr, byte_arr_tmp
- integer(i_long) :: n
+   integer(i_byte), dimension(4) :: byte_arr, byte_arr_tmp
+   integer(i_long) :: n
 
- do n=1,num
-    byte_arr_tmp = transfer (i4(n), byte_arr)
-    byte_arr(1)=byte_arr_tmp(4)
-    byte_arr(2)=byte_arr_tmp(3)
-    byte_arr(3)=byte_arr_tmp(2)
-    byte_arr(4)=byte_arr_tmp(1)
-    i4(n) = transfer (byte_arr, i4(n))
- end do
+   do n=1,num
+      byte_arr_tmp = transfer (i4(n), byte_arr)
+      byte_arr(1)=byte_arr_tmp(4)
+      byte_arr(2)=byte_arr_tmp(3)
+      byte_arr(3)=byte_arr_tmp(2)
+      byte_arr(4)=byte_arr_tmp(1)
+      i4(n) = transfer (byte_arr, i4(n))
+   end do
 
- return
+   return
 
- end subroutine to_native_endianness_i4
+end subroutine to_native_endianness_i4
 
 !----------------------------------------------------------------------
 ! convert 4-byte real scalar from big-endian to native-endian
 !----------------------------------------------------------------------
 
- subroutine to_native_endianness_r4(r4,num)
+subroutine to_native_endianness_r4(r4,num)
 !$$$  subprogram documentation block
 !                .      .    .                                       .
 ! subprogram:    to_native_endianness_r4
@@ -153,7 +153,7 @@
 !
 !   input argument list:
 !    r4 - input 4 byte integer array
-!    num - length of array r4  (NOTE:  type of num must be i_llong (8 byte integer) )
+!    num - length of array r4  (Note:  type of num must be i_llong (8 byte integer) )
 !
 !   output argument list:
 !    r4 - output 4 byte integer array with bytes in reverse order
@@ -164,24 +164,24 @@
 !
 !$$$ end documentation block
 
- use kinds, only: i_byte,i_long,i_llong,r_single
- implicit none
+   use kinds, only: i_byte,i_long,i_llong,r_single
+   implicit none
 
- integer(i_llong), intent(in) :: num
- real(r_single), intent(inout) :: r4(num)
+   integer(i_llong), intent(in) :: num
+   real(r_single), intent(inout) :: r4(num)
 
- integer(i_byte), dimension(4) :: byte_arr, byte_arr_tmp
- integer(i_long) :: n
+   integer(i_byte), dimension(4) :: byte_arr, byte_arr_tmp
+   integer(i_long) :: n
 
- do n=1,num
-    byte_arr_tmp = transfer (r4(n), byte_arr)
-    byte_arr(1)=byte_arr_tmp(4)
-    byte_arr(2)=byte_arr_tmp(3)
-    byte_arr(3)=byte_arr_tmp(2)
-    byte_arr(4)=byte_arr_tmp(1)
-    r4(n) = transfer (byte_arr, r4(n))
- end do
+   do n=1,num
+      byte_arr_tmp = transfer (r4(n), byte_arr)
+      byte_arr(1)=byte_arr_tmp(4)
+      byte_arr(2)=byte_arr_tmp(3)
+      byte_arr(3)=byte_arr_tmp(2)
+      byte_arr(4)=byte_arr_tmp(1)
+      r4(n) = transfer (byte_arr, r4(n))
+   end do
 
- return
+   return
 
- end subroutine to_native_endianness_r4
+end subroutine to_native_endianness_r4
