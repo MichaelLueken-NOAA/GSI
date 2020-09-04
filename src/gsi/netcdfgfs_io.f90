@@ -5,7 +5,7 @@ module netcdfgfs_io
 !   prgmmr: Martin       org: NCEP/EMC                date: 2019-09-24
 !
 ! abstract: This module contains routines which handle input/output
-!           operations for NCEP FV3 GFS netCDF global atmospheric and surface files.
+!           operations for ncep fv3 gfs netcdf global atmospheric and surface files.
 !
 ! program history log:
 !   2019-09-24 Martin   Initial version.  Based on ncepnems_io
@@ -17,12 +17,12 @@ module netcdfgfs_io
 !                         on grid to analysis subdomains
 !   sub read_gfsncsfc    - read fv3gfs netcdf surface file, scatter on grid to
 !                         analysis subdomains
-!   sub read_gfsncsfc_anl- read ncep EnKF fv3gfs netcdf surface file, scatter on grid to
+!   sub read_gfsncsfc_anl- read ncep enkf fv3gfs netcdf surface file, scatter on grid to
 !                         analysis subdomains
 !   sub write_gfsncsfc   - gather/write on grid ncep surface analysis file
 !   sub read_gfsncnst    - read ncep nst file, scatter on grid to analysis subdomains
 !   sub write_gfsnc_sfc_nst - gather/write on grid ncep surface & nst analysis file
-!   sub intrp22         - interpolate from one grid to another grid (2D)
+!   sub intrp22         - interpolate from one grid to another grid (2d)
 !   sub read_gfsnc_sfcnst  - read sfc hist file, including sfc and nst vars, scatter on grid to analysis subdomains
 !
 ! Variable Definitions:
@@ -30,8 +30,8 @@ module netcdfgfs_io
 !   language: f90
 !   machine:
 !
-! NOTE: This module adds capability to read netCDF FV3 first guess files
-!       and to write netCDF FV3 analysis files using the fv3gfs_ncio interface 
+! Note: This module adds capability to read netcdf fv3 first guess files
+!       and to write netcdf fv3 analysis files using the fv3gfs_ncio interface 
 !       Using this is controled by a namelist argument "use_gfs_ncio"
 !
 !
@@ -135,18 +135,18 @@ contains
     integer(i_kind):: it, istatus, inner_vars, num_fields
     integer(i_kind):: iret_ql,iret_qi
 
-    real(r_kind),pointer,dimension(:,:  ):: ges_ps_it  =>NULL()
-    real(r_kind),pointer,dimension(:,:  ):: ges_z_it   =>NULL()
-    real(r_kind),pointer,dimension(:,:,:):: ges_u_it   =>NULL()
-    real(r_kind),pointer,dimension(:,:,:):: ges_v_it   =>NULL()
-    real(r_kind),pointer,dimension(:,:,:):: ges_div_it =>NULL()
-    real(r_kind),pointer,dimension(:,:,:):: ges_vor_it =>NULL()
-    real(r_kind),pointer,dimension(:,:,:):: ges_tv_it  =>NULL()
-    real(r_kind),pointer,dimension(:,:,:):: ges_q_it   =>NULL()
-    real(r_kind),pointer,dimension(:,:,:):: ges_oz_it  =>NULL()
-    real(r_kind),pointer,dimension(:,:,:):: ges_cwmr_it=>NULL()
-    real(r_kind),pointer,dimension(:,:,:):: ges_ql_it  => NULL()
-    real(r_kind),pointer,dimension(:,:,:):: ges_qi_it  => NULL()
+    real(r_kind),pointer,dimension(:,:  ):: ges_ps_it  =>null()
+    real(r_kind),pointer,dimension(:,:  ):: ges_z_it   =>null()
+    real(r_kind),pointer,dimension(:,:,:):: ges_u_it   =>null()
+    real(r_kind),pointer,dimension(:,:,:):: ges_v_it   =>null()
+    real(r_kind),pointer,dimension(:,:,:):: ges_div_it =>null()
+    real(r_kind),pointer,dimension(:,:,:):: ges_vor_it =>null()
+    real(r_kind),pointer,dimension(:,:,:):: ges_tv_it  =>null()
+    real(r_kind),pointer,dimension(:,:,:):: ges_q_it   =>null()
+    real(r_kind),pointer,dimension(:,:,:):: ges_oz_it  =>null()
+    real(r_kind),pointer,dimension(:,:,:):: ges_cwmr_it=>null()
+    real(r_kind),pointer,dimension(:,:,:):: ges_ql_it  => null()
+    real(r_kind),pointer,dimension(:,:,:):: ges_qi_it  => null()
 
     type(sub2grid_info) :: grd_t
     logical regional
@@ -161,13 +161,13 @@ contains
                                                     'vor ', 'div ', &
                                                     'tv  ', 'q   ', &
                                                     'cw  ', 'oz  ' /)
-    real(r_kind),pointer,dimension(:,:):: ptr2d   =>NULL()
-    real(r_kind),pointer,dimension(:,:,:):: ptr3d =>NULL()
+    real(r_kind),pointer,dimension(:,:):: ptr2d   =>null()
+    real(r_kind),pointer,dimension(:,:,:):: ptr3d =>null()
 
     regional=.false.
     inner_vars=1
     num_fields=min(8*grd_a%nsig+2,npe)
-!  Create temporary communication information fore read routines
+!   Create temporary communication information fore read routines
     call general_sub2grid_create_info(grd_t,inner_vars,grd_a%nlat,grd_a%nlon, &
           grd_a%nsig,num_fields,regional)
 
@@ -175,8 +175,8 @@ contains
     call gsi_gridcreate(atm_grid,lat2,lon2,nsig)
     call gsi_bundlecreate(atm_bundle,atm_grid,'aux-atm-read',istatus,names2d=vars2d,names3d=vars3d)
     if(istatus/=0) then
-      write(6,*) myname_,': trouble creating atm_bundle'
-      call stop2(999)
+       write(6,*) myname_,': trouble creating atm_bundle'
+       call stop2(999)
     endif
 
     do it=1,nfldsig
@@ -190,7 +190,7 @@ contains
        inithead=.false.
        zflag=.false.
 
-!      Set values to actual MetGuess fields
+!      Set values to actual metguess fields
        call set_guess_
 
        l_cld_derived = associated(ges_cwmr_it).and.&
@@ -286,7 +286,7 @@ contains
 ! abstract: fills chemguess_bundle with GFS chemistry.
 !
 ! remarks:
-!    1. Right now, only CO2 is done and even this is treated
+!    1. Right now, only co2 is done and even this is treated
 !        as constant througout the assimialation window.
 !    2. iyear and month could come from obsmod, but logically
 !       this program should never depend on obsmod
@@ -323,8 +323,8 @@ contains
 !   Declare local variables
     integer(i_kind) :: igfsco2, i, j, n, iret
     real(r_kind),dimension(lat2):: xlats
-    real(r_kind),pointer,dimension(:,:,:)::p_co2=>NULL()
-    real(r_kind),pointer,dimension(:,:,:)::ptr3d=>NULL()
+    real(r_kind),pointer,dimension(:,:,:)::p_co2=>null()
+    real(r_kind),pointer,dimension(:,:,:)::ptr3d=>null()
 
     if(.not.associated(gsi_chemguess_bundle)) return
     call gsi_bundlegetpointer(gsi_chemguess_bundle(1),'co2',p_co2,iret)
@@ -337,7 +337,7 @@ contains
        xlats(i) = rlats(n)
     enddo
 
-!   Read in CO2
+!   Read in co2
     call gsi_chemguess_get ( 'i4crtm::co2', igfsco2, iret )
     call read_gfsco2 ( iyear,month,idd,igfsco2,xlats,&
                        lat2,lon2,nsig,mype, p_co2 )
@@ -390,7 +390,7 @@ contains
     use general_specmod, only: spec_vars
     use general_sub2grid_mod, only: sub2grid_info
     use mpimod, only: npe,mpi_comm_world,ierror,mpi_rtype,mype
-    use module_fv3gfs_ncio, only: Dataset, Variable, Dimension, open_dataset,&
+    use module_fv3gfs_ncio, only: dataset, variable, dimension, open_dataset,&
                 quantize_data,close_dataset, get_dim, read_vardata, get_idate_from_time_units 
     use egrid2agrid_mod,only: g_egrid2agrid,g_create_egrid2agrid,egrid2agrid_parm,destroy_egrid2agrid
     use constants, only: two,pi,half,deg2rad
@@ -432,8 +432,8 @@ contains
     logical diff_res,eqspace
     logical,dimension(1) :: vector
     type(egrid2agrid_parm) :: p_high
-    type(Dataset) :: atmges
-    type(Dimension) :: ncdim
+    type(dataset) :: atmges
+    type(dimension) :: ncdim
 
 !******************************************************************************
 !   Initialize variables used below
@@ -455,74 +455,74 @@ contains
     allocate( sub_div(grd%lat2*grd%lon2,max(grd%nsig,npe)),sub_vor(grd%lat2*grd%lon2,max(grd%nsig,npe)) )
     if(mype < nflds)then
 
-      ! open the netCDF file
-      atmges = open_dataset(filename)
-      ! get dimension sizes
-      ncdim = get_dim(atmges, 'grid_xt'); lonb = ncdim%len
-      ncdim = get_dim(atmges, 'grid_yt'); latb = ncdim%len
-      ncdim = get_dim(atmges, 'pfull'); levs = ncdim%len
-      
-      ! get time information
-      idate = get_idate_from_time_units(atmges)
-      odate(1) = idate(4)  !hour
-      odate(2) = idate(2)  !month
-      odate(3) = idate(3)  !day
-      odate(4) = idate(1)  !year
-      call read_vardata(atmges, 'time', fhour) ! might need to change this to attribute later
-                                               ! depends on model changes from Jeff Whitaker
+       ! open the netcdf file
+       atmges = open_dataset(filename)
+       ! get dimension sizes
+       ncdim = get_dim(atmges, 'grid_xt'); lonb = ncdim%len
+       ncdim = get_dim(atmges, 'grid_yt'); latb = ncdim%len
+       ncdim = get_dim(atmges, 'pfull'); levs = ncdim%len
+
+       ! get time information
+       idate = get_idate_from_time_units(atmges)
+       odate(1) = idate(4)  !hour
+       odate(2) = idate(2)  !month
+       odate(3) = idate(3)  !day
+       odate(4) = idate(1)  !year
+       call read_vardata(atmges, 'time', fhour) ! might need to change this to attribute later
+                                                ! depends on model changes from jeff whitaker
 !
-!  g_* array already pre-allocate as (lat2,lon2,<nsig>) => 2D and <3D> array
+!      g_* array already pre-allocate as (lat2,lon2,<nsig>) => 2d and <3d> array
 !
-      diff_res=.false.
-      if(latb /= nlatm2) then
-         diff_res=.true.
-         if ( mype == 0 ) write(6, &
-            '(a,'': different spatial dimension nlatm2 = '',i4,tr1,''latb = '',i4)') &
-            trim(my_name),nlatm2,latb
-      end if
-      if(lonb /= grd%nlon) then
-         diff_res=.true.
-         if ( mype == 0 ) write(6, &
-            '(a,'': different spatial dimension nlon   = '',i4,tr1,''lonb = '',i4)') &
-            trim(my_name),grd%nlon,lonb
-      end if
-      if(levs /= grd%nsig)then
-         if ( mype == 0 ) write(6, &
-            '(a,'': inconsistent spatial dimension nsig   = '',i4,tr1,''levs = '',i4)') &
-            trim(my_name),grd%nsig,levs
-         call stop2(101)
-      end if
+       diff_res=.false.
+       if(latb /= nlatm2) then
+          diff_res=.true.
+          if ( mype == 0 ) write(6, &
+             '(a,'': different spatial dimension nlatm2 = '',i4,tr1,''latb = '',i4)') &
+             trim(my_name),nlatm2,latb
+       end if
+       if(lonb /= grd%nlon) then
+          diff_res=.true.
+          if ( mype == 0 ) write(6, &
+             '(a,'': different spatial dimension nlon   = '',i4,tr1,''lonb = '',i4)') &
+             trim(my_name),grd%nlon,lonb
+       end if
+       if(levs /= grd%nsig)then
+          if ( mype == 0 ) write(6, &
+             '(a,'': inconsistent spatial dimension nsig   = '',i4,tr1,''levs = '',i4)') &
+             trim(my_name),grd%nsig,levs
+          call stop2(101)
+       end if
 
-      ! get lat/lon coordinates
+       ! get lat/lon coordinates
+ 
+       allocate( grid(grd%nlon,nlatm2), grid_v(grd%nlon,nlatm2) )
+       if(diff_res)then
+          allocate( grid_b(lonb,latb),grid_c(latb+2,lonb,1),grid2(grd%nlat,grd%nlon,1))
+          allocate( grid_b2(lonb,latb),grid_c2(latb+2,lonb,1))
+       end if
+       allocate( rlats(latb+2),rlons(lonb),clons(lonb),slons(lonb))
+       call read_vardata(atmges, 'grid_xt', rlons_tmp)
+       call read_vardata(atmges, 'grid_yt', rlats_tmp)
+       do j=1,latb
+          rlats(j+1)=deg2rad*rlats_tmp(j)
+       end do
+       do j=1,lonb
+          rlons(j)=deg2rad*rlons_tmp(j)
+       end do
+       deallocate(rlats_tmp,rlons_tmp)
+       rlats(1)=-half*pi
+       rlats(latb+2)=half*pi
+       do j=1,lonb
+          clons(j)=cos(rlons(j))
+          slons(j)=sin(rlons(j))
+       end do
 
-      allocate( grid(grd%nlon,nlatm2), grid_v(grd%nlon,nlatm2) )
-      if(diff_res)then
-         allocate( grid_b(lonb,latb),grid_c(latb+2,lonb,1),grid2(grd%nlat,grd%nlon,1))
-         allocate( grid_b2(lonb,latb),grid_c2(latb+2,lonb,1))
-      end if
-      allocate( rlats(latb+2),rlons(lonb),clons(lonb),slons(lonb))
-      call read_vardata(atmges, 'grid_xt', rlons_tmp)
-      call read_vardata(atmges, 'grid_yt', rlats_tmp)
-      do j=1,latb
-        rlats(j+1)=deg2rad*rlats_tmp(j)
-      end do
-      do j=1,lonb
-        rlons(j)=deg2rad*rlons_tmp(j)
-      end do
-      deallocate(rlats_tmp,rlons_tmp)
-      rlats(1)=-half*pi
-      rlats(latb+2)=half*pi
-      do j=1,lonb
-         clons(j)=cos(rlons(j))
-         slons(j)=sin(rlons(j))
-      end do
-
-      nord_int=4
-      eqspace=.false.
-      call g_create_egrid2agrid(grd%nlat,sp_a%rlats,grd%nlon,sp_a%rlons, &
-                              latb+2,rlats,lonb,rlons,&
-                              nord_int,p_high,.true.,eqspace)
-      deallocate(rlats,rlons)
+       nord_int=4
+       eqspace=.false.
+       call g_create_egrid2agrid(grd%nlat,sp_a%rlats,grd%nlon,sp_a%rlons, &
+                               latb+2,rlats,lonb,rlons,&
+                               nord_int,p_high,.true.,eqspace)
+       deallocate(rlats,rlons)
     end if
 !
 !   Load values into rows for south and north pole before scattering
@@ -538,9 +538,9 @@ contains
              call fill2_ns(grid_b,grid_c(:,:,1),latb+2,lonb)
              call g_egrid2agrid(p_high,grid_c,grid2,1,1,vector)
              do kk=1,itotsub
-               i=ltosi_s(kk)
-               j=ltosj_s(kk)
-               work(kk)=grid2(i,j,1)
+                i=ltosi_s(kk)
+                j=ltosj_s(kk)
+                work(kk)=grid2(i,j,1)
              end do
           else
              grid=rwork2d
@@ -562,9 +562,9 @@ contains
           call fill2_ns(grid_b,grid_c(:,:,1),latb+2,lonb)
           call g_egrid2agrid(p_high,grid_c,grid2,1,1,vector)
           do kk=1,itotsub
-            i=ltosi_s(kk)
-            j=ltosj_s(kk)
-            work(kk)=grid2(i,j,1)
+             i=ltosi_s(kk)
+             j=ltosj_s(kk)
+             work(kk)=grid2(i,j,1)
           end do
        else
           grid=rwork2d
@@ -584,7 +584,7 @@ contains
     allocate( work_vor(grd%itotsub),work_div(grd%itotsub) )
     call read_vardata(atmges, 'ugrd', rwork3d)
     call read_vardata(atmges, 'vgrd', rwork3d1)
-! TODO CRM, would above be faster if only done on one PE and then distributed?
+!   would above be faster if only done on one pe and then distributed?
     do k=1,levs
        kr = levs+1-k ! netcdf is top to bottom need to flip
        icount=icount+1
@@ -597,25 +597,25 @@ contains
              call filluv2_ns(grid_b,grid_b2,grid_c(:,:,1),grid_c2(:,:,1),latb+2,lonb,slons,clons)
              call g_egrid2agrid(p_high,grid_c,grid2,1,1,vector)
              do kk=1,itotsub
-               i=ltosi_s(kk)
-               j=ltosj_s(kk)
-               work(kk)=grid2(i,j,1)
+                i=ltosi_s(kk)
+                j=ltosj_s(kk)
+                work(kk)=grid2(i,j,1)
              end do
              do j=1,grd%nlon
-               do i=2,grd%nlat-1
-                 grid(j,grd%nlat-i)=grid2(i,j,1)
-               end do
+                do i=2,grd%nlat-1
+                   grid(j,grd%nlat-i)=grid2(i,j,1)
+                end do
              end do
              call g_egrid2agrid(p_high,grid_c2,grid2,1,1,vector)
              do kk=1,itotsub
-               i=ltosi_s(kk)
-               j=ltosj_s(kk)
-               work_v(kk)=grid2(i,j,1)
+                i=ltosi_s(kk)
+                j=ltosj_s(kk)
+                work_v(kk)=grid2(i,j,1)
              end do
              do j=1,grd%nlon
-               do i=2,grd%nlat-1
-                 grid_v(j,grd%nlat-i)=grid2(i,j,1)
-               end do
+                do i=2,grd%nlat-1
+                   grid_v(j,grd%nlat-i)=grid2(i,j,1)
+                end do
              end do
           else
              grid=rwork3d(:,:,kr)
@@ -630,7 +630,7 @@ contains
              call general_sptez_s_b(sp_a,sp_a,spec_div,grid_div,1)
              call general_sptez_s_b(sp_a,sp_a,spec_vor,grid_vor,1)
 
-          ! Load values into rows for south and north pole
+             ! Load values into rows for south and north pole
              call fill_ns(grid_div,work_div)
              call fill_ns(grid_vor,work_vor)
              deallocate(grid_vor,grid_div)
@@ -684,9 +684,9 @@ contains
              call fill2_ns(grid_b,grid_c(:,:,1),latb+2,lonb)
              call g_egrid2agrid(p_high,grid_c,grid2,1,1,vector)
              do kk=1,itotsub
-               i=ltosi_s(kk)
-               j=ltosj_s(kk)
-               work(kk)=grid2(i,j,1)
+                i=ltosi_s(kk)
+                j=ltosj_s(kk)
+                work(kk)=grid2(i,j,1)
              end do
           else
              grid=rwork3d(:,:,kr)
@@ -700,9 +700,9 @@ contains
              call fill2_ns(grid_b,grid_c(:,:,1),latb+2,lonb)
              call g_egrid2agrid(p_high,grid_c,grid2,1,1,vector)
              do kk=1,itotsub
-               i=ltosi_s(kk)
-               j=ltosj_s(kk)
-               work_v(kk)=grid2(i,j,1)
+                i=ltosi_s(kk)
+                j=ltosj_s(kk)
+                work_v(kk)=grid2(i,j,1)
              end do
           else
              grid_v=rwork2d1
@@ -740,9 +740,9 @@ contains
              call fill2_ns(grid_b,grid_c(:,:,1),latb+2,lonb)
              call g_egrid2agrid(p_high,grid_c,grid2,1,1,vector)
              do kk=1,itotsub
-               i=ltosi_s(kk)
-               j=ltosj_s(kk)
-               work(kk)=grid2(i,j,1)
+                i=ltosi_s(kk)
+                j=ltosj_s(kk)
+                work(kk)=grid2(i,j,1)
              end do
           else
              grid=rwork3d(:,:,kr)
@@ -777,9 +777,9 @@ contains
                 call fill2_ns(grid_b,grid_c(:,:,1),latb+2,lonb)
                 call g_egrid2agrid(p_high,grid_c,grid2,1,1,vector)
                 do kk=1,itotsub
-                  i=ltosi_s(kk)
-                  j=ltosj_s(kk)
-                  work(kk)=grid2(i,j,1)
+                   i=ltosi_s(kk)
+                   j=ltosj_s(kk)
+                   work(kk)=grid2(i,j,1)
                 end do
              else
                 grid=rwork2d
@@ -820,7 +820,7 @@ contains
                            tref,dt_cool,z_c,dt_warm,z_w,c_0,c_d,w_0,w_d) 
 !$$$  subprogram documentation block
 !                .      .    .                                       .
-! subprogram:    read_sfc_     read netCDF sfc hist file
+! subprogram:    read_sfc_     read netcdf sfc hist file
 !   prgmmr: Martin            org: NCEP/EMC                date: 2019-09-23
 !
 ! abstract: read nems sfc & nst combined file
@@ -848,10 +848,10 @@ contains
 !     z_c       - optional, depth of sub-layer cooling layer
 !     dt_warm   - optional, diurnal warming amount at sea surface 
 !     z_w       - optional, depth of diurnal warming layer
-!     c_0       - optional, coefficient to calculate d(Tz)/d(tr) in dimensionless
-!     c_d       - optional, coefficient to calculate d(Tz)/d(tr) in m^-1
-!     w_0       - optional, coefficient to calculate d(Tz)/d(tr) in dimensionless
-!     w_d       - optional, coefficient to calculate d(Tz)/d(tr) in m^-1
+!     c_0       - optional, coefficient to calculate d(tz)/d(tr) in dimensionless
+!     c_d       - optional, coefficient to calculate d(tz)/d(tr) in m^-1
+!     w_0       - optional, coefficient to calculate d(tz)/d(tr) in dimensionless
+!     w_d       - optional, coefficient to calculate d(tz)/d(tr) in m^-1
 
 !
 ! attributes:
@@ -863,7 +863,7 @@ contains
     use gridmod, only: nlat_sfc,nlon_sfc
     use guess_grids, only: nfldsfc,ifilesfc
     use constants, only: zero,two
-    use module_fv3gfs_ncio, only: Dataset, Variable, Dimension, open_dataset,&
+    use module_fv3gfs_ncio, only: dataset, variable, dimension, open_dataset,&
                            close_dataset, get_dim, read_vardata, get_idate_from_time_units 
     implicit none
 
@@ -886,16 +886,16 @@ contains
     integer(i_kind) :: lonb, latb
     real(r_single),allocatable, dimension(:)  :: fhour
     real(r_single), allocatable, dimension(:,:) :: work,outtmp
-    type(Dataset) :: sfcges
-    type(Dimension) :: ncdim
+    type(dataset) :: sfcges
+    type(dimension) :: ncdim
 !-----------------------------------------------------------------------------
 
     do it = 1, nfldsfc
-! read a surface history file on the task
+!      read a surface history file on the task
        write(filename,200)ifilesfc(it)
 200    format('sfcf',i2.2)
 
-       ! open the netCDF file
+       ! open the netcdf file
        sfcges = open_dataset(filename)
        ! get dimension sizes
        ncdim = get_dim(sfcges, 'grid_xt'); lonb = ncdim%len
@@ -908,7 +908,7 @@ contains
        odate(3) = idate(3)  !day
        odate(4) = idate(1)  !year
        call read_vardata(sfcges, 'time', fhour) ! might need to change this to attribute later
-                                               ! depends on model changes from Jeff Whitaker
+                                                ! depends on model changes from jeff whitaker
 
        if ( (latb /= nlat_sfc-2) .or. (lonb /= nlon_sfc) ) then
           if ( mype == 0 ) write(6, &
@@ -917,23 +917,23 @@ contains
           call stop2(102)
        endif
 !
-!      Read the surface records (lonb, latb)  and convert to GSI array pattern (nlat_sfc,nlon_sfc)
+!      Read the surface records (lonb, latb)  and convert to gsi array pattern (nlat_sfc,nlon_sfc)
 !      Follow the read order sfcio in ncepgfs_io
 !
        allocate(work(lonb,latb))
        work    = zero
 
        if(it == 1)then
-         nsfc=nsfc_all
+          nsfc=nsfc_all
        else
-         nsfc=nsfc_all-4
+          nsfc=nsfc_all-4
        end if
 
        do n = 1, nsfc
 
           if (n == 1) then                               ! skin temperature
 
-!            Tsea
+!            tsea
              call read_vardata(sfcges, 'tmpsfc', work)
              call tran_gfsncsfc(work,sfct(1,1,it),lonb,latb)
 
@@ -1094,10 +1094,10 @@ contains
 !     z_c       - optional, depth of sub-layer cooling layer
 !     dt_warm   - optional, diurnal warming amount at sea surface 
 !     z_w       - optional, depth of diurnal warming layer
-!     c_0       - optional, coefficient to calculate d(Tz)/d(tf) 
-!     c_d       - optional, coefficient to calculate d(Tz)/d(tf)
-!     w_0       - optional, coefficient to calculate d(Tz)/d(tf) 
-!     w_d       - optional, coefficient to calculate d(Tz)/d(tf) 
+!     c_0       - optional, coefficient to calculate d(tz)/d(tf) 
+!     c_d       - optional, coefficient to calculate d(tz)/d(tf)
+!     w_0       - optional, coefficient to calculate d(tz)/d(tf) 
+!     w_d       - optional, coefficient to calculate d(tz)/d(tf) 
 !
 ! attributes:
 !   language: f90
@@ -1197,7 +1197,7 @@ contains
     use kinds, only: r_kind,i_kind,r_single
     use gridmod, only: nlat,nlon
     use constants, only: zero
-    use module_fv3gfs_ncio, only: Dataset, Variable, Dimension, open_dataset,&
+    use module_fv3gfs_ncio, only: dataset, variable, dimension, open_dataset,&
                            close_dataset, get_dim, read_vardata, get_idate_from_time_units 
     implicit none
 
@@ -1216,13 +1216,13 @@ contains
     integer(i_kind) :: lonb, latb
     real(r_single),allocatable, dimension(:) :: fhour
     real(r_single), allocatable, dimension(:,:) :: work,outtmp
-    type(Dataset) :: sfcges
-    type(Dimension) :: ncdim
+    type(dataset) :: sfcges
+    type(dimension) :: ncdim
 
 !-----------------------------------------------------------------------------
 
     filename='sfcf06_anlgrid'
-    ! open the netCDF file
+    ! open the netcdf file
     sfcges = open_dataset(filename)
     ! get dimension sizes
     ncdim = get_dim(sfcges, 'grid_xt'); lonb = ncdim%len
@@ -1235,7 +1235,7 @@ contains
     odate(3) = idate(3)  !day
     odate(4) = idate(1)  !year
     call read_vardata(sfcges, 'time', fhour) ! might need to change this to attribute later
-                                               ! depends on model changes from Jeff Whitaker
+                                               ! depends on model changes from jeff whitaker
 
     if ( (latb /= nlat-2) .or. (lonb /= nlon) ) then
        if ( mype == 0 ) write(6, &
@@ -1244,7 +1244,7 @@ contains
        call stop2(102)
     endif
 !
-!   Read the surface records (lonb, latb)  and convert to GSI array pattern (nlat,nlon)
+!   Read the surface records (lonb, latb)  and convert to gsi array pattern (nlat,nlon)
 !   Follow the read order sfcio in ncepgfs_io
 !
     allocate(work(lonb,latb))
@@ -1326,10 +1326,10 @@ contains
 !$$$  subprogram documentation block
 !                .      .    .                                       .
 ! subprogram:    read_nst_     read netcdf nst surface guess file (quadratic
-!                                 Gaussin grids) without scattering to tasks
+!                                 gaussian grids) without scattering to tasks
 !   prgmmr: Martin         org: NCEP/EMC             date: 2019-09-23
 !
-! abstract: read netcdf surface NST file
+! abstract: read netcdf surface nst file
 !
 ! program history log:
 !   2019-09-23  Martin    Initial version based on sub read_nemsnst
@@ -1342,10 +1342,10 @@ contains
 !   z_c      (:,:)                ! depth of sub-layer cooling layer
 !   dt_warm  (:,:)                ! diurnal warming amount at sea surface (skin layer)
 !   z_w      (:,:)                ! depth of diurnal warming layer
-!   c_0      (:,:)                ! coefficient to calculate d(Tz)/d(tr) 
-!   c_d      (:,:)                ! coefficient to calculate d(Tz)/d(tr) 
-!   w_0      (:,:)                ! coefficient to calculate d(Tz)/d(tr) 
-!   w_d      (:,:)                ! coefficient to calculate d(Tz)/d(tr) 
+!   c_0      (:,:)                ! coefficient to calculate d(tz)/d(tr) 
+!   c_d      (:,:)                ! coefficient to calculate d(tz)/d(tr) 
+!   w_0      (:,:)                ! coefficient to calculate d(tz)/d(tr) 
+!   w_d      (:,:)                ! coefficient to calculate d(tz)/d(tr) 
 !
 ! attributes:
 !   language: f90
@@ -1356,7 +1356,7 @@ contains
     use gridmod, only: nlat_sfc,nlon_sfc
     use constants, only: zero,two
     use guess_grids, only: nfldnst,ifilenst
-    use module_fv3gfs_ncio, only: Dataset, Variable, Dimension, open_dataset,&
+    use module_fv3gfs_ncio, only: dataset, variable, dimension, open_dataset,&
                            close_dataset, get_dim, read_vardata, get_idate_from_time_units 
     implicit none
 
@@ -1375,13 +1375,13 @@ contains
     real(r_single),allocatable, dimension(:) :: fhour
     real(r_single), dimension(nlat_sfc,nlon_sfc,nfldnst) :: xt
     real(r_single), allocatable, dimension(:,:) :: work
-    type(Dataset) :: sfcges
-    type(Dimension) :: ncdim
+    type(dataset) :: sfcges
+    type(dimension) :: ncdim
 
 !-----------------------------------------------------------------------------
 
     do it=1,nfldnst
-! read a nst file on the task
+!      read a nst file on the task
        write(filename,200)ifilenst(it)
 200    format('nstf',i2.2)
 
@@ -1398,7 +1398,7 @@ contains
        odate(3) = idate(3)  !day
        odate(4) = idate(1)  !year
        call read_vardata(sfcges, 'time', fhour) ! might need to change this to attribute later
-                                               ! depends on model changes from Jeff Whitaker
+                                                ! depends on model changes from jeff whitaker
 
        if ( (latb /= nlat_sfc-2) .or. (lonb /= nlon_sfc) ) then
           if ( mype == 0 ) &
@@ -1412,7 +1412,7 @@ contains
        allocate(work(lonb,latb))
        work    = zero
 
-!      Tref
+!      tref
        call read_vardata(sfcges, 'tref', work)
        call tran_gfsncsfc(work,tref(1,1,it),lonb,latb)
 
@@ -1486,10 +1486,10 @@ contains
 !   z_c      (:,:)                        ! depth of sub-layer cooling layer
 !   dt_warm  (:,:)                        ! diurnal warming amount at sea surface
 !   z_w      (:,:)                        ! depth of diurnal warming layer
-!   c_0      (:,:)                        ! coefficient to calculate d(Tz)/d(tr) in dimensionless
-!   c_d      (:,:)                        ! coefficient to calculate d(Tz)/d(tr) in m^-1
-!   w_0      (:,:)                        ! coefficient to calculate d(Tz)/d(tr) in dimensionless
-!   w_d      (:,:)                        ! coefficient to calculate d(Tz)/d(tr) in m^-1
+!   c_0      (:,:)                        ! coefficient to calculate d(tz)/d(tr) in dimensionless
+!   c_d      (:,:)                        ! coefficient to calculate d(tz)/d(tr) in m^-1
+!   w_0      (:,:)                        ! coefficient to calculate d(tz)/d(tr) in dimensionless
+!   w_d      (:,:)                        ! coefficient to calculate d(tz)/d(tr) in m^-1
 !
 ! attributes:
 !   language: f90
@@ -1544,7 +1544,7 @@ contains
 !
 !   prgmmr: whitaker         org: oar                  date: 2019-10-03
 !
-! abstract: This routine gathers fields needed for the GSI analysis
+! abstract: This routine gathers fields needed for the gsi analysis
 !           file from subdomains and then transforms the fields from
 !           analysis grid to model guess grid, then written to an
 !           netcdf atmospheric analysis file.
@@ -1553,10 +1553,10 @@ contains
 !   2019-10-03  whitaker initial version
 !
 !   input argument list:
-!     filename  - file to open and write to
-!     mype_out  - mpi task to write output file
-!    gfs_bundle - bundle containing fields on subdomains
-!     ibin      - time bin
+!     filename   - file to open and write to
+!     mype_out   - mpi task to write output file
+!     gfs_bundle - bundle containing fields on subdomains
+!     ibin       - time bin
 !
 !   output argument list:
 !
@@ -1567,7 +1567,7 @@ contains
 !$$$ end documentation block
 
 ! !USES:
-    use kinds, only: r_kind,i_kind
+    use kinds, only: r_single,r_kind,i_kind
 
     use constants, only: r1000,fv,one,zero,qcmin,r0_05,t0c
 
@@ -1597,7 +1597,7 @@ contains
     use cloud_efr_mod, only: cloud_calc_gfs
 
     use netcdf, only: nf90_max_name
-    use module_fv3gfs_ncio, only: open_dataset, close_dataset, Dimension, Dataset,&
+    use module_fv3gfs_ncio, only: open_dataset, close_dataset, dimension, dataset,&
          read_attribute, write_attribute,get_dim, create_dataset, write_vardata, read_vardata,&
          get_idate_from_time_units,quantize_data,get_time_units_from_idate,has_attr,has_var
     use ncepnems_io, only: error_msg
@@ -1645,11 +1645,11 @@ contains
     real(r_kind),allocatable,dimension(:) :: rlats,rlons,clons,slons
     real(r_kind),allocatable,dimension(:,:) :: grid_b,grid_b2
     real(r_kind),allocatable,dimension(:,:,:) :: grid_c, grid3, grid_c2, grid3b
-    real(4), allocatable, dimension(:,:) :: values_2d,values_2d_tmp
-    real(4), allocatable, dimension(:,:,:) :: values_3d,values_3d_tmp,ug3d,vg3d
-    real(4) compress_err
-    type(Dataset) :: atmges, atmanl
-    type(Dimension) :: ncdim
+    real(r_single), allocatable, dimension(:,:) :: values_2d,values_2d_tmp
+    real(r_single), allocatable, dimension(:,:,:) :: values_3d,values_3d_tmp,ug3d,vg3d
+    real(r_single) compress_err
+    type(dataset) :: atmges, atmanl
+    type(dimension) :: ncdim
     character(len=nf90_max_name) :: time_units
 
     logical diff_res,eqspace
@@ -1672,11 +1672,11 @@ contains
     call gsi_bundlegetpointer(gfs_bundle,'cw', sub_cwmr,iret); istatus=istatus+iret
     if ( istatus /= 0 ) then
        if ( mype == 0 ) then
-         write(6,*) 'write_atm_: ERROR'
-         write(6,*) 'Missing some of the required fields'
-         write(6,*) 'Aborting ... '
-      endif
-      call stop2(999)
+          write(6,*) 'write_atm_: ERROR'
+          write(6,*) 'Missing some of the required fields'
+          write(6,*) 'Aborting ... '
+       endif
+       call stop2(999)
     endif
 
     if ( sp_a%jcap /= jcap_b ) then
@@ -1691,7 +1691,7 @@ contains
     if ( mype == mype_out ) then
        write(fname_ges,'(''sigf'',i2.2)') ifilesig(ibin)
 
-       ! open the netCDF file
+       ! open the netcdf file
        atmges = open_dataset(fname_ges,errcode=iret)
        if ( iret /= 0 ) call error_msg(trim(my_name),null,null,'open',istop,iret)
        ! get dimension sizes
@@ -1707,7 +1707,7 @@ contains
        ! get time information
        idate = get_idate_from_time_units(atmges)
        call read_vardata(atmges, 'time', fhour) ! might need to change this to attribute later
-                                               ! depends on model changes from Jeff Whitaker
+                                                ! depends on model changes from jeff whitaker
        nfhour = fhour(1)
 
        atmanl = create_dataset(filename, atmges, &
@@ -1717,7 +1717,7 @@ contains
        ! Update time information (with ibdate) and write it to analysis file
        mydate=ibdate
        fha(:)=zero ; ida=0; jda=0
-       fha(2)=real(nhr_obsbin*(ibin-1))  ! relative time interval in hours
+       fha(2)=real(nhr_obsbin*(ibin-1),r_kind)  ! relative time interval in hours
        ida(1)=mydate(1) ! year
        ida(2)=mydate(2) ! month
        ida(3)=mydate(3) ! day
@@ -1748,12 +1748,12 @@ contains
        call read_vardata(atmges, 'grid_xt', rlons_tmp, errcode=iret)
        call read_vardata(atmges, 'grid_yt', rlats_tmp, errcode=iret)
        do j=1,latb
-         rlats(latb+2-j)=deg2rad*rlats_tmp(j)
+          rlats(latb+2-j)=deg2rad*rlats_tmp(j)
        enddo
        rlats(1)=-half*pi
        rlats(latb+2)=half*pi
        do j=1,lonb
-         rlons(j)=deg2rad*rlons_tmp(j)
+          rlons(j)=deg2rad*rlons_tmp(j)
        enddo
        deallocate(rlons_tmp, rlats_tmp)
        do j=1,lonb
@@ -1774,7 +1774,7 @@ contains
 
     endif ! if ( mype == mype_out )
 
-    ! Calculate delz increment for UPP
+    ! Calculate delz increment for upp
     do k=1,grd%nsig
        sub_dzb(:,:,k) = ges_geopi(:,:,k+1,ibin) - ges_geopi(:,:,k,ibin)
     enddo
@@ -1797,10 +1797,10 @@ contains
     call strip(sub_dza ,dzsm  ,grd%nsig)
 
     ! Thermodynamic variable
-    ! The GSI analysis variable is virtual temperature (Tv).   For NEMSIO
+    ! The gsi analysis variable is virtual temperature (tv).   For nemsio
     ! output we need the sensible temperature.
 
-    ! Convert Tv to T
+    ! Convert tv to t
     tvsm = tvsm/(one+fv*qsm)
 
     ! Generate and write analysis fields
@@ -1840,11 +1840,11 @@ contains
              enddo
           enddo
           if (has_attr(atmges, 'nbits', 'dpres')) then
-            call read_attribute(atmges, 'nbits', nbits, 'dpres')
-            values_3d_tmp = values_3d
-            call quantize_data(values_3d_tmp, values_3d, nbits, compress_err)
-            call write_attribute(atmanl,&
-            'max_abs_compression_error',compress_err,'dpres')
+             call read_attribute(atmges, 'nbits', nbits, 'dpres')
+             values_3d_tmp = values_3d
+             call quantize_data(values_3d_tmp, values_3d, nbits, compress_err)
+             call write_attribute(atmanl,&
+                'max_abs_compression_error',compress_err,'dpres')
           endif
           call write_vardata(atmanl,'dpres',values_3d,errcode=iret)
           if (iret /= 0) call error_msg(trim(my_name),trim(filename),'dpres','write',istop,iret)
@@ -1862,11 +1862,11 @@ contains
        end do
        values_2d = grid_b
        if (has_attr(atmges, 'nbits', 'pressfc')) then
-         call read_attribute(atmges, 'nbits', nbits, 'pressfc')
-         values_2d_tmp = values_2d
-         call quantize_data(values_2d_tmp, values_2d, nbits, compress_err)
-         call write_attribute(atmanl,&
-         'max_abs_compression_error',compress_err,'pressfc')
+          call read_attribute(atmges, 'nbits', nbits, 'pressfc')
+          values_2d_tmp = values_2d
+          call quantize_data(values_2d_tmp, values_2d, nbits, compress_err)
+          call write_attribute(atmanl,&
+             'max_abs_compression_error',compress_err,'pressfc')
        endif
        call write_vardata(atmanl,'pressfc',values_2d,errcode=iret)
        if (iret /= 0) call error_msg(trim(my_name),trim(filename),'pressfc','write',istop,iret)
@@ -1931,21 +1931,21 @@ contains
     ! Zonal wind
     if (mype==mype_out) then
        if (has_attr(atmges, 'nbits', 'ugrd')) then
-         call read_attribute(atmges, 'nbits', nbits, 'ugrd')
-         values_3d_tmp = ug3d 
-         call quantize_data(values_3d_tmp, ug3d, nbits, compress_err)
-         call write_attribute(atmanl,&
-         'max_abs_compression_error',compress_err,'ugrd')
+          call read_attribute(atmges, 'nbits', nbits, 'ugrd')
+          values_3d_tmp = ug3d 
+          call quantize_data(values_3d_tmp, ug3d, nbits, compress_err)
+          call write_attribute(atmanl,&
+             'max_abs_compression_error',compress_err,'ugrd')
        endif
        call write_vardata(atmanl,'ugrd',ug3d,errcode=iret)
        if (iret /= 0) call error_msg(trim(my_name),trim(filename),'ugrd','write',istop,iret)
        ! Meridional wind
        if (has_attr(atmges, 'nbits', 'vgrd')) then
-         call read_attribute(atmges, 'nbits', nbits, 'vgrd')
-         values_3d_tmp = vg3d 
-         call quantize_data(values_3d_tmp, vg3d, nbits, compress_err)
-         call write_attribute(atmanl,&
-         'max_abs_compression_error',compress_err,'vgrd')
+          call read_attribute(atmges, 'nbits', nbits, 'vgrd')
+          values_3d_tmp = vg3d 
+          call quantize_data(values_3d_tmp, vg3d, nbits, compress_err)
+          call write_attribute(atmanl,&
+             'max_abs_compression_error',compress_err,'vgrd')
        endif
        call write_vardata(atmanl,'vgrd',vg3d,errcode=iret)
        if (iret /= 0) call error_msg(trim(my_name),trim(filename),'vgrd','write',istop,iret)
@@ -1988,11 +1988,11 @@ contains
     end do
     if (mype==mype_out) then
        if (has_attr(atmges, 'nbits', 'tmp')) then
-         call read_attribute(atmges, 'nbits', nbits, 'tmp')
-         values_3d_tmp = values_3d 
-         call quantize_data(values_3d_tmp, values_3d, nbits, compress_err)
-         call write_attribute(atmanl,&
-         'max_abs_compression_error',compress_err,'tmp')
+          call read_attribute(atmges, 'nbits', nbits, 'tmp')
+          values_3d_tmp = values_3d 
+          call quantize_data(values_3d_tmp, values_3d, nbits, compress_err)
+          call write_attribute(atmanl,&
+             'max_abs_compression_error',compress_err,'tmp')
        endif
        call write_vardata(atmanl,'tmp',values_3d,errcode=iret)
        if (iret /= 0) call error_msg(trim(my_name),trim(filename),'tmp','write',istop,iret)
@@ -2034,11 +2034,11 @@ contains
     end do
     if (mype==mype_out) then
        if (has_attr(atmges, 'nbits', 'spfh')) then
-         call read_attribute(atmges, 'nbits', nbits, 'spfh')
-         values_3d_tmp = values_3d 
-         call quantize_data(values_3d_tmp, values_3d, nbits, compress_err)
-         call write_attribute(atmanl,&
-         'max_abs_compression_error',compress_err,'spfh')
+          call read_attribute(atmges, 'nbits', nbits, 'spfh')
+          values_3d_tmp = values_3d 
+          call quantize_data(values_3d_tmp, values_3d, nbits, compress_err)
+          call write_attribute(atmanl,&
+             'max_abs_compression_error',compress_err,'spfh')
        endif
        call write_vardata(atmanl,'spfh',values_3d,errcode=iret)
        if (iret /= 0) call error_msg(trim(my_name),trim(filename),'spfh','write',istop,iret)
@@ -2080,11 +2080,11 @@ contains
     end do
     if (mype==mype_out) then
        if (has_attr(atmges, 'nbits', 'o3mr')) then
-         call read_attribute(atmges, 'nbits', nbits, 'o3mr')
-         values_3d_tmp = values_3d 
-         call quantize_data(values_3d_tmp, values_3d, nbits, compress_err)
-         call write_attribute(atmanl,&
-         'max_abs_compression_error',compress_err,'o3mr')
+          call read_attribute(atmges, 'nbits', nbits, 'o3mr')
+          values_3d_tmp = values_3d 
+          call quantize_data(values_3d_tmp, values_3d, nbits, compress_err)
+          call write_attribute(atmanl,&
+             'max_abs_compression_error',compress_err,'o3mr')
        endif
        call write_vardata(atmanl,'o3mr',values_3d,errcode=iret)
        if (iret /= 0) call error_msg(trim(my_name),trim(filename),'o3mr','write',istop,iret)
@@ -2150,20 +2150,20 @@ contains
        end do
        if (mype==mype_out) then
           if (has_attr(atmges, 'nbits', 'clwmr')) then
-            call read_attribute(atmges, 'nbits', nbits, 'clwmr')
-            values_3d_tmp = ug3d 
-            call quantize_data(values_3d_tmp, ug3d, nbits, compress_err)
-            call write_attribute(atmanl,&
-            'max_abs_compression_error',compress_err,'clwmr')
+             call read_attribute(atmges, 'nbits', nbits, 'clwmr')
+             values_3d_tmp = ug3d 
+             call quantize_data(values_3d_tmp, ug3d, nbits, compress_err)
+             call write_attribute(atmanl,&
+                'max_abs_compression_error',compress_err,'clwmr')
           endif
           call write_vardata(atmanl,'clwmr',ug3d,errcode=iret)
           if (iret /= 0) call error_msg(trim(my_name),trim(filename),'clwmr','write',istop,iret)
           if (has_attr(atmges, 'nbits', 'icmr')) then
-            call read_attribute(atmges, 'nbits', nbits, 'icmr')
-            values_3d_tmp = vg3d 
-            call quantize_data(values_3d_tmp, vg3d, nbits, compress_err)
-            call write_attribute(atmanl,&
-            'max_abs_compression_error',compress_err,'icmr')
+             call read_attribute(atmges, 'nbits', nbits, 'icmr')
+             values_3d_tmp = vg3d 
+             call quantize_data(values_3d_tmp, vg3d, nbits, compress_err)
+             call write_attribute(atmanl,&
+                'max_abs_compression_error',compress_err,'icmr')
           endif
           call write_vardata(atmanl,'icmr',vg3d,errcode=iret)
           if (iret /= 0) call error_msg(trim(my_name),trim(filename),'icmr','write',istop,iret)
@@ -2171,7 +2171,7 @@ contains
        endif
     endif !ntracer
 
-! Variables needed by the Unified Post Processor (dzdt, delz, delp)
+!   Variables needed by the unified post processor (dzdt, delz, delp)
     if (mype==mype_out) then
        if (has_var(atmges,'delz')) then ! if delz in guess file, read it.
           call read_vardata(atmges, 'delz', values_3d, errcode=iret)
@@ -2185,24 +2185,24 @@ contains
             mype_out,mpi_comm_world,ierror)
        if (mype == mype_out) then
           if (has_var(atmges,'delz')) then 
-          if(diff_res)then
-             grid_b=values_3d(:,:,kr)
-             do kk=1,grd%iglobal
-                i=grd%ltosi(kk)
-                j=grd%ltosj(kk)
-                grid3(i,j,1)=work1(kk)
-             end do
-             call g_egrid2agrid(p_high,grid3,grid_c,1,1,vector)
-             do j=1,latb
-                do i=1,lonb
-                   grid_b(i,j)=grid_b(i,j)+grid_c(latb-j+2,i,1)
+             if(diff_res)then
+                grid_b=values_3d(:,:,kr)
+                do kk=1,grd%iglobal
+                   i=grd%ltosi(kk)
+                   j=grd%ltosj(kk)
+                   grid3(i,j,1)=work1(kk)
                 end do
-             end do
-             values_3d(:,:,kr) = grid_b
-          else
-             call load_grid(work1,grid)
-             values_3d(:,:,kr) = values_3d(:,:,kr) - grid
-          end if
+                call g_egrid2agrid(p_high,grid3,grid_c,1,1,vector)
+                do j=1,latb
+                   do i=1,lonb
+                      grid_b(i,j)=grid_b(i,j)+grid_c(latb-j+2,i,1)
+                   end do
+                end do
+                values_3d(:,:,kr) = grid_b
+             else
+                call load_grid(work1,grid)
+                values_3d(:,:,kr) = values_3d(:,:,kr) - grid
+             end if
           end if
        endif
     end do
@@ -2210,11 +2210,11 @@ contains
        ! if delz in guess file, write to analysis file.
        if (has_var(atmges,'delz')) then 
           if (has_attr(atmges, 'nbits', 'delz')) then
-            call read_attribute(atmges, 'nbits', nbits, 'delz')
-            values_3d_tmp = values_3d 
-            call quantize_data(values_3d_tmp, values_3d, nbits, compress_err)
-            call write_attribute(atmanl,&
-            'max_abs_compression_error',compress_err,'delz')
+             call read_attribute(atmges, 'nbits', nbits, 'delz')
+             values_3d_tmp = values_3d 
+             call quantize_data(values_3d_tmp, values_3d, nbits, compress_err)
+             call write_attribute(atmanl,&
+                'max_abs_compression_error',compress_err,'delz')
           endif
           call write_vardata(atmanl,'delz',values_3d,errcode=iret)
           if (iret /= 0) call error_msg(trim(my_name),trim(filename),'delz','write',istop,iret)
@@ -2222,7 +2222,7 @@ contains
     endif
     
 !
-! Deallocate local array
+!   Deallocate local array
 !
     if (mype==mype_out) then
        deallocate(grid_b,grid_b2,grid_c,grid_c2,grid3,clons,slons)
@@ -2234,7 +2234,7 @@ contains
        call close_dataset(atmanl, errcode=iret)
        if (iret /= 0) call error_msg(trim(my_name),trim(filename),null,'close',istop,iret)
 !
-! Deallocate local array
+!      Deallocate local array
 !
        if (allocated(values_2d)) deallocate(values_2d)
        if (allocated(values_3d)) deallocate(values_3d)
@@ -2303,7 +2303,7 @@ contains
 
     use constants, only: zero
     use netcdf, only: nf90_max_name
-    use module_fv3gfs_ncio, only: open_dataset, close_dataset, Dimension, Dataset,&
+    use module_fv3gfs_ncio, only: open_dataset, close_dataset, dimension, dataset,&
                            get_dim, create_dataset, write_vardata, read_vardata,&
                            get_time_units_from_idate, write_attribute  
 
@@ -2337,8 +2337,8 @@ contains
     real(r_kind),allocatable,dimension(:,:) :: tsea
     real(r_single),dimension(nlon,nlat):: buffer
     real(r_single),allocatable,dimension(:,:) :: buffer2,grid2
-    type(Dataset) :: sfcges,sfcanl
-    type(Dimension) :: ncdim
+    type(dataset) :: sfcges,sfcanl
+    type(dimension) :: ncdim
     character(len=nf90_max_name) :: time_units
 
 !*****************************************************************************
@@ -2359,7 +2359,7 @@ contains
          sfcall,ijn,displs_g,mpi_rtype,mype_sfc,&
          mpi_comm_world,ierror)
 
-!   Only MPI task mype_sfc writes the surface file.
+!   Only mpi task mype_sfc writes the surface file.
     if (mype==mype_sfc) then
 
 !      Reorder updated skin temperature to output format
@@ -2376,14 +2376,14 @@ contains
        end do
 
 !      Read surface guess file
-       ! open the netCDF file
+       ! open the netcdf file
        sfcges = open_dataset(fname_ges)
        ! get dimension sizes
        ncdim = get_dim(sfcges, 'grid_xt'); lonb = ncdim%len
        ncdim = get_dim(sfcges, 'grid_yt'); latb = ncdim%len
 
 !
-! Start to write output sfc file : filename
+!      Start to write output sfc file : filename
 !
 !      First copy entire data from fname_ges to filename, then do selective update
 !
@@ -2414,7 +2414,7 @@ contains
        allocate(tsea(lonb,latb))
 
 !
-! Only sea surface temperature will be updated in the SFC files
+!      Only sea surface temperature will be updated in the sfc files
 !
 
        call read_vardata(sfcges, 'tmpsfc', tsea)
@@ -2457,15 +2457,15 @@ contains
 !   prgmmr: Martin           org: NCEP/EMC            date: 2019-09-24
 !
 ! abstract:     This routine writes the sfc & nst analysis files and is nst_gsi dependent.
-!               Tr (foundation temperature), instead of skin temperature, is the analysis variable.
-!               nst_gsi >  2: Tr analysis is on
-!               nst_gsi <= 2: Tr analysis is off
+!               tr (foundation temperature), instead of skin temperature, is the analysis variable.
+!               nst_gsi >  2: tr analysis is on
+!               nst_gsi <= 2: tr analysis is off
 !
-!               The routine gathers Tr field from subdomains,
+!               The routine gathers tr field from subdomains,
 !               reformats the data records, and then writes each record
 !               to the output files.
 !
-!               Since the gsi only update the Tr temperature, all
+!               Since the gsi only update the tr temperature, all
 !               other fields in surface are simply read from the guess
 !               files and written to the analysis file.
 !
@@ -2511,7 +2511,7 @@ contains
     use gsi_nstcouplermod, only: nst_gsi,zsea1,zsea2
     use gridmod, only: rlats,rlons,rlats_sfc,rlons_sfc
 
-    use module_fv3gfs_ncio, only: open_dataset, close_dataset, Dimension, Dataset,&
+    use module_fv3gfs_ncio, only: open_dataset, close_dataset, dimension, dataset,&
                            get_dim, create_dataset, write_vardata, read_vardata,&
                            get_time_units_from_idate, write_attribute  
     use netcdf, only: nf90_max_name
@@ -2569,8 +2569,8 @@ contains
                                                      c_0,c_d,w_0,w_d,d_conv,ifd,tref,qrain
     real(r_single),   allocatable, dimension(:,:) :: slmsk_ges,slmsk_anl
 
-    type(Dataset) :: sfcges,sfcgcy,nstges,sfctsk,sfcanl,nstanl
-    type(Dimension) :: ncdim
+    type(dataset) :: sfcges,sfcgcy,nstges,sfctsk,sfcanl,nstanl
+    type(dimension) :: ncdim
     character(len=nf90_max_name) :: time_units
 
 !*****************************************************************************
@@ -2600,19 +2600,19 @@ contains
          isli_all,ijn,displs_g,mpi_itype,mype_so ,&
          mpi_comm_world,ierror)
 
-!   Only MPI task mype_so  writes the surface file.
+!   Only mpi task mype_so  writes the surface file.
     if (mype==mype_so ) then
 
-      write(*,'(a,5(1x,a6))') 'write_gfsnc_sfc_nst:',fname_sfcges,fname_nstges,fname_sfctsk,fname_sfcanl,fname_nstanl
+       write(*,'(a,5(1x,a6))') 'write_gfsnc_sfc_nst:',fname_sfcges,fname_nstges,fname_sfctsk,fname_sfcanl,fname_nstanl
 !
-!     get Tf analysis increment and surface mask at analysis (lower resolution) grids
+!      get tf analysis increment and surface mask at analysis (lower resolution) grids
 !
-      do i=1,iglobal
-         ilon=ltosj(i)
-         ilat=ltosi(i)
-         dsfct_glb(ilat,ilon) = dsfct_all(i)
-         isli_glb (ilat,ilon) = isli_all (i)
-      end do
+       do i=1,iglobal
+          ilon=ltosj(i)
+          ilat=ltosi(i)
+          dsfct_glb(ilat,ilon) = dsfct_all(i)
+          isli_glb (ilat,ilon) = isli_all (i)
+       end do
 !
 !      write dsfct_anl to a data file for later use (at eupd step at present)
 !
@@ -2719,7 +2719,7 @@ contains
        endif                 ! if ( (latb /= nlatm2) .or. (lonb /= nlon) ) then
 
 !
-! Start to write output sfc file : fname_sfcanl & fname_nstanl
+!      Start to write output sfc file : fname_sfcanl & fname_nstanl
 !      open new output file with new header gfile_sfcanl and gfile_nstanl with "write" access.
 !      Use this call to update header as well
 !
@@ -2747,87 +2747,87 @@ contains
        call write_attribute(nstanl, 'units', time_units, 'time')
 
 !
-!      For sfcanl, Only tsea (sea surface temperature) will be updated in the SFC
-!                  Need values from nstges for tref update
+!      For sfcanl, only tsea (sea surface temperature) will be updated in the sfc
+!      Need values from nstges for tref update
 !      read tsea from sfcges
        call read_vardata(sfcges, 'tmpsfc', tsea)
 
-!      For nstanl, Only tref (foundation temperature) is updated by analysis
-!                  others are updated for snow melting case
+!      For nstanl, only tref (foundation temperature) is updated by analysis
+!      others are updated for snow melting case
 !      read 18 nsst variables from nstges
-! xt
+!      xt
        call read_vardata(nstges, 'xt', xt)
-! xs
+!      xs
        call read_vardata(nstges, 'xs', xs)
-! xu
+!      xu
        call read_vardata(nstges, 'xu', xu)
-! xv
+!      xv
        call read_vardata(nstges, 'xv', xv)
-! xz
+!      xz
        call read_vardata(nstges, 'xz', xz)
-! zm
+!      zm
        call read_vardata(nstges, 'zm', zm)
-! xtts
+!      xtts
        call read_vardata(nstges, 'xtts', xtts)
-! xzts
+!      xzts
        call read_vardata(nstges, 'xzts', xzts)
-! dt_cool
+!      dt_cool
        call read_vardata(nstges, 'dtcool', dt_cool)
-! z_c
+!      z_c
        call read_vardata(nstges, 'zc', z_c)
-! c_0
+!      c_0
        call read_vardata(nstges, 'c0', c_0)
-! c_d
+!      c_d
        call read_vardata(nstges, 'cd', c_d)
-! w_0
+!      w_0
        call read_vardata(nstges, 'w0', w_0) 
-! w_d
+!      w_d
        call read_vardata(nstges, 'wd', w_d)
-! tref
+!      tref
        call read_vardata(nstges, 'tref', tref)
-! d_conv
+!      d_conv
        call read_vardata(nstges, 'dconv', d_conv)
-! ifd
-! CRM - does this exist? what is it's name??
+!      ifd
+!      does this exist? what is it's name??
        !call read_vardata(nstges, 'ifd', ifd)
-! qrain
+!      qrain
        call read_vardata(nstges, 'qrain', qrain)
 !
-!      update tref (in nst file) & tsea (in the surface file) when Tr analysis is on
-!      reset NSSTM variables for new open water grids
+!      update tref (in nst file) & tsea (in the surface file) when tr analysis is on
+!      reset nsstm variables for new open water grids
 !
        if ( nst_gsi > 2 ) then
 !
-!         For the new open water (sea ice just melted) grids, (1) set dsfct_anl = zero; (2) reset the NSSTM variables
+!         For the new open water (sea ice just melted) grids, (1) set dsfct_anl = zero; (2) reset the nsstm variables
 !
 !         Notes: slmsk_ges is the mask of the background
 !                slmsk_anl is the mask of the analysis
 !
           where ( slmsk_anl(:,:) == zero .and. slmsk_ges(:,:) == two )
 
-            dsfct_anl(:,:)        = zero
+             dsfct_anl(:,:)        = zero
 
-            xt(:,:)      = zero
-            xs(:,:)      = zero
-            xu(:,:)      = zero
-            xv(:,:)      = zero
-            xz(:,:)      = z_w_max
-            zm(:,:)      = zero
-            xtts(:,:)    = zero
-            xzts(:,:)    = zero
-            dt_cool(:,:) = zero
-            z_c(:,:)     = zero
-            c_0(:,:)     = zero
-            c_d(:,:)     = zero
-            w_0(:,:)     = zero
-            w_d(:,:)     = zero
-            d_conv(:,:)  = zero
-            ifd(:,:)     = zero
-            tref(:,:)    = tfrozen
-            qrain(:,:)   = zero
+             xt(:,:)      = zero
+             xs(:,:)      = zero
+             xu(:,:)      = zero
+             xv(:,:)      = zero
+             xz(:,:)      = z_w_max
+             zm(:,:)      = zero
+             xtts(:,:)    = zero
+             xzts(:,:)    = zero
+             dt_cool(:,:) = zero
+             z_c(:,:)     = zero
+             c_0(:,:)     = zero
+             c_d(:,:)     = zero
+             w_0(:,:)     = zero
+             w_d(:,:)     = zero
+             d_conv(:,:)  = zero
+             ifd(:,:)     = zero
+             tref(:,:)    = tfrozen
+             qrain(:,:)   = zero
           end where
 !
-!         update analysis variable: Tref (foundation temperature) for nst file
+!         update analysis variable: tref (foundation temperature) for nst file
 !
           where ( slmsk_anl(:,:) == zero )
              tref(:,:) = max(tref(:,:) + dsfct_anl(:,:),tfrozen)
@@ -2835,10 +2835,10 @@ contains
              tref(:,:) = tsea(:,:)
           end where
 !
-!         update SST: tsea for sfc file with NSST profile
+!         update sst: tsea for sfc file with nsst profile
 !
-          r_zsea1 = 0.001_r_single*real(zsea1)
-          r_zsea2 = 0.001_r_single*real(zsea2)
+          r_zsea1 = 0.001_r_single*real(zsea1,r_single)
+          r_zsea2 = 0.001_r_single*real(zsea2,r_single)
           call dtzm_2d(xt,xz,dt_cool,z_c,slmsk_anl,r_zsea1,r_zsea2,lonb,latb,dtzm)
 
           where ( slmsk_anl(:,:) == zero )
@@ -2853,31 +2853,31 @@ contains
              end do
           end do
 !
-!         For the new open water (sea ice just melted) grids, reset the NSSTM variables
+!         For the new open water (sea ice just melted) grids, reset the nsstm variables
 !
           where ( slmsk_anl(:,:) == zero .and. slmsk_ges(:,:) == two )
 
-            xt(:,:)      = zero
-            xs(:,:)      = zero
-            xu(:,:)      = zero
-            xv(:,:)      = zero
-            xz(:,:)      = z_w_max
-            zm(:,:)      = zero
-            xtts(:,:)    = zero
-            xzts(:,:)    = zero
-            dt_cool(:,:) = zero
-            z_c(:,:)     = zero
-            c_0(:,:)     = zero
-            c_d(:,:)     = zero
-            w_0(:,:)     = zero
-            w_d(:,:)     = zero
-            d_conv(:,:)  = zero
-            ifd(:,:)     = zero
-            tref(:,:)    = tfrozen
-            qrain(:,:)   = zero
+             xt(:,:)      = zero
+             xs(:,:)      = zero
+             xu(:,:)      = zero
+             xv(:,:)      = zero
+             xz(:,:)      = z_w_max
+             zm(:,:)      = zero
+             xtts(:,:)    = zero
+             xzts(:,:)    = zero
+             dt_cool(:,:) = zero
+             z_c(:,:)     = zero
+             c_0(:,:)     = zero
+             c_d(:,:)     = zero
+             w_0(:,:)     = zero
+             w_d(:,:)     = zero
+             d_conv(:,:)  = zero
+             ifd(:,:)     = zero
+             tref(:,:)    = tfrozen
+             qrain(:,:)   = zero
           end where
 !
-!         update tsea when NO Tf analysis
+!         update tsea when no tf analysis
 !
           do j=1,latb
              do i=1,lonb
@@ -2901,44 +2901,44 @@ contains
 !
 !      update nsst records in nstanl
 !
-! slmsk
+!      slmsk
        call write_vardata(nstanl, 'land', slmsk_anl)
-! xt
+!      xt
        call write_vardata(nstanl, 'xt', xt)
-! xs
+!      xs
        call write_vardata(nstanl, 'xs', xs)
-! xu
+!      xu
        call write_vardata(nstanl, 'xu', xu)
-! xv
+!      xv
        call write_vardata(nstanl, 'xv', xv)
-! xz
+!      xz
        call write_vardata(nstanl, 'xz', xz)
-! zm
+!      zm
        call write_vardata(nstanl, 'zm', zm)
-! xtts
+!      xtts
        call write_vardata(nstanl, 'xtts', xtts)
-! xzts
+!      xzts
        call write_vardata(nstanl, 'xzts', xzts)
-! z_0
+!      z_0
        call write_vardata(nstanl, 'dtcool', dt_cool)
-! z_c
+!      z_c
        call write_vardata(nstanl, 'zc', z_c)
-! c_0
+!      c_0
        call write_vardata(nstanl, 'c0', c_0)
-! c_d
+!      c_d
        call write_vardata(nstanl, 'cd', c_d)
-! w_0
+!      w_0
        call write_vardata(nstanl, 'w0', w_0)
-! w_d
+!      w_d
        call write_vardata(nstanl, 'wd', w_d)
-! d_conv
+!      d_conv
        call write_vardata(nstanl, 'dconv', d_conv)
-! ifd
-! CRM See above ifd issue/comment
+!      ifd
+!      See above ifd issue/comment
        !call write_vardata(nstanl, 'ifd', ifd)
-! tref
+!      tref
        call write_vardata(nstanl, 'tref', tref)
-! qrain
+!      qrain
        call write_vardata(nstanl, 'qrain', qrain)
 
        write(6,200) fname_nstanl,lonb,latb,houra,iadate(1:4)
@@ -3094,9 +3094,9 @@ contains
      sumn = ain(i,1)    + sumn
      sums = ain(i,latb) + sums
   end do
-  sumn = sumn/float(lonb)
-  sums = sums/float(lonb)
-!  Transfer from local work array to surface guess array
+  sumn = sumn/real(lonb,r_kind)
+  sums = sums/real(lonb,r_kind)
+! Transfer from local work array to surface guess array
   do j = 1,lonb
      aout(1,j)=sums
      do i=2,latb+1
