@@ -35,27 +35,28 @@ module netcdf_mod
 
    public :: nc_check
 
-  character(len=*) , parameter:: myname='netcdf_mod'
+   character(len=*) , parameter:: myname='netcdf_mod'
 
 contains
 
-SUBROUTINE nc_check(ierr,subr_name,context,stat)
+subroutine nc_check(ierr,subr_name,context,stat)
 
 !  Trap for netcdf errors
-!  INPUT: 
+!  Input: 
 !       ierr - netcdf error return code
 !  subr_name - subroutine name that made the netcdf call
 !    context - what was the context of the call
-! OUTPUT: 
+! Output: 
 !       stat - Return ierr and do not fatally fail, just warn
 
+   use kinds, only: i_kind
    use mpeu_util, only: die,perr,warn
 
    implicit none
 
-   integer,         intent(in ) :: ierr
-   character(len=*),intent(in ) :: subr_name, context
-   integer,optional,intent(out) :: stat
+   integer(i_kind),         intent(in ) :: ierr
+   character(len=*),        intent(in ) :: subr_name, context
+   integer(i_kind),optional,intent(out) :: stat
 
    if ( ierr /= nf90_noerr ) then
       if ( present(stat) ) then
@@ -68,6 +69,6 @@ SUBROUTINE nc_check(ierr,subr_name,context,stat)
    endif
 
    return
-END SUBROUTINE nc_check
+end subroutine nc_check
 
 end module netcdf_mod

@@ -6,7 +6,7 @@ module nlmsas_ad_mod
 !
 ! abstract: This module has been added as a wrapper around subroutine nlmsas_ad
 !            to eliminate type mismatch compile errors when using the debug
-!            compile option on WCOSS.
+!            compile option on wcoss.
 !
 ! program history log:
 !   2012-01-26  parrish
@@ -96,7 +96,7 @@ subroutine nlmsas_ad_1_1_(im,ix,km,jcap,delt,del_,sl_,rcs_,&
   integer(i_kind) k
 
   if( im /= 1 .or. ix /= 1 ) then
-     write(6,*)' NLMSAS_AD_1_1_, IM,IX=',IM,IX,' -- BOTH MUST BE 1.  PROGRAM FAILS'
+     write(6,*)' NLMSAS_AD_1_1_, IM,IX=',im,ix,' -- BOTH MUST BE 1.  PROGRAM FAILS'
      stop
   end if
 
@@ -187,22 +187,22 @@ subroutine nlmsas_ad_im_ix_(im,ix,km,jcap,delt,del,sl,rcs,&
      adjoint)
 !$$$  subprogram documentation block
 !                .      .    .                                       .
-! subprogram:    nlmsas_ad    forward and adjoint model for GFS SASCNV
+! subprogram:    nlmsas_ad    forward and adjoint model for gfs sascnv
 !     prgmmr:    treadon     org: np23                date: 2003-12-18
 !
 ! abstract:  This routine computes convective heating and moistening using a 
-!   one cloud type Arakawa-Schubert convection scheme originally developed
-!   by George Grell.  The scheme includes updraft and downdraft effects.
+!   one cloud type arakawa-schubert convection scheme originally developed
+!   by george grell.  The scheme includes updraft and downdraft effects.
 !   The closure is the cloud work function. both updraft and downdraft
 !   are assumed to be saturated and the heating and moistening are
-!   accomplished by the compensating environment. The name, SASCNV, comes
+!   accomplished by the compensating environment. The name, sascnv, comes
 !   from "simplified arakawa-schubert convection parameterization".
 !
-!   This routine also includes the adjoint of SASCNV
+!   This routine also includes the adjoint of sascnv
 !
 !
 ! program history log:
-!   1992-03-01  Hua-Lu Pan   - initial SASCNV (forward model only)
+!   1992-03-01  Hua-Lu Pan   - initial sascnv (forward model only)
 !   2004-06-14  Russ Treadon - reformat documentation
 !   2004-10-28  treadon - replace parameters "tiny" and "qsmall"
 !                         with global constant "tiny_r_kind"
@@ -212,7 +212,7 @@ subroutine nlmsas_ad_im_ix_(im,ix,km,jcap,delt,del,sl,rcs,&
 !   2008-10-29  min-jeong kim - make consistent with global_fcst
 !   2013-01-26  parrish - module added as a wrapper around subroutine nlmsas_ad
 !                            to eliminate type mismatch compile errors when using the debug
-!                            compile option on WCOSS.
+!                            compile option on wcoss.
 !
 !  input argument list:
 !     im       - integer number of points
@@ -270,8 +270,8 @@ subroutine nlmsas_ad_im_ix_(im,ix,km,jcap,delt,del,sl,rcs,&
 !$$$
   use kinds, only: r_kind,i_kind
   use constants, only: c0,tiny_r_kind,el2orc,factor1,factor2,pcpeff3,h300,&
-       elocp,pcpeff2,pcpeff0,pcpeff1,epsm1,delta,eps,zero,one_tenth,one,two,three,cp,hvap,&
-       half,rd,grav,r1000,r3600
+      elocp,pcpeff2,pcpeff0,pcpeff1,epsm1,delta,eps,zero,one_tenth,one,two,three,cp,hvap,&
+      half,rd,grav,r1000,r3600
   implicit none  
 
   integer(i_kind), intent(in   ) :: im,ix,km,jcap,ncloud
@@ -707,10 +707,10 @@ subroutine nlmsas_ad_im_ix_(im,ix,km,jcap,delt,del,sl,rcs,&
   pdpdwn  = zero
   pdetrn  = 200._r_kind
   xlambu  = 1.e-4_r_kind
-  fjcap = (float(jcap) / 126._r_kind) ** 2
+  fjcap = (real(jcap,r_kind) / 126._r_kind) ** 2
   val   =  one
   fjcap = max(fjcap,val)
-  fkm = (float(km) / 28._r_kind) ** 2
+  fkm = (real(km,r_kind) / 28._r_kind) ** 2
   fkm = max(fkm,one)
   w1l = -8.e-3_r_kind
   w2l = -4.e-2_r_kind
@@ -772,7 +772,7 @@ subroutine nlmsas_ad_im_ix_(im,ix,km,jcap,delt,del,sl,rcs,&
         es = 10.0_r_kind*es0
         qeso(k,i) = eps*es / (p(k,i) + epsm1*es)
         
-!new code bounds qeso to be >= 1.e-8, qo>=1.e-10
+        !new code bounds qeso to be >= 1.e-8, qo>=1.e-10
 
         tvo(k,i)  = to(k,i) + delta * to(k,i) * qo(k,i)
      enddo
@@ -784,10 +784,10 @@ subroutine nlmsas_ad_im_ix_(im,ix,km,jcap,delt,del,sl,rcs,&
      zo(1,i) = zero - dlnsig * rd / grav * tvo(1,i)
   enddo
 
-!round
-!     reverse order of this loop leads to slightly different 
-!     final results.  change order of loop in sascnv2 to
-!     restore similar results.
+! round
+! reverse order of this loop leads to slightly different 
+! final results.  change order of loop in sascnv2 to
+! restore similar results.
   do i = 1,im
      do k = 2, kmax(i)
         dlnsig  = log(sl(k,i) / sl(k-1,i))
@@ -821,19 +821,19 @@ subroutine nlmsas_ad_im_ix_(im,ix,km,jcap,delt,del,sl,rcs,&
   enddo
 
 ! Search for downdraft originating level above theta-e minimum
-!      do i = 1, im
-!         hmin(i) = heso(1,i)
-!         lmin(i) = kbmax(i)
-!         jmin(i) = kbmax(i)
-!      enddo
-!      do i = 1,im
-!         do k = 2, kbmax(i)
-!            if (heso(k,i) < hmin(i)) then
-!               lmin(i) = k + 1
-!               hmin(i) = heso(k,i)
-!            endif
-!         enddo
-!      enddo
+!  do i = 1, im
+!     hmin(i) = heso(1,i)
+!     lmin(i) = kbmax(i)
+!     jmin(i) = kbmax(i)
+!  enddo
+!  do i = 1,im
+!     do k = 2, kbmax(i)
+!        if (heso(k,i) < hmin(i)) then
+!           lmin(i) = k + 1
+!           hmin(i) = heso(k,i)
+!        endif
+!     enddo
+!  enddo
   do i = 1,im
      do k = 1, kmax(i) - 1
         dz = half * (zo(k+1,i) - zo(k,i))
@@ -900,18 +900,18 @@ subroutine nlmsas_ad_im_ix_(im,ix,km,jcap,delt,del,sl,rcs,&
   enddo
   do i = 1, im
      dpscl(i) = -p(kbcon(i),i) + p(kb(i),i)
-!         if (abs(dpscl(i)) > tiny_r_kind) then
-!            tdpscl(i) = funsqr(150.,dpscl(i),1)
-!         else
-!            tdpscl(i) = one
-!         endif
+!     if (abs(dpscl(i)) > tiny_r_kind) then
+!        tdpscl(i) = funsqr(150.,dpscl(i),1)
+!     else
+!        tdpscl(i) = one
+!     endif
      tdpscl(i) = one
      pdot(i) = 10._r_kind* dot0(kbcon(i),i)
      if (dpscl(i) > 150._r_kind) tdpscl(i) = zero
      if (kbcon(i)==kmax(i)) tdpscl(i) = zero
   enddo
 
-! Found LFC, can define rest of variables
+! Found lfc, can define rest of variables
 ! determine entrainment rate between kb and kbcon
   do i = 1, im
      alpha = alphas
@@ -1010,7 +1010,7 @@ subroutine nlmsas_ad_im_ix_(im,ix,km,jcap,delt,del,sl,rcs,&
 
 
 ! Make sure that jmin is within the cloud
-!new
+! new
 ! Search for downdraft origin level above theta-e minimum
   do i=1,im
      hmin(i) = heol(kbcon(i),i)
@@ -1035,16 +1035,16 @@ subroutine nlmsas_ad_im_ix_(im,ix,km,jcap,delt,del,sl,rcs,&
 
   do i = 1, im
      dpcld(i)  = p(kbcon(i),i) - p(ktcon(i),i)
-!        tdpcld(i) = funsqr(dpcld(i),150.,1)
+!     tdpcld(i) = funsqr(dpcld(i),150.,1)
      tdpcld(i) = one
      if (dpcld(i) < 150._r_kind) tdpcld(i) = zero
   enddo
 
-!new
-!  KTCON is model level of deepest cloud in ensemble.
-!  Now randomly select cloud from ensemble of clouds
-!  ranging from one level above the downdraft origin to
-!  to level of neutral buoyancy (ktcon)
+! new
+! ktcon is model level of deepest cloud in ensemble.
+! Now randomly select cloud from ensemble of clouds
+! ranging from one level above the downdraft origin to
+! to level of neutral buoyancy (ktcon)
 
   do i=1,im
      do k=2,kmax(i)-1
@@ -1058,7 +1058,7 @@ subroutine nlmsas_ad_im_ix_(im,ix,km,jcap,delt,del,sl,rcs,&
 
 ! Select cloud from ensemble
   do i=1,im
-     kt2(i) = nint(xkt2(i)*float(ktcon(i)-jmin(i))-half) + jmin(i) + 1
+     kt2(i) = nint(xkt2(i)*real(ktcon(i)-jmin(i),r_kind)-half) + jmin(i) + 1
      tem1 = hcko(jmin(i),i) - hesol(kt2(i),i)
      tem2 = sumz(kt2(i),i) * hesol(kt2(i),i) - sumh(kt2(i),i)
      if (abs(tem2)  >  0.000001_r_kind) then
@@ -1101,18 +1101,18 @@ subroutine nlmsas_ad_im_ix_(im,ix,km,jcap,delt,del,sl,rcs,&
 
 ! Detraining cloud
   do i = 1, im
-!        if (abs(dpcld(i)) > tiny_r_kind) then
-!           tdetrn(i) = funsqr(pdetrn,dpcld(i),1)
-!        else
-!           tdetrn(i) = one
-!        endif
+!     if (abs(dpcld(i)) > tiny_r_kind) then
+!        tdetrn(i) = funsqr(pdetrn,dpcld(i),1)
+!     else
+!        tdetrn(i) = one
+!     endif
      tdetrn(i) = one
      if (dpcld(i) < pdpdwn) dwnflg2(i)=.false.
-!        if (abs(pdpdwn) > tiny_r_kind) then
-!           tdpdwn(i) = funsqr(dpcld(i),pdpdwn,1)
-!        else
-!           tdpdwn(i) = one
-!        endif
+!     if (abs(pdpdwn) > tiny_r_kind) then
+!        tdpdwn(i) = funsqr(dpcld(i),pdpdwn,1)
+!     else
+!        tdpdwn(i) = one
+!     endif
      tdpdwn(i) = one
      if (dwnflg2(i) .and. jmin(i) <= kbcon(i)) then
         dwnflg2(i) = .false.
@@ -1128,7 +1128,7 @@ subroutine nlmsas_ad_im_ix_(im,ix,km,jcap,delt,del,sl,rcs,&
         do k=2,kmax(i)-1
            if (k > jmin(i) .and. k <= kt2(i)) then
               dz = half * (zo(k+1,i) - zo(k-1,i))
-!   To simplify matters, we will take the linear approach here
+!             To simplify matters, we will take the linear approach here
               eta(k,i)  = eta(k-1,i)  * (one + xlamdet(i) * dz)
               etau(k,i) = etau(k-1,i) * (one +(xlamdet(i)+xlambu)* dz)
            endif
@@ -1228,7 +1228,7 @@ subroutine nlmsas_ad_im_ix_(im,ix,km,jcap,delt,del,sl,rcs,&
            dq = eta(k,i) * (temp - qrch)
            dqk(k,i) = dq
 
-!          Below LFC check if there is excess moisture to release latent heat
+!          Below lfc check if there is excess moisture to release latent heat
            if (dq > zero) then
               dz   = half * (zo(k+1,i) - zo(k-1,i))
               dz1  = (zo(k,i) - zo(k-1,i))
@@ -1446,7 +1446,7 @@ subroutine nlmsas_ad_im_ix_(im,ix,km,jcap,delt,del,sl,rcs,&
 
 
 ! Downdraft cloudwork functions
-!round reverse order of loop --> get slightly different result
+! round reverse order of loop --> get slightly different result
   do i = 1,im
      do k = kmax(i)-1, 1, -1
         if (dwnflg2(i) .and. k < jmin(i)) then
@@ -1514,7 +1514,7 @@ subroutine nlmsas_ad_im_ix_(im,ix,km,jcap,delt,del,sl,rcs,&
   enddo
 
 ! Changed due to subsidence and entrainment
-!round reverse order of loop yields different results
+! round reverse order of loop yields different results
   do i = 1,im
      do k = 2, kmax(i)-1
         if ( k < ktcon(i) .and. ktcon(i)/=1 ) then
@@ -1580,7 +1580,7 @@ subroutine nlmsas_ad_im_ix_(im,ix,km,jcap,delt,del,sl,rcs,&
         dvv1 = vol(indx-1,i)
         dellav(indx,i) = eta(indx-1,i) * &
              (vcko(indx-1,i) - dvv1) * grav / dp
-!cloud liquid water
+!       cloud liquid water
         dellal(i) = eta(indx-1,i) * qlko_ktcon(i) *grav/dp
         
      endif
@@ -1821,8 +1821,8 @@ subroutine nlmsas_ad_im_ix_(im,ix,km,jcap,delt,del,sl,rcs,&
   enddo
 
 ! Downdraft cloudwork functions
-!round reverse order of loop yields slightly difference results
-!      difference only in q and rn, not t
+! round reverse order of loop yields slightly difference results
+! difference only in q and rn, not t
   do i = 1,im
      do k = kmax(i)-1, 1, -1
         if (dwnflg2(i) .and. k < jmin(i)) then
@@ -1936,7 +1936,7 @@ subroutine nlmsas_ad_im_ix_(im,ix,km,jcap,delt,del,sl,rcs,&
 ! Feedback: simply the changes from the cloud with unit mass flux
 !           multiplied by  the mass flux necessary to keep the
 !           equilibrium with the larger-scale.
-!round - reverse order of loop, different q and rn
+! round - reverse order of loop, different q and rn
   do i = 1,im
      do k = 1,km
         dellal1(i)   = zero
@@ -1978,7 +1978,7 @@ subroutine nlmsas_ad_im_ix_(im,ix,km,jcap,delt,del,sl,rcs,&
   do i = 1, im
      rntot(i)  = zero
   enddo
-!round different results when reverse loop
+! round different results when reverse loop
   do i = 1,im
      do k = kmax(i), 1, -1
         if (k <= ktcon(i) .and. ktcon(i)/=1) then
@@ -1992,7 +1992,7 @@ subroutine nlmsas_ad_im_ix_(im,ix,km,jcap,delt,del,sl,rcs,&
      enddo
   enddo
 
-!round very slight difference in q and r
+! round very slight difference in q and r
   do i = 1,im
      rn0    = zero
      delqev = zero
@@ -2020,11 +2020,11 @@ subroutine nlmsas_ad_im_ix_(im,ix,km,jcap,delt,del,sl,rcs,&
 
 !       Check if any falling precipitation will evaporate
         if (flg(i) .and. k <= ktcon(i)) then
-!               if (nint(slimsk(i)) == 1) then
-!                  evef = 0.07_r_kind
-!               else
-!                  evef = edt(i)*evfact
-!               endif
+!           if (nint(slimsk(i)) == 1) then
+!              evef = 0.07_r_kind
+!           else
+!              evef = edt(i)*evfact
+!           endif
            evef = edt(i)*evfact
            term1 = evef
            term2 = qo2(k,i) - qeso2(k,i)
@@ -2280,7 +2280,7 @@ subroutine nlmsas_ad_im_ix_(im,ix,km,jcap,delt,del,sl,rcs,&
 !           else
 !              edt_ad(i) = edt_ad(i) + evef_ad*evfact
 !           endif
-              edt_ad(i) = edt_ad(i) + evef_ad*evfact
+           edt_ad(i) = edt_ad(i) + evef_ad*evfact
 !
 !              
 !       Adjoint of "2" to "3" transfer.  This is the case
@@ -2336,7 +2336,7 @@ subroutine nlmsas_ad_im_ix_(im,ix,km,jcap,delt,del,sl,rcs,&
            if (k <= kb(i)) aup = zero
            adw = one
            if (k > jmin(i)) adw = zero
-           rain =  AUP * PWO(k,i) + ADW * EDTO1(I) * PWDO(k,i)
+           rain =  aup * pwo(k,i) + adw * edto1(i) * pwdo(k,i)
 !
 !          Adjoint of tlm code
            rain_ad   = zero
@@ -2393,7 +2393,7 @@ subroutine nlmsas_ad_im_ix_(im,ix,km,jcap,delt,del,sl,rcs,&
                 epsm1*qeso2_ad(k,i)
            es_ad = es_ad + eps*qeso2_ad(k,i)/(p(k,i)+epsm1*es)
 
-           es0_ad = es0_ad + 10*es_ad
+           es0_ad = es0_ad + 10.0_r_kind*es_ad
 
            adt=zero
            call fpvsx_ad(to2(k,i),es0,adt,es0_ad,adjoint)
@@ -2568,11 +2568,11 @@ subroutine nlmsas_ad_im_ix_(im,ix,km,jcap,delt,del,sl,rcs,&
         if (dwnflg2(i) .and. k < jmin(i)) then
 !
 !          Redo nlm calculations
-           GAMMA = EL2ORC * XQESOL(k+1,i) / XTOL(k+1,i)**2
-           DHH   = XHCD(I)
-           DT    = XTOL(k+1,i)
-           DG    = GAMMA
-           DH    = XHESO(k+1,i)
+           gamma = el2orc * xqesol(k+1,i) / xtol(k+1,i)**2
+           dhh   = xhcd(i)
+           dt    = xtol(k+1,i)
+           dg    = gamma
+           dh    = xheso(k+1,i)
            dz    = xzo(k,i) - xzo(k+1,i)
 !
            term1 = edtx1(i)
@@ -3006,7 +3006,7 @@ subroutine nlmsas_ad_im_ix_(im,ix,km,jcap,delt,del,sl,rcs,&
         esl_ad = esl_ad &
              + eps*xqesol_ad(k,i)/(po+epsm1*esl)
 
-        es0_ad = es0_ad + 10*esl_ad
+        es0_ad = es0_ad + 10.0_r_kind*esl_ad
 
         adt = zero
         call fpvsx_ad(xtol(k,i),es0,adt,es0_ad,adjoint)
@@ -3093,7 +3093,7 @@ subroutine nlmsas_ad_im_ix_(im,ix,km,jcap,delt,del,sl,rcs,&
             
         es_ad = es_ad + epsm1*pprime_ad
 
-        es0_ad = es0_ad + 10*es_ad
+        es0_ad = es0_ad + 10.0_r_kind*es_ad
 
         adt = zero
         call fpvsx_ad(xto(k+1,i),es0,adt,es0_ad,adjoint)
@@ -3110,7 +3110,7 @@ subroutine nlmsas_ad_im_ix_(im,ix,km,jcap,delt,del,sl,rcs,&
      do k = kmax(i),2,-1
 !          
 !       Redo nlm calculations
-        DLNSIG = LOG(SL(K,i) / SL(K-1,i))
+        dlnsig = log(sl(k,i) / sl(k-1,i))
         term1  = dlnsig * rd / grav
 !
 !       Adjoint of tlm code
@@ -3147,7 +3147,7 @@ subroutine nlmsas_ad_im_ix_(im,ix,km,jcap,delt,del,sl,rcs,&
         es_ad = es_ad &
              + eps*xqeso_ad(k,i)/(p(k,i)+epsm1*es)
 
-        es0_ad = es0_ad + 10*es_ad
+        es0_ad = es0_ad + 10.0_r_kind*es_ad
         adt = zero
         call fpvsx_ad(xto(k,i),es0,adt,es0_ad,adjoint)
         xto_ad(k,i) = xto_ad(k,i) + adt
@@ -3446,11 +3446,11 @@ subroutine nlmsas_ad_im_ix_(im,ix,km,jcap,delt,del,sl,rcs,&
         if (dwnflg2(i) .and. k < jmin(i)) then
 !
 !          Redo nlm calculations
-           GAMMA = EL2ORC * QESOL(k+1,i) / TOL(k+1,i)**2
-           DHH   = HCDO(I)
-           DT    = TOL(k+1,i)
-           DG    = GAMMA
-           DH    = HESOL(k+1,i)
+           gamma = el2orc * qesol(k+1,i) / tol(k+1,i)**2
+           dhh   = hcdo(i)
+           dt    = tol(k+1,i)
+           dg    = gamma
+           dh    = hesol(k+1,i)
            dz    = zo(k,i) - zo(k+1,i)
 !
            term1 = edto1(i)
@@ -3842,10 +3842,10 @@ subroutine nlmsas_ad_im_ix_(im,ix,km,jcap,delt,del,sl,rcs,&
         if (cnvflg(i)) then
 
 !          Recompute nlm
-           gamma = EL2ORC * QESOl(K,i) / (TOl(K,i)**2)
-           QRCH = QESOl(K,i) &
-                + GAMMA * DBYO(K,i) / (HVAP * (one + GAMMA))
-           DQ = qcko00(K-1,i) - QRCH
+           gamma = el2orc * qesol(k,i) / (tol(k,i)**2)
+           qrch = qesol(k,i) &
+                + gamma * dbyo(k,i) / (hvap * (one + gamma))
+           dg = qcko00(k-1,i) - qrch
 
 !          Adjoint of tangent linear model
            dq_ad   = zero
@@ -4109,7 +4109,7 @@ subroutine nlmsas_ad_im_ix_(im,ix,km,jcap,delt,del,sl,rcs,&
            if (k > jmin(i) .and. k <= ktcon0(i)) then
 
 !             Redo nlm calculation                  
-              DZ = half * (ZO(k+1,i) - ZO(k-1,i))
+              dz = half * (zo(k+1,i) - zo(k-1,i))
 
 !             Adjoint code
               dz_ad = zero
@@ -4342,7 +4342,7 @@ subroutine nlmsas_ad_im_ix_(im,ix,km,jcap,delt,del,sl,rcs,&
      do k = kmax(i)-1,1,-1
 !
 !       Make necessary nlm calculations
-        PO  = half * (P(k,i) + P(k+1,i))
+        po  = half * (p(k,i) + p(k+1,i))
         call fpvsx_ad(tol(k,i),es0,adt,es0_ad,.false.)
         esl = 10.0_r_kind*es0
 
@@ -4372,7 +4372,7 @@ subroutine nlmsas_ad_im_ix_(im,ix,km,jcap,delt,del,sl,rcs,&
              epsm1 * qesol_ad(k,i)
         esl_ad = esl_ad + eps*qesol_ad(k,i)/(po+epsm1*esl)
 
-        es0_ad = es0_ad + 10*esl_ad
+        es0_ad = es0_ad + 10.0_r_kind*esl_ad
 
         adt = zero
         call fpvsx_ad(tol(k,i),es0,adt,es0_ad,adjoint)
@@ -4388,18 +4388,18 @@ subroutine nlmsas_ad_im_ix_(im,ix,km,jcap,delt,del,sl,rcs,&
      do k = kmax(i)-1,1,-1
 !
 !       Make necessary nlm calculations
-        DZ    = half * (ZO(k+1,i) - ZO(k,i))
-        DP    = half * (P(k+1,i) - P(k,i))
-!       ES    = 10.0_r_kind * FESB(TO(k+1,i))
+        dz    = half * (zo(k+1,i) - zo(k,i))
+        dp    = half * (p(k+1,i) - p(k,i))
+!       es    = 10.0_r_kind * fesb(to(k+1,i))
         call fpvsx_ad(to(k+1,i),es0,adt,es0_ad,.false.)
         es = 10.0_r_kind*es0
-        PPRIME= P(k+1,i) + EPSM1 * ES
-        QS    = EPS * ES / PPRIME
-        DQSDP = - QS / PPRIME
-        DESDT = ES * (FACTOR1 / TO(k+1,i) + FACTOR2 / (TO(k+1,i)**2))
-        DQSDT = QS * P(k+1,i) * DESDT / (ES * PPRIME)
-        GAMMA = EL2ORC * QESO(k+1,i) / (TO(k+1,i)**2)
-        DT    = (GRAV * DZ + HVAP * DQSDP * DP) / (CP * (one + GAMMA))
+        pprime= p(k+1,i) + epsm1 * es
+        qs    = eps * es / pprime
+        dqsdp = - qs / pprime
+        desdt = es * (factor1 / to(k+1,i) + factor2 / (to(k+1,i)**2))
+        dqsdt = qs * p(k+1,i) * desdt / (es * pprime)
+        gamma = el2orc * qeso(k+1,i) / (to(k+1,i)**2)
+        dt    = (grav * dz + hvap * dqsdp * dp) / (cp * (one + gamma))
 !
 !       Initialize local ajm variables to zero
         es0_ad    = zero
