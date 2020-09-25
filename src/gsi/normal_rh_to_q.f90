@@ -1,10 +1,10 @@
 subroutine normal_rh_to_q(rhnorm,t,p,q)
 !$$$  subprogram documentation block
 !                .      .    .                                       .
-! subprogram:    normal_rh_to_q  tlm for normalized RH to q
+! subprogram:    normal_rh_to_q  tlm for normalized rh to q
 !   prgmmr: wu               org: np20                date: 2005-03-06
 !
-! abstract: get specific humidity q from normalized RH
+! abstract: get specific humidity q from normalized rh
 !
 ! program history log:
 !   2005-03-06  wu
@@ -17,7 +17,7 @@ subroutine normal_rh_to_q(rhnorm,t,p,q)
 !   2015-10-27  mahajan - code clean-up
 !
 !   input argument list:
-!      rhnorm - normalized RH
+!      rhnorm - normalized rh
 !      t      - virtual temperature
 !      p      - psfc
 !
@@ -44,20 +44,20 @@ subroutine normal_rh_to_q(rhnorm,t,p,q)
   integer(i_kind) i,j,k
 
 ! Convert normalized rh to q
-   do k=1,nsig
-      do j=1,lon2
-         do i=1,lat2
-            q(i,j,k) = dqdrh(i,j,k)*rhnorm(i,j,k)
-            if ( qoption == 2 ) then
-               q(i,j,k) = q(i,j,k) + &
-                          dqdt(i,j,k)*t(i,j,k) - &
-                          dqdp(i,j,k)*(p(i,j,k) + p(i,j,k+1))
-            endif
-         enddo
-      enddo
-   enddo
+  do k=1,nsig
+     do j=1,lon2
+        do i=1,lat2
+           q(i,j,k) = dqdrh(i,j,k)*rhnorm(i,j,k)
+           if ( qoption == 2 ) then
+              q(i,j,k) = q(i,j,k) + &
+                         dqdt(i,j,k)*t(i,j,k) - &
+                         dqdp(i,j,k)*(p(i,j,k) + p(i,j,k+1))
+           endif
+        enddo
+     enddo
+  enddo
 
-   return
+  return
 
 end subroutine normal_rh_to_q
 
@@ -82,7 +82,7 @@ subroutine normal_rh_to_q_ad(rhnorm,t,p,q)
 !   2015-10-27  mahajan - code clean-up
 !
 !   input argument list:
-!      rhnorm - normalized RH
+!      rhnorm - normalized rh
 !      t      - virtual temperature
 !      p      - psfc
 !
@@ -111,20 +111,20 @@ subroutine normal_rh_to_q_ad(rhnorm,t,p,q)
   integer(i_kind) i,j,k
   
 ! Adjoint of convert normalized rh to q
-   do k=1,nsig
-      do j=1,lon2
-         do i=1,lat2
-            rhnorm(i,j,k) = rhnorm(i,j,k) + dqdrh(i,j,k)*q(i,j,k)
-            if ( qoption == 2 ) then
-               t(i,j,k  ) = t(i,j,k  ) + dqdt(i,j,k)*q(i,j,k)
-               p(i,j,k  ) = p(i,j,k  ) - dqdp(i,j,k)*q(i,j,k)
-               p(i,j,k+1) = p(i,j,k+1) - dqdp(i,j,k)*q(i,j,k)
-            endif
-            q(i,j,k) = zero
-         enddo
-      enddo
-   enddo
+  do k=1,nsig
+     do j=1,lon2
+        do i=1,lat2
+           rhnorm(i,j,k) = rhnorm(i,j,k) + dqdrh(i,j,k)*q(i,j,k)
+           if ( qoption == 2 ) then
+              t(i,j,k  ) = t(i,j,k  ) + dqdt(i,j,k)*q(i,j,k)
+              p(i,j,k  ) = p(i,j,k  ) - dqdp(i,j,k)*q(i,j,k)
+              p(i,j,k+1) = p(i,j,k+1) - dqdp(i,j,k)*q(i,j,k)
+           endif
+           q(i,j,k) = zero
+        enddo
+     enddo
+  enddo
 
-   return
+  return
  
 end subroutine normal_rh_to_q_ad
