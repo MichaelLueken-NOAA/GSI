@@ -19,7 +19,7 @@ module observermod
 !   2013-07-02  parrish - changes to remove tlnmc_type for global tlnmc and add
 !                          reg_tlnmc_type for two kinds of regional tlnmc.
 !   2013-10-19  todling - update cloud_efr module name
-!   2014-02-03  todling - remove B-dependence; move cost-create/destroy out
+!   2014-02-03  todling - remove b-dependence; move cost-create/destroy out
 !   2014-10-08  todling - rename bkg-bias routines for clarity
 !
 !   input argument list:
@@ -67,12 +67,10 @@ module observermod
   implicit none
 
   private
-! public observer_guess_init     ! RT: doesn't really belong here
   public observer_init
   public observer_set
   public observer_run
   public observer_finalize
-! public observer_guess_finalize ! RT: doesn't really belong here
   public ndata
 
   integer(i_kind),allocatable,dimension(:,:):: ndata
@@ -121,7 +119,7 @@ subroutine guess_init_
 !   2010-05-19  todling - update interface to read_guess
 !   2010-06-25  treadon - pass mlat into create_jfunc
 !   2011-05-24  yang    - pass iadate(3) (day of the month) into read_guess
-!   2014-02-03  todling - remove dependence on B & major cost func settings
+!   2014-02-03  todling - remove dependence on b & major cost func settings
 !
 !   input argument list:
 !     mype - mpi task id
@@ -169,14 +167,14 @@ subroutine guess_init_
 ! Intialize lagrangian data assimilation and read in initial position of balloons
   if(l4dvar) then
 #ifdef _LAG_MODEL_
-    call lag_guessini()
+     call lag_guessini()
 #endif /* _LAG_MODEL_ */
   endif
  
 ! Read output from previous min.
   if (l4dvar.and.jiterstart>1) then
   else
-  ! If requested and if available, read guess solution.
+     ! If requested and if available, read guess solution.
   endif
 
 ! Generate coefficients for compact differencing
@@ -231,18 +229,18 @@ subroutine init_
   use mpeu_util,only : tell, die
   use gsi_io, only : verbose
   implicit none
-  character(len=*),parameter:: Iam='observer_init'
+  character(len=*),parameter:: iam='observer_init'
   logical :: print_verbose
 
 ! Declare passed variables
 
 ! Declare local variables
-_ENTRY_(Iam)
+_ENTRY_(iam)
 
 
   print_verbose=.false.  
   if(verbose)print_verbose=.true.
-  if(ob_initialized_) call die(Iam,'already initialized')
+  if(ob_initialized_) call die(iam,'already initialized')
   ob_initialized_=.true.
   iamset_ = .false.
 
@@ -263,9 +261,9 @@ _ENTRY_(Iam)
      call tell('observer.init_','guess_init_()')
   end if
 
-!     ndata(*,1)- number of prefiles retained for further processing
-!     ndata(*,2)- number of observations read
-!     ndata(*,3)- number of observations keep after read
+! ndata(*,1)- number of prefiles retained for further processing
+! ndata(*,2)- number of observations read
+! ndata(*,3)- number of observations keep after read
   if(print_verbose)then
      call tell('observer.init_','ndat =',ndat)
   end if
@@ -274,10 +272,10 @@ _ENTRY_(Iam)
      call tell('observer.init_','allocate(ndata)')
      call tell('observer.init_','exiting')
   end if
-  if(print_verbose .and. mype==0) write(6,*) Iam, ': successfully initialized'
+  if(print_verbose .and. mype==0) write(6,*) iam, ': successfully initialized'
 ! End of routine
   call timer_fnl('observer.init_')
-_EXIT_(Iam)
+_EXIT_(iam)
 end subroutine init_
 
 subroutine set_
@@ -310,7 +308,7 @@ subroutine set_
   use mpeu_util, only: tell,die
   use gsi_io, only: mype_io
   implicit none
-  character(len=*), parameter :: Iam="observer_set"
+  character(len=*), parameter :: iam="observer_set"
 
 ! Declare passed variables
 
@@ -319,12 +317,12 @@ subroutine set_
   integer(i_kind):: lunsave,istat1,istat2,istat3,ndat_old,npe_old
   
   data lunsave  / 22 /
-_ENTRY_(Iam)
+_ENTRY_(iam)
 
 !*******************************************************************************************
   call timer_ini('observer.set_')
  
-  if ( iamset_ ) call die(Iam,'already set')
+  if ( iamset_ ) call die(iam,'already set')
 
 ! Create file names for pe relative observation data.  obs_setup files are used
 ! in outer loop setup routines. 
@@ -342,7 +340,7 @@ _ENTRY_(Iam)
      inquire(file=obs_input_common,exist=lhere)
      if (.not.lhere) then
         if (mype==0) write(6,*)'OBSERVER_SET:  ***ERROR*** file ',&
-             trim(obs_input_common),' does NOT exist.  Terminate execution'
+           trim(obs_input_common),' does NOT exist.  Terminate execution'
         call stop2(329)
      endif
   
@@ -353,12 +351,12 @@ _ENTRY_(Iam)
      read(lunsave,iostat=istat2) super_val1
      if (istat1/=0 .or. istat2/=0) then
         if (mype==0) write(6,*)'OBSERVER_SET:  ***ERROR*** reading file ',&
-             trim(obs_input_common),' istat1,istat2=',istat1,istat2,'  Terminate execution'
+           trim(obs_input_common),' istat1,istat2=',istat1,istat2,'  Terminate execution'
         call stop2(329) 
      endif
      if(npe_old /= npe .or. ndat /= ndat_old) then
         if (mype==0) write(6,*) ' observer_set: inconsistent ndat,npe ',ndat,npe,    &
-               ' /= ',ndat_old,npe_old
+           ' /= ',ndat_old,npe_old
         call stop2(330)
      end if
      read(lunsave,iostat=istat3) nobs_sub
@@ -385,7 +383,7 @@ _ENTRY_(Iam)
 
 ! End of routine
   call timer_fnl('observer.set_')
-_EXIT_(Iam)
+_EXIT_(iam)
 end subroutine set_
 
 subroutine run_(init_pass,last_pass)
@@ -423,7 +421,7 @@ subroutine run_(init_pass,last_pass)
 ! Declare passed variables
 
 ! Declare local variables
-  character(len=*), parameter :: Iam="observer_run"
+  character(len=*), parameter :: iam="observer_run"
 
   integer(i_kind) jiterlast
   logical :: last
@@ -432,7 +430,7 @@ subroutine run_(init_pass,last_pass)
   logical :: last_pass_
   logical :: print_verbose
   
-_ENTRY_(Iam)
+_ENTRY_(iam)
   print_verbose=.false.
   if(verbose)print_verbose=.true.
   call timer_ini('observer.run_')
@@ -442,11 +440,11 @@ _ENTRY_(Iam)
   if(present(last_pass)) last_pass_= last_pass
 
   if(print_verbose)then
-     call tell(Iam,'init_pass =',init_pass_)
-     call tell(Iam,'last_pass =',last_pass_)
+     call tell(iam,'init_pass =',init_pass_)
+     call tell(iam,'last_pass =',last_pass_)
   end if
 
-  if(.not.ob_initialized_) call die(Iam,'not initialized')
+  if(.not.ob_initialized_) call die(iam,'not initialized')
 
 !*******************************************************************************************
  
@@ -461,9 +459,9 @@ _ENTRY_(Iam)
      call stop2(157)
   endif
   if(mype==0 .and. print_verbose) then
-     call tell(Iam,'miter =',miter)
-     call tell(Iam,'jiterstart =',jiterstart)
-     call tell(Iam,'jiterlast  =',jiterlast )
+     call tell(iam,'miter =',miter)
+     call tell(iam,'jiterstart =',jiterstart)
+     call tell(iam,'jiterlast  =',jiterlast )
   endif
   if (mype==0) write(6,*)'OBSERVER: jiterstart,jiterlast=',jiterstart,jiterlast
 
@@ -494,7 +492,7 @@ _ENTRY_(Iam)
 
   call timer_fnl('observer.run_')
 ! End of routine
-_EXIT_(Iam)
+_EXIT_(iam)
 end subroutine run_
 
 subroutine final_
@@ -530,16 +528,16 @@ subroutine final_
 ! Declare passed variables
 
 ! Declare local variables
-  character(len=*),parameter:: Iam="observer_final"
+  character(len=*),parameter:: iam="observer_final"
   logical print_verbose
 
 !*******************************************************************************************
-_ENTRY_(Iam)
+_ENTRY_(iam)
   call timer_ini('observer.final_')
   print_verbose=.false.
   if(verbose) print_verbose=.true.
 
-  if(.not.ob_initialized_) call die(Iam,'not initialized')
+  if(.not.ob_initialized_) call die(iam,'not initialized')
   ob_initialized_=.false.
  
   if (tendsflag) then
@@ -557,14 +555,14 @@ _ENTRY_(Iam)
   call convinfo_destroy
 
   deallocate(ndata)
-  if(mype==0 .and. print_verbose) write(6,*) Iam, ': successfully finalized'
+  if(mype==0 .and. print_verbose) write(6,*) iam, ': successfully finalized'
 
 ! Finalize timer for this procedure
   call timer_fnl('observer.final_')
   call timer_fnl('observer')
 
 ! End of routine
-_EXIT_(Iam)
+_EXIT_(iam)
 end subroutine final_
 
 subroutine guess_final_

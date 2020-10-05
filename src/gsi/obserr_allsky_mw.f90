@@ -34,9 +34,9 @@ subroutine obserr_allsky_mw(error0,tnoise,tnoise_cld,clwp_obs,clwp_guess)
 
   clwp_avg=half*(clwp_obs+clwp_guess)
   if(clwp_avg < 0.05_r_kind) then 
-      error0 = tnoise
+     error0 = tnoise
   else
-      error0 = tnoise_cld
+     error0 = tnoise_cld
   endif
 
 end subroutine obserr_allsky_mw 
