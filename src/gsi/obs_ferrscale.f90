@@ -11,7 +11,7 @@ module obs_ferrscale
 !   2008-11-17 todling 
 !   2010-05-14 todling - update  to use gsi_bundle
 !   2010-08-19 lueken  - add only to module use
-!   2015-09-03  guo     - obsmod::yobs has been replaced with m_obsHeadBundle,
+!   2015-09-03  guo     - obsmod::yobs has been replaced with m_obsheadbundle,
 !                         where yobs is created and destroyed when and where it
 !                         is needed.
 !   2018-08-10  guo     - replaced intjo() related code to a new polymorphic
@@ -20,7 +20,7 @@ module obs_ferrscale
 ! Subroutines Included:
 !   init_ferr_scale  - Initialize parameters
 !   get_ferr_scale   - Read in forecast error vector
-!   hrm1h_ferr_scale - Scale forecast error with H'R^{-1}H
+!   hrm1h_ferr_scale - Scale forecast error with h'r^{-1}h
 !   put_ferr_scale   - Write out forecast error vector
 !
 ! Variable Definitions:
@@ -210,9 +210,9 @@ ferrin = zero ! not yet implemented
 
 ! Read in forecast error
 if (lferrscale) then
-!_RT #ifdef GEOS_PERT
-!_RT       call pgcm2gsi(ferrin,'tlm',ierr,nymd_in=nymd,nhms_in=nhms,filename=fnerri)
-!_RT #endif /* GEOS_PERT */
+!#ifdef GEOS_PERT
+!   call pgcm2gsi(ferrin,'tlm',ierr,nymd_in=nymd,nhms_in=nhms,filename=fnerri)
+!#endif /* GEOS_PERT */
    zjx=dot_product(ferrin,ferrin)
    if (mype==0) write(6,888)'get_ferr_scale: Norm ferrin=',sqrt(zjx)
 endif
@@ -260,9 +260,9 @@ endif
 if (lferrscale) then
    zjx=dot_product(ferrout,ferrout)
    if (mype==0) write(6,888)'put_ferr_scale: Norm ferrout=',sqrt(zjx)
-!_RT #ifdef GEOS_PERT
-!_RT    call gsi2pgcm(nymd,nhms,ferrout,'adm',ierr,filename=fnerro)
-!_RT #endif /* GEOS_PERT */
+!#ifdef GEOS_PERT
+!   call gsi2pgcm(nymd,nhms,ferrout,'adm',ierr,filename=fnerro)
+!#endif /* GEOS_PERT */
 endif
 888 format(A,3(1X,ES25.18))
 
@@ -276,10 +276,10 @@ subroutine hrm1h_ferr_scale(xin,xout,nprt,calledby)
 ! subprogram:    hrm1h_ferr_scale
 !   pgrmmr:      todling
 !
-! abstract: Apply H'R^{-1}H to xhat.
+! abstract: Apply h'r^{-1}h to xhat.
 !
 ! program history log:
-!   2007-11-17 todling - stripped off version of Tremolet's evaljgrad
+!   2007-11-17 todling - stripped off version of tremolet's evaljgrad
 !   2008-12-06 todling - intjo is now a module
 !   2009-01-18 todling - quad precision passed to evaljo
 !   2009-08-07 lueken  - updated documentation
@@ -354,10 +354,10 @@ do ii=1,nsubwin
 enddo
 call self_add(mval(1),xout)
 if (nprt>=2) then
-    call prt_state_norms(mval(1),'mval(ii=1)')
+   call prt_state_norms(mval(1),'mval(ii=1)')
 endif
 
-! Run TL model to fill sval
+! Run tl model to fill sval
 if (l4dvar) then
    call model_tl(mval,sval,llprt)
 else
@@ -382,7 +382,7 @@ do ii=1,nsubwin
 end do
 
 qpred=zero_quad
-! Compare obs to solution and transpose back to grid (H^T R^{-1} H)
+! Compare obs to solution and transpose back to grid (h^t r^{-1} h)
 call intjo(rval,qpred,sval,sbias)
 
 ! Take care of background error for bias correction terms
@@ -402,7 +402,7 @@ if (ntclen>0) then
 end if
 
 
-! Evaluate Jo
+! Evaluate jo
 call evaljo(zjo,iobs,nprt,llouter)
 
 if (l_do_adjoint) then

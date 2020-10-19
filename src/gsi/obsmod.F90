@@ -13,7 +13,7 @@ module obsmod
 !   2004-06-15  treadon  - update documentation
 !   2004-07-23  derber   - add conventional sst observations
 !   2004-11-22  derber   - remove weight, add logical for boundary point
-!   2004-11-30  cucurull - add GPS RO data
+!   2004-11-30  cucurull - add gps ro data
 !   2004-12-22  treadon  - rename logical "idiag_conv" as "diag_conv", 
 !                          add write_diag logical, remove conv_diagsave 
 !                          from module
@@ -22,9 +22,9 @@ module obsmod
 !   2005-03-04  derber   - modify for cleaned up surface emissivity sensitivity
 !   2005-03-16  derber   - add arrays to hold observation time
 !   2005-05-27  derber   - add logical oberrflg
-!   2005-06-14  wu       - add OMI oz (ozo)
-!   2005-06-21  cucurull - add logical ref_obs (GPS), parameter grids_dim (GPS)
-!                        - add GPS bending angle observations
+!   2005-06-14  wu       - add omi oz (ozo)
+!   2005-06-21  cucurull - add logical ref_obs (gps), parameter grids_dim (gps)
+!                        - add gps bending angle observations
 !   2005-08-03  derber   - move var qc parameters b_ and pg_ for conventional 
 !                          from qcmod to obsmod
 !   2005-09-28  derber   - consolidate weights and locations for observations
@@ -42,7 +42,7 @@ module obsmod
 !   2006-05-05  treadon  - add maximum time window variable
 !   2006-07-28  derber  - modify to use new inner loop obs data structure
 !   2006-09-20  cucurull - remove termt1in for GPS data, add gpstail%b_tkges 
-!                          for GPS data, remove b_psges
+!                          for gps data, remove b_psges
 !   2006-10-25  sienkiewicz - add blacklst flag
 !   2007-01-10  sienkiewicz - define level ozone obs types
 !   2007-02-02  tremolet - trying things
@@ -106,12 +106,12 @@ module obsmod
 !   2015-08-18  wgu      - add isfctype - mask for surface type - to radiance ob type
 !   2015-09-01  guo      - moved type::gps_all_ob_type, type::gps_all_ob_head,
 !                          their instances (gps_allhead,gps_alltail), and
-!                          related procedures into module m_gpsStats in
+!                          related procedures into module m_gpsstats in
 !                          file genstats_gps.f90.
 !                        - moved variables (radheadm,radtailm) and related
 !                          procedures into module m_prad in file prad_bias.f90.
 !   2015-09-03  guo      - moved type::obs_handle, its instance yobs, and its
-!                          allocation, into m_obsHeadBundle.F90.
+!                          allocation, into m_obsheadbundle.F90.
 !   2016-01-28  mccarty  - add netcdf_diag capability
 !   2016-03-07  pondeca  - add uwnd10m,vwnd10m
 !   2016-05-04  guo      - moved all ob_type and ob_head type-definitions into
@@ -125,23 +125,23 @@ module obsmod
 !                          implementation.
 !   2016-07-19  wgu      - add isfctype - mask for surface type - to radiance obtype
 !   2016-07-19  kbathmann - add rsqrtinv and use_corr_obs to rad_ob_type
-!   2016-07-26  guo      - moved away most cldch_ob_type contents to a new module, m_cldchNode
+!   2016-07-26  guo      - moved away most cldch_ob_type contents to a new module, m_cldchnode
 !   2016-08-20  guo      - moved (stpcnt,ll_jo,ib_jo) to stpjo.f90.
-!   2016-09-19  guo      - moved function dfile_format() to m_extOzone.F90
-!   2016-02-15 Johnson, Y. Wang, X. Wang - add dbz type for reflectivity DA.
+!   2016-09-19  guo      - moved function dfile_format() to m_extozone.F90
+!   2016-02-15 Johnson, Y. Wang, X. Wang - add dbz type for reflectivity da.
 !                                          POC: xuguang.wang@ou.edu
 !   2016-11-29 shlyaeva  - add lobsdiag_forenkf option for writing out linearized
-!                           H(x) for EnKF
-!   2018-01-01  apodaca  - add GOES/GLM lightning observations
+!                           h(x) for enkf
+!   2018-01-01  apodaca  - add goes/glm lightning observations
 !   2019-05-28  guo     - moved all type-constants {i_xx_ob_type} as enumerators of
-!                         (1) obsNode types to module m_obsNodeTypeManager.F90 (iobNode_xx); and
-!                         (2) obOper Types to module gsi_obOperTypeManager.F90 (iobOper_xx).
+!                         (1) obsnode types to module m_obsnodetypemanager.F90 (iobnode_xx); and
+!                         (2) oboper types to module gsi_obopertypemanager.F90 (ioboper_xx).
 !                         Note that a single type specification i_xx_ob_type is now split into two,
-!                         one for obsNode types, and another for obOper types.
-!                       - moved nobs_type to module gsi_obOperTypeManager.F90 (obOper_count).
-!                       - moved cobstype(:) to module gsi_obOperTypeManager.F90.
+!                         one for obsnode types, and another for oboper types.
+!                       - moved nobs_type to module gsi_obopertypemanager.F90 (oboper_count).
+!                       - moved cobstype(:) to module gsi_obopertypemanager.F90.
 !                       - moved type obs_diag, obs_diags, aofp_obs_diag, and variable obsdiags(:,:)
-!                         with subroutine inquire_obsdiags() into m_obsdiagNode.F90.
+!                         with subroutine inquire_obsdiags() into m_obsdiagnode.F90.
 !                       - moved obscounts(:) into obs_sensitivity.f90.
 !   2019-06-25  Hu       - add diag_radardbz for controling radar reflectivity
 !                               diag file
@@ -152,9 +152,9 @@ module obsmod
 !                         to turn on computation of 10m wind factor for near surface
 !                         winds the mm5-based sfc model's similarity theory
 !  01-27-2020 Winterbottom Moved regression coeffcients for regional
-!                          model (e.g., HWRF) aircraft recon dynamic
-!                          observation error (DOE) specification to
-!                          GSI namelist level.  
+!                          model (e.g., hwrf) aircraft recon dynamic
+!                          observation error (doe) specification to
+!                          gsi namelist level.  
 ! 
 ! Subroutines Included:
 !   sub init_obsmod_dflts   - initialize obs related variables to default values
@@ -181,9 +181,9 @@ module obsmod
 !   def reduce_diag  - namelist logical to produce reduced radiance diagnostic files
 !   def use_limit    - parameter set equal to -1 if diag files produced or 0 if not diag files or reduce_diag
 !   def obs_setup    - prefix for files passing pe relative obs data to setup routines
-!   def dsfcalc      - specifies method to determine surface fields within a FOV
-!                      when equal to one, integrate model fields over FOV. 
-!                      when not one, bilinearly interpolate model fields to FOV center.
+!   def dsfcalc      - specifies method to determine surface fields within a fov
+!                      when equal to one, integrate model fields over fov. 
+!                      when not one, bilinearly interpolate model fields to fov center.
 !   def dfile        - input observation file names
 !   def dsis         - sensor/instrument/satellite flag from info files
 !   def dtype        - observation types
@@ -198,7 +198,7 @@ module obsmod
 !   def ipoint       - pointer to input namelist for particular processor
 !   def iadate       - analysis date and time array
 !   def iadatemn     - similar to iadate, but with non-zero minute information
-!   def ianldate     - analysis date in YYYYMMDDHH variable
+!   def ianldate     - analysis date in yyyymmddhh variable
 !   def time_offset  - analysis relative time offset
 !   def dplat        - satellite (platform) id
 !   def dthin        - satellite group
@@ -358,7 +358,7 @@ module obsmod
 !   def blacklst     - logical for reading in station blacklist table
 !                      .true.  will read in blacklist from file 'blacklist'
 !                      .false. will not read in blacklist
-!   def ref_obs      - logical for reading type of local GPS observation
+!   def ref_obs      - logical for reading type of local gps observation
 !                      .true.  will read refractivity
 !                      .false. will read bending angle
 !   def nprof_gps    - total number of gps profiles over all tasks
@@ -375,7 +375,7 @@ module obsmod
 !   def lread_obs_skip - logical, if .true., then read in collective obs selection info
 !   def obs_input_common - scratch file to receive collective obs selection info
 !   def lwrite_predterms - logical to write out actual predictor terms in diagnostic files
-!                          .true. will write out actual predictor terms (for EnKF)
+!                          .true. will write out actual predictor terms (for enkf)
 !                          .false. will write out predicted bias (default)
 !   def lwrite_peakwt    - logical to write out approximate peak pressure of weighting 
 !                          function to diag file
@@ -383,10 +383,10 @@ module obsmod
 !                          .false. - write out standard diag file (default)
 !   def ext_sonde    - logical for extended forward model on sonde data
 !   def bmiss            - parameter to define missing value from bufr
-!                      [10e10 on IBM CCS, 10e08 elsewhere]
+!                      [10e10 on ibm ccs, 10e08 elsewhere]
 !   def lrun_subdirs - logical to toggle use of subdirectories at run time for pe specific
 !                      files
-!   def l_foreaft_thin -   separate TDR fore/aft scan for thinning
+!   def l_foreaft_thin -   separate tdr fore/aft scan for thinning
 !   def dval_use       -   = .true. if any dval weighting is used for satellite
 !                           data
 !   def obs_sub        - number of observations of each type in each subdomain
@@ -399,7 +399,7 @@ module obsmod
 !                                          special case from similarity theory to compute the 10m-wind factor
 !   def use_similarity_2dvar - logical, if .true., then use similarity theory from mm5
 !                              sfc model to compute the 10m-wind factor
-!   def aircraft_recon - namelist logibal whether to use DOE for aircraft
+!   def aircraft_recon - namelist logibal whether to use doe for aircraft
 !
 ! attributes:
 !   langauge: f90
@@ -457,7 +457,7 @@ module obsmod
   public :: use_limit,lrun_subdirs
   public :: l_foreaft_thin,luse_obsdiag
 
-  ! ==== DBZ DA ===
+  ! ==== dbz da ===
   public :: ntilt_radarfiles
   public :: whichradar
   public :: vr_dealisingopt, if_vterminal, if_model_dbz, inflate_obserr, if_vrobs_raw
@@ -472,7 +472,7 @@ module obsmod
   public :: missing_to_nopcp
 
   public :: iout_dbz, mype_dbz
-  ! --- DBZ DA ---
+  ! --- dbz da ---
   
   public :: obsmod_init_instr_table
   public :: obsmod_final_instr_table
@@ -485,18 +485,17 @@ module obsmod
 
   ! The following public variables are the coefficients that describe
   ! the linear regression fits that are used to define the dynamic
-  ! observation error (DOE) specifications for all reconnissance
+  ! observation error (doe) specifications for all reconnissance
   ! observations collected within hurricanes/tropical cyclones; these
-  ! apply only to the regional forecast models (e.g., HWRF); Henry
-  ! R. Winterbottom (henry.winterbottom@noaa.gov).
+  ! apply only to the regional forecast models (e.g., hwrf)
 
   ! Observation types:
 
-  ! 1/236: HDOB (e.g., flight-level) observations.
+  ! 1/236: hdob (e.g., flight-level) observations.
 
   ! 1/237: Dropsonde observations.
 
-  ! 292: SFMR observations.
+  ! 292: sfmr observations.
   
   ! The following correspond to the specific humidity (q)
   ! observations:
@@ -524,10 +523,10 @@ module obsmod
   
 
   interface obsmod_init_instr_table
-          module procedure init_instr_table_
+     module procedure init_instr_table_
   end interface
   interface obsmod_final_instr_table
-          module procedure final_instr_table_
+     module procedure final_instr_table_
   end interface
 
 ! Set parameters
@@ -639,18 +638,18 @@ module obsmod
 
   ! The following variable declarations pertain to the coefficients
   ! that describe the linear regression fits that are used to define
-  ! the dynamic observation error (DOE) specifications for all
+  ! the dynamic observation error (doe) specifications for all
   ! reconnissance observations collected within hurricanes/tropical
   ! cyclones; these apply only to the regional forecast models (e.g.,
-  ! HWRF); Henry R. Winterbottom (henry.winterbottom@noaa.gov).
+  ! hwrf)
 
   ! Observation types:
 
-  ! 1/236: HDOB (e.g., flight-level) observations.
+  ! 1/236: hdob (e.g., flight-level) observations.
 
   ! 1/237: Dropsonde observations.
 
-  ! 292: SFMR observations.
+  ! 292: sfmr observations.
 
   ! The following correspond to the specific humidity (q)
   ! observations:
@@ -688,7 +687,7 @@ contains
 !   2005-02-18  treadon - change write_diag(1) default to .true.
 !   2005-05-27  yanqiu  - added obs_sen
 !   2005-05-27  derber  - add oberrflg
-!   2005-06-14  wu      - add OMI oz (ozo)
+!   2005-06-14  wu      - add omi oz (ozo)
 !   2006-10-25  sienkiewicz - introduce blacklst
 !   2007-05-03  todling - use values def above as indexes to cobstype
 !   2008-11-25  todling - remove line-by-line adj triggers
@@ -766,17 +765,13 @@ contains
     lobskeep=.false.
     nobskeep=0
     lsaveobsens=.false.
-    l_do_adjoint=.true.     ! .true. = apply H^T when in int routines
+    l_do_adjoint=.true.     ! .true. = apply h^t when in int routines
     oberrflg  = .false.
     bflag     = .false.     ! 
     sfcmodel  = .false.     ! .false. = do not use boundary layer model 
-    dtbduv_on = .true.      ! .true. = use microwave dTb/duv in inner loop
+    dtbduv_on = .true.      ! .true. = use microwave dtb/duv in inner loop
     offtime_data = .false.  ! .false. = code fails if data files contain ref time
                             !            different from analysis time
-! moved to create_obsmod_var since l4dvar since before namelist is read
-!   if (l4dvar) then
-!      offtime_data = .true.   ! .true. = ignore difference in obs ref time
-!   endif
     blacklst  = .false.
     lobserver = .false.     ! when .t., calculate departure vectors only
     ext_sonde = .false.     ! .false. = do not use extended forward model for sonde
@@ -852,7 +847,7 @@ contains
     mype_vwnd10m= max(0,npe-29)! vwnd10m
     mype_swcp=max(0,npe-30)  ! solid-water content path
     mype_lwcp=max(0,npe-31)  ! liquid-water content path
-    mype_light=max(0,npe-32)! GOES/GLM lightning
+    mype_light=max(0,npe-32)! goes/glm lightning
     mype_dbz=max(0,npe-33)   ! radar reflectivity
 
 
@@ -864,8 +859,8 @@ contains
 !   Other initializations
     nloz_v6 = 12               ! number of "levels" in ozone version8 data
     nloz_v8 = 21               ! number of "levels" in ozone version6 data
-    nloz_omi= 11               ! number of "levels" in OMI apriori profile
-    nlco    = 10               ! number of "levels" in MOPITT version 4 CO data
+    nloz_omi= 11               ! number of "levels" in omi apriori profile
+    nlco    = 10               ! number of "levels" in mopitt version 4 co data
 
     lunobs_obs = 2             ! unit to which to write/read information
                                ! related to brightness temperature and 
@@ -891,23 +886,22 @@ contains
     binary_diag = .true.  ! by default, do write binary diag
 
     l_wcp_cwm          = .false.                 ! .true. = use operator that involves cwm
-    aircraft_recon     = .false.                 ! .true. = use DOE for aircraft data
+    aircraft_recon     = .false.                 ! .true. = use doe for aircraft data
 
     ! The following variable initializations pertain to the
     ! coefficients that describe the linear regression fits that are
-    ! used to define the dynamic observation error (DOE)
+    ! used to define the dynamic observation error (doe)
     ! specifications for all reconnissance observations collected
     ! within hurricanes/tropical cyclones; these apply only to the
-    ! regional forecast models (e.g., HWRF); Henry R. Winterbottom
-    ! (henry.winterbottom@noaa.gov).
+    ! regional forecast models (e.g., hwrf)
 
     ! Observation types:
     
-    ! 1/236: HDOB (e.g., flight-level) observations.
+    ! 1/236: hdob (e.g., flight-level) observations.
     
     ! 1/237: Dropsonde observations.
     
-    ! 292: SFMR observations.
+    ! 292: sfmr observations.
     
     ! The following correspond to the specific humidity (q)
     ! observations:
@@ -944,7 +938,7 @@ contains
 !
 ! abstract:  set-up name for and create sub-directories to 
 !            hold observation and diagnostic files.   Doing
-!            so on IBM SP reduces wall clock and stabilizes
+!            so on ibm sp reduces wall clock and stabilizes
 !            run times
 !
 ! program history log:
@@ -1017,11 +1011,11 @@ contains
        endif
     endif
     if(.not. luse_obsdiag) then
-      if(lsaveobsens .or. lobsdiagsave)then
+       if(lsaveobsens .or. lobsdiagsave)then
           write(6,*)'incompatabile luse_obsdiag and lsaveobsens or lobsdiagsave ', &
              luse_obsdiag,lsaveobsens,lobsdiagsave
           call stop2(843)
-      end if
+       end if
     end if
 
     allocate (nsat1(ndat),mype_diaghdr(ndat),obs_sub_comm(ndat))
@@ -1061,7 +1055,6 @@ contains
     character(len=2) :: cind
     logical :: limit
 
-!   if(regional .and. .not.twodvar_regional)ndat_times = nhr_assim/3
     if(twodvar_regional)ndat_times = 1
 
 !   The following was in gsimain.
@@ -1073,7 +1066,7 @@ contains
           time_window(ii) = time_window_max
           limit = .true.
        endif
-! for cris, iasi, atms, regional analysis may want shorter time window
+!      for cris, iasi, atms, regional analysis may want shorter time window
        if (index(dtype(ii),'cris') /= 0 .or. index(dtype(ii),'atms') /= 0 .or. &
            index(dtype(ii),'iasi') /= 0 ) then
           if(time_window(ii)>time_window_rad) then
@@ -1089,12 +1082,12 @@ contains
                  'more OBS_INPUT entries to ',time_window_max
 
 !   Initialize arrays in obs_input if more than one synoptic time
-    IF (ndat_times>1) THEN
+    if (ndat_times>1) then
 !      Copy other things
-       DO ii=2,ndat_times
+       do ii=2,ndat_times
           write(cind,'(i2.2)')ii
           ioff=(ii-1)*ndat_types
-          DO jj=1,ndat_types
+          do jj=1,ndat_types
              dfile (ioff+jj) = trim(dfile(jj))//'.'//cind
              dtype (ioff+jj) = dtype(jj)
              ditype(ioff+jj) = ditype(jj)
@@ -1106,22 +1099,22 @@ contains
              dsfcalc(ioff+jj)= dsfcalc(jj)
              obsfile_all(ioff+jj) = trim(obsfile_all(jj))//'.'//cind
              time_window(ioff+jj) = time_window(jj)
-          ENDDO
-       ENDDO
+          enddo
+       enddo
 !      Then change name for first time slot
-       IF (ndat_times>1) THEN
-          DO jj=1,ndat_types
+       if (ndat_times>1) then
+          do jj=1,ndat_types
              obsfile_all(jj) = trim(obsfile_all(jj))//'.01'
              dfile(jj) = trim(dfile(jj))//'.01'
-          ENDDO
-       ENDIF
-    ENDIF
+          enddo
+       endif
+    endif
 
-    IF (mype==0) THEN
+    if (mype==0) then
        write(6,*)'INIT_OBSMOD_VARS: ndat_times,ndat_types,ndat=', &
                                   & ndat_times,ndat_types,ndat
        write(6,*)'INIT_OBSMOD_VARS: nhr_assimilation=',nhr_assim
-    ENDIF
+    endif
 
     return
   end subroutine init_obsmod_vars
@@ -1141,7 +1134,7 @@ contains
 !   2003-09-25  derber
 !   2004-05-13  treadon, documentation
 !   2004-07-23  derber - add conventional sst observations
-!   2005-06-14  wu      - add OMI oz (ozo)
+!   2005-06-14  wu      - add omi oz (ozo)
 !   2015-09-03  guo     - removed most of its functionality, but for obscounts
 !   2016-04-27  guo     - removed argument skipit, and some remaining debris.
 !
@@ -1229,7 +1222,7 @@ contains
   end function ran01dom
 
 ! ----------------------------------------------------------------------
-subroutine init_instr_table_ (nhr_assim,nall,iamroot,rcname)
+  subroutine init_instr_table_ (nhr_assim,nall,iamroot,rcname)
 !$$$  subprogram documentation block
 !                .      .    .                                       .
 ! subprogram:   subroutine init_instr_table_()
@@ -1252,143 +1245,145 @@ subroutine init_instr_table_ (nhr_assim,nall,iamroot,rcname)
 !   machine:
 !
 !$$$  end subprogram documentation block
-use file_utility, only : get_lun
-use mpeu_util, only: gettablesize
-use mpeu_util, only: gettable
-use mpeu_util, only: getindex
-use gridmod, only: twodvar_regional
-use mrmsmod,only: l_mrms_run,mrms_listfile
-use mrmsmod,only: load_mrms_data_info
-implicit none
+    use file_utility, only : get_lun
+    use mpeu_util, only: gettablesize
+    use mpeu_util, only: gettable
+    use mpeu_util, only: getindex
+    use gridmod, only: twodvar_regional
+    use mrmsmod,only: l_mrms_run,mrms_listfile
+    use mrmsmod,only: load_mrms_data_info
+    implicit none
 
-integer(i_kind),intent(in)  :: nhr_assim       ! number of assimilation hours
-integer(i_kind),intent(out) :: nall            ! number of data_type*assim_intervals
-logical,optional,intent(in) :: iamroot         ! optional root processor id
-character(len=*),optional,intent(in) :: rcname ! optional input filename
+    integer(i_kind),intent(in)  :: nhr_assim       ! number of assimilation hours
+    integer(i_kind),intent(out) :: nall            ! number of data_type*assim_intervals
+    logical,optional,intent(in) :: iamroot         ! optional root processor id
+    character(len=*),optional,intent(in) :: rcname ! optional input filename
 
-character(len=*),parameter::myname_=myname//'*init_instr_table_'
-character(len=*),parameter:: tbname='OBS_INPUT::'
-integer(i_kind) luin,ii,ntot,nrows,luin_mrms
-character(len=256),allocatable,dimension(:):: utable
-logical iamroot_
-integer (i_kind)::nrows0
-integer(i_kind) ntot_mrms,nrows_mrms
+    character(len=*),parameter::myname_=myname//'*init_instr_table_'
+    character(len=*),parameter:: tbname='OBS_INPUT::'
+    integer(i_kind) luin,ii,ntot,nrows,luin_mrms
+    character(len=256),allocatable,dimension(:):: utable
+    logical iamroot_
+    integer (i_kind)::nrows0
+    integer(i_kind) ntot_mrms,nrows_mrms
 
-nall=0
-if(obs_instr_initialized_) return
+    nall=0
+    if(obs_instr_initialized_) return
 
-inquire(file=trim(mrms_listfile), exist=l_mrms_run)
+    inquire(file=trim(mrms_listfile), exist=l_mrms_run)
 
-iamroot_=mype==0
-if(present(iamroot)) iamroot_=iamroot 
+    iamroot_=mype==0
+    if(present(iamroot)) iamroot_=iamroot 
 
-! load file
-if (present(rcname)) then
-   luin=get_lun()
-   open(luin,file=trim(rcname),form='formatted')
-else
-   luin=5
-endif
+!   load file
+    if (present(rcname)) then
+       luin=get_lun()
+       open(luin,file=trim(rcname),form='formatted')
+    else
+       luin=5
+    endif
 
-! Scan file for desired table first
-! and get size of table
-call gettablesize(tbname,luin,ntot,nrows)
-if(nrows==0) then
-   if(luin/=5) close(luin)
-   if (.not.l_mrms_run) return
-endif
+!   Scan file for desired table first
+!   and get size of table
+    call gettablesize(tbname,luin,ntot,nrows)
+    if(nrows==0) then
+       if(luin/=5) close(luin)
+       if (.not.l_mrms_run) return
+    endif
 
-nrows0=nrows
-if (l_mrms_run) then  ! a run with radar ref data from MRMS
- luin_mrms=get_lun()
- open(luin_mrms,file=trim(mrms_listfile),form='formatted')
- call gettablesize(mrms_listfile,luin_mrms,ntot_mrms,nrows_mrms)
- nrows0=nrows
- nrows=nrows+nrows_mrms
- if(luin_mrms/=5) close(luin_mrms )
-endif
+    nrows0=nrows
+    if (l_mrms_run) then  ! a run with radar ref data from MRMS
+       luin_mrms=get_lun()
+       open(luin_mrms,file=trim(mrms_listfile),form='formatted')
+       call gettablesize(mrms_listfile,luin_mrms,ntot_mrms,nrows_mrms)
+       nrows0=nrows
+       nrows=nrows+nrows_mrms
+       if(luin_mrms/=5) close(luin_mrms )
+    endif
 
-! Get contents of table
-allocate(utable(nrows))
-call gettable(tbname,luin,ntot,nrows,utable)
+!   Get contents of table
+    allocate(utable(nrows))
+    call gettable(tbname,luin,ntot,nrows,utable)
 
-! release file unit
-if(luin/=5) close(luin)
+!   release file unit
+    if(luin/=5) close(luin)
 
-! Because obs come in 6-hour batches
-ndat_times=max(1,nhr_assim/6)
-if(twodvar_regional)ndat_times = 1
-ndat_types=nrows
-nall=ndat_times*ndat_types
+!   Because obs come in 6-hour batches
+    ndat_times=max(1,nhr_assim/6)
+    if(twodvar_regional)ndat_times = 1
+    ndat_types=nrows
+    nall=ndat_times*ndat_types
 
-! allocate space for entries from table
-allocate(dfile(nall),dtype(nall),dplat(nall),&
-         dsis(nall),dval(nall),dthin(nall),dsfcalc(nall),&
-         time_window(nall),obsfile_all(nall))
+!   allocate space for entries from table
+    allocate(dfile(nall),dtype(nall),dplat(nall),&
+             dsis(nall),dval(nall),dthin(nall),dsfcalc(nall),&
+             time_window(nall),obsfile_all(nall))
 
-! things not in table, but dependent on nrows ... move somewhere else !_RTodling
-! reality is that these things are not a function of nrows
-allocate(ditype(nall),ipoint(nall))
+!   things not in table, but dependent on nrows ... move somewhere else
+!   reality is that these things are not a function of nrows
+    allocate(ditype(nall),ipoint(nall))
 
-! Retrieve each token of interest from table and define
-! variables participating in state vector
-dval_use = .false. 
-do ii=1,nrows0
-     read(utable(ii),*) dfile(ii),& ! local file name from which to read observatinal data
-                        dtype(ii),& ! character string identifying type of observatio
-                        dplat(ii),& ! currently contains satellite id (no meaning for non-sat data)
-                        dsis(ii), & ! sensor/instrument/satellite identifier for info files
-                        dval(ii), & ! 
-                        dthin(ii),& ! thinning flag (1=thinning on; otherwise off)
-                        dsfcalc(ii) ! use orig bilinear FOV surface calculation (routine deter_sfc)
+!   Retrieve each token of interest from table and define
+!   variables participating in state vector
+    dval_use = .false. 
+    do ii=1,nrows0
+       read(utable(ii),*) dfile(ii),& ! local file name from which to read observatinal data
+                          dtype(ii),& ! character string identifying type of observatio
+                          dplat(ii),& ! currently contains satellite id (no meaning for non-sat data)
+                          dsis(ii), & ! sensor/instrument/satellite identifier for info files
+                          dval(ii), & ! 
+                          dthin(ii),& ! thinning flag (1=thinning on; otherwise off)
+                          dsfcalc(ii) ! use orig bilinear FOV surface calculation (routine deter_sfc)
 
-   ! The following is to sort out some historical naming conventions
-   select case (dsis(ii)(1:4))
-      case ('airs')
-         dsis(ii)='airs_aqua'
-      case ('iasi')
-         if (index(dsis(ii),'metop-a') /= 0) dsis(ii)='iasi_metop-a'
-         if (index(dsis(ii),'metop-b') /= 0) dsis(ii)='iasi_metop-b'
-         if (index(dsis(ii),'metop-c') /= 0) dsis(ii)='iasi_metop-c'
-   end select
+       ! The following is to sort out some historical naming conventions
+       select case (dsis(ii)(1:4))
+          case ('airs')
+             dsis(ii)='airs_aqua'
+          case ('iasi')
+             if (index(dsis(ii),'metop-a') /= 0) dsis(ii)='iasi_metop-a'
+             if (index(dsis(ii),'metop-b') /= 0) dsis(ii)='iasi_metop-b'
+             if (index(dsis(ii),'metop-c') /= 0) dsis(ii)='iasi_metop-c'
+       end select
 
-   if(trim(dplat(ii))=='null') dplat(ii)=' '
-   if(dval(ii) > 0.0) dval_use = .true.
-   ditype(ii)= ' '                    ! character string identifying group type of ob (see read_obs)
-   ipoint(ii)= 0                      ! default pointer (values set in gsisub) _RT: This is never needed
-   time_window(ii) = time_window_max  ! default to maximum time window
-   write(obsfile_all(ii),'(a,i4.4)') 'obs_input.', ii      ! name of scratch file to hold obs data
-   
-enddo
+       if(trim(dplat(ii))=='null') dplat(ii)=' '
+       if(dval(ii) > 0.0_r_kind) dval_use = .true.
+       ditype(ii)= ' '                    ! character string identifying group type of ob (see read_obs)
+       ipoint(ii)= 0                      ! default pointer (values set in gsisub)
+       time_window(ii) = time_window_max  ! default to maximum time window
+       write(obsfile_all(ii),'(a,i4.4)') 'obs_input.', ii      ! name of scratch file to hold obs data
 
-deallocate(utable)
+    enddo
 
-if (l_mrms_run) then
-  if(present(rcname)) then
-    call load_mrms_data_info(mrms_listfile,nrows0,ntot_mrms,nrows_mrms,nrows,obsfile_all,dfile,dtype,ditype,dplat,dsis,dval,dthin,ipoint,dsfcalc,time_window,rcname)
-  else
-    call load_mrms_data_info(mrms_listfile,nrows0,ntot_mrms,nrows_mrms,nrows,obsfile_all,dfile,dtype,ditype,dplat,dsis,dval,dthin,ipoint,dsfcalc,time_window)
-  endif
-endif
+    deallocate(utable)
 
-obs_instr_initialized_=.true.
+    if (l_mrms_run) then
+       if(present(rcname)) then
+          call load_mrms_data_info(mrms_listfile,nrows0,ntot_mrms,nrows_mrms,nrows,obsfile_all,dfile,dtype,ditype,dplat,dsis,dval,dthin,ipoint,dsfcalc,time_window,rcname)
+       else
+          call load_mrms_data_info(mrms_listfile,nrows0,ntot_mrms,nrows_mrms,nrows,obsfile_all,dfile,dtype,ditype,dplat,dsis,dval,dthin,ipoint,dsfcalc,time_window)
+       endif
+    endif
 
-end subroutine init_instr_table_
+    obs_instr_initialized_=.true.
 
-subroutine final_instr_table_
+  end subroutine init_instr_table_
+
+  subroutine final_instr_table_
 
 ! clean up things initialized in init_instr_table_
 
-if(.not.obs_instr_initialized_) return
+    implicit none
 
-deallocate(ditype,ipoint)
+    if(.not.obs_instr_initialized_) return
 
-deallocate(dfile,dtype,dplat,&
-           dsis,dval,dthin,dsfcalc,&
-           time_window,obsfile_all)
+    deallocate(ditype,ipoint)
 
-obs_instr_initialized_ = .false.
+    deallocate(dfile,dtype,dplat,&
+               dsis,dval,dthin,dsfcalc,&
+               time_window,obsfile_all)
 
-end subroutine final_instr_table_
+    obs_instr_initialized_ = .false.
+
+  end subroutine final_instr_table_
 
 end module obsmod
