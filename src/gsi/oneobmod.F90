@@ -39,7 +39,7 @@ module oneobmod
 !   def oblon      - observation longitude for one ob exp
 !   def obhourset  - observation delta time from analysis time for 
 !                    one ob exp
-!   def obpres     - observation pressure (hPa) or one ob exp
+!   def obpres     - observation pressure (hpa) or one ob exp
 !   def obdattim   - observation date for one ob exp
 !   def oneob_type - observation type for one ob exp
 !   def oneobtest  - single observation test flag (true=on)
@@ -146,7 +146,7 @@ contains
 !   2014-08-04  carley - modify for tcamt and howv obs
 !   2014-08-18  carley - added td2m, mxtm, mitm, pmsl, and wsdp10m
 !   2016-01-18  pondeca - added cldch
-!   2016-06-17  Sienkiewicz- virtmp switch - if true write VIRTMP program code to indicate
+!   2016-06-17  Sienkiewicz- virtmp switch - if true write virtmp program code to indicate
 !                            that the observation is virtual temperature
 !
 !   input argument list:
@@ -186,7 +186,7 @@ contains
     character(80):: cld2seqstr='TOCC HBLCS'      ! total cloud cover and height above surface of base of lowest cloud seen
     character(80):: cldseqstr='VSSO CLAM HOCB'   ! vertical significance, cloud amount and cloud base height
     character(80):: owavestr='HOWV'              ! significant wave height
-    character(80):: maxtmintstr='MXTM MITM'      ! Max T and Min T
+    character(80):: maxtmintstr='MXTM MITM'      ! max t and min t
 !   character(80):: cldceilhstr='CEILING'        ! cldch
     if (oneobmade) return
 
@@ -194,14 +194,14 @@ contains
        call oneobo3lv
        return
     end if
-! set values from parameter list
+!   set values from parameter list
     xob=oblon
     yob=oblat
     dhr=obhourset
     idate=iadate(1)*1000000+iadate(2)*10000+iadate(3)*100+iadate(4)
     write(6,*)'OneObMake: ', idate
     pob=obpres
-! set default values for this routine
+!   set default values for this routine
     ludx=22
     nobs=1
     nlev=1
@@ -230,7 +230,7 @@ contains
        subset='ADPSFC'
        typ(1)=87._r_kind
        cat(1,1)=zero
-       cld2seq(1,1)=25._r_kind !TOCC - total cloud amount (%)       
+       cld2seq(1,1)=25._r_kind !tocc - total cloud amount (%)       
     else if (oneob_type=='howv') then
        subset='SFCSHP'
        typ(1)=80._r_kind
@@ -240,24 +240,24 @@ contains
        subset='ADPSFC'
        typ(1)=87._r_kind
        cat(1,1)=zero
-       obs(12,1)=280.0_r_kind !Dewpoint in Kelvin
+       obs(12,1)=280.0_r_kind !Dewpoint in kelvin
     else if (oneob_type=='mxtm') then
        subset='ADPSFC'
        typ(1)=87._r_kind
        cat(1,1)=zero
-       maxtmint(1,1)=280.0_r_kind !Max T in Kelvin
+       maxtmint(1,1)=280.0_r_kind !Max t in kelvin
     else if (oneob_type=='mitm') then
        subset='ADPSFC'
        typ(1)=87._r_kind
        cat(1,1)=zero
-       maxtmint(2,1)=273.15_r_kind !Min T in Kelvin
+       maxtmint(2,1)=273.15_r_kind !Min t in kelvin
     else if (oneob_type=='pmsl') then
        subset='ADPSFC'
        typ(1)=87._r_kind
        cat(1,1)=zero
-       obs(13,1)=1008.10_r_kind !PMSL in MB
+       obs(13,1)=1008.10_r_kind !pmsl in mb
        qms(7,1)=one
-    else if (oneob_type=='wspd10m') then !10m AGL wind speed - need to store both u and v (already by this point done)
+    else if (oneob_type=='wspd10m') then !10m agl wind speed - need to store both u and v (already by this point done)
        subset='ADPSFC'
        typ(1)=87._r_kind
        cat(1,1)=zero
@@ -270,7 +270,7 @@ contains
        typ(1)=20._r_kind
        cat(1,1)=one
     endif
-! keep errs small so the single ob passes the QC check
+!   keep errs small so the single ob passes the qc check
     poe=r0_01
     qoe=one_tenth
     toe=one_tenth
@@ -322,12 +322,12 @@ contains
        call ufbint(lendian_in,err,10,nlev,iret,errstr)
        call ufbint(lendian_in,pcd,10,nlev,iret,pcdstr)
        if (oneob_type=='tcamt') then
-         call ufbint(lendian_in,cldseq,3,10,iret,cldseqstr)
-         call ufbint(lendian_in,cld2seq,2,1,iret,cld2seqstr)
+          call ufbint(lendian_in,cldseq,3,10,iret,cldseqstr)
+          call ufbint(lendian_in,cld2seq,2,1,iret,cld2seqstr)
        else if (oneob_type=='howv') then
-         call ufbint(lendian_in,owave,1,nlev,iret,owavestr)
+          call ufbint(lendian_in,owave,1,nlev,iret,owavestr)
        else if ( oneob_type=='mxtm' .or. oneob_type=='mitm') then
-         call ufbint(lendian_in,maxtmint,2,nlev,iret,maxtmintstr)
+          call ufbint(lendian_in,maxtmint,2,nlev,iret,maxtmintstr)
        end if                              
        call writsb(lendian_in)
        hdr(1)=transfer(sid(n),hdr(1))
@@ -440,7 +440,7 @@ contains
     h=ha-epsh
     thishgt=this_stahgt+h
 
-!     Get corrected tilt angle
+!   Get corrected tilt angle
     celev=celev0
     selev=selev0
     if(thisrange>=one) then
@@ -455,7 +455,7 @@ contains
     deldistmin=min(gamma-thisrange,deldistmin)
 
 
-!     Get earth lat lon of superob
+!   Get earth lat lon of superob
     thisazimuthr=thisazimuth*deg2rad
     rlonloc=rad_per_meter*gamma*cos(thisazimuthr)
     rlatloc=rad_per_meter*gamma*sin(thisazimuthr)
@@ -464,7 +464,7 @@ contains
     thislon=rlonglob*rad2deg
 
 
-!     Get corrected azimuth
+!   Get corrected azimuth
     clat1=cos(rlatglob)
     caz0=cos(thisazimuthr)
     saz0=sin(thisazimuthr)
@@ -496,7 +496,6 @@ contains
     write(6,*) 'thislon     = ',thislon
     write(6,*) 'thishgt     = ',thishgt
     write(6,*) 'maginnov    = ',maginnov
-    !write(6,*) 'thisvr      = ',thisvr ! This quantity is not used for SOT.
     write(6,*) 'corrected_az= ',corrected_azimuth
     write(6,*) 'corrected_tl= ',corrected_tilt
     write(6,*) 'thiserr     = ',thiserr
@@ -520,7 +519,7 @@ contains
 ! abstract: create ozone level text file for single ob experiment
 !
 ! program history log:
-!   2007-09-11  Sienkiewicz - extend to create MLS text file on request
+!   2007-09-11  Sienkiewicz - extend to create mls text file on request
 !
 !   input argument list:
 !
@@ -546,8 +545,6 @@ contains
     ilev = 1               ! ilev > 24 is passive
     isnd = 1
     ppmv = one                ! dummy value 
-
-!    obdattim=2000010100
 
     rlnc = zero
     rlnc(2) = obhourset
@@ -575,27 +572,27 @@ contains
 
   end subroutine oneobo3lv
 
-      SUBROUTINE invtllv(ALM,APH,TLMO,CTPH0,STPH0,TLM,TPH)
-!     borrowed from read_radar
-      use kinds, only:  r_kind
-      implicit none
+  subroutine invtllv(alm,aph,tlmo,ctph0,stph0,tlm,tph)
+!   borrowed from read_radar
+    use kinds, only:  r_kind
+    implicit none
 
-      real(r_kind),intent(in   ) :: alm,aph,tlmo,ctph0,stph0
-      real(r_kind),intent(  out) :: tlm,tph
+    real(r_kind),intent(in   ) :: alm,aph,tlmo,ctph0,stph0
+    real(r_kind),intent(  out) :: tlm,tph
 
-      real(r_kind):: relm,srlm,crlm,sph,cph,cc,anum,denom
+    real(r_kind):: relm,srlm,crlm,sph,cph,cc,anum,denom
 
-      RELM=ALM
-      SRLM=SIN(RELM)
-      CRLM=COS(RELM)
-      SPH=SIN(APH)
-      CPH=COS(APH)
-      CC=CPH*CRLM
-      ANUM=CPH*SRLM
-      DENOM=CTPH0*CC-STPH0*SPH
-      TLM=tlmo+ATAN2(ANUM,DENOM)
-      TPH=ASIN(CTPH0*SPH+STPH0*CC)
-      END SUBROUTINE invtllv
+    relm=alm
+    srlm=sin(relm)
+    crlm=cos(relm)
+    sph=sin(aph)
+    cph=cos(aph)
+    cc=cph*crlm
+    anum=cph*srlm
+    denom=ctph0*cc-stph0*sph
+    tlm=tlmo+atan2(anum,denom)
+    tph=asin(ctph0*sph+stph0*cc)
+  end subroutine invtllv
 
 
 end module oneobmod

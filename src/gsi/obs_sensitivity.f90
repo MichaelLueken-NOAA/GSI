@@ -12,7 +12,7 @@ module obs_sensitivity
 !   2007-07-19 tremolet - increment sensitivity to observations
 !   2009-08-07 lueken   - updated documentation
 !   2010-04-30 tangborn - add pointer to carbon monoxide
-!   2010-05-27 todling  - remove all user-specific TL-related references
+!   2010-05-27 todling  - remove all user-specific tl-related references
 !   2010-07-16 todling  - add reference to aero and aerol
 !   2010-08-19 lueken   - add only to module use;no machine code, so use .f90
 !   2011-03-29 todling  - add reference to pm2_5
@@ -21,10 +21,10 @@ module obs_sensitivity
 !                         howv ,tcamt, lcbas, cldch
 !   2016-02-20 pagowski - add pm10
 !   2016-05-05 pondeca  - add reference to uwnd10m, vwnd10m
-!   2017-05-12 Y. Wang and X. Wang - add reflectivity (dBZ), POC: xuguang.wang@ou.edu
+!   2017-05-12 Y. Wang and X. Wang - add reflectivity (dbz)
 !   2017-01-16 Apodaca  - add reference to lightning
-!   2017-05-06 todling  - reload ensemble when FSOI calc doing EFSOI-like
-!   2017-05-21 todling  - implement ability to do 2nd EFSOI-like calc
+!   2017-05-06 todling  - reload ensemble when fsoi calc doing efsoi-like
+!   2017-05-21 todling  - implement ability to do 2nd efsoi-like calc
 !
 ! Subroutines Included:
 !   init_fc_sens  - Initialize computations
@@ -44,8 +44,8 @@ use gsi_4dvar, only: nobs_bins, l4dvar, lsqrtb, nsubwin
 use gsi_4dvar, only: tau_fcst,efsoi_order,efsoi_afcst,efsoi_ana
 use jfunc, only: jiter, miter, niter, iter
 
-use gsi_obOperTypeManager, only: nobs_type => obOper_count
-use gsi_obOperTypeManager, only: obOper_typeinfo
+use gsi_obopertypemanager, only: nobs_type => oboper_count
+use gsi_obopertypemanager, only: oboper_typeinfo
 use mpimod, only: mype
 use control_vectors, only: control_vector,allocate_cv,read_cv,deallocate_cv, &
     dot_product,assignment(=)
@@ -71,9 +71,9 @@ public lobsensfc,lobsensjb,lobsensincr,lobsensadj,&
        init_obsens, init_fc_sens, save_fc_sens, dot_prod_obs
 public efsoi_o2_update
 
-public:: obsensCounts_realloc
-public:: obsensCounts_set
-public:: obsensCounts_dealloc
+public:: obsenscounts_realloc
+public:: obsenscounts_set
+public:: obsenscounts_dealloc
 
 logical lobsensfc,lobsensjb,lobsensincr, &
         lobsensadj,lobsensmin,llancdone,lsensrecompute
@@ -89,47 +89,47 @@ integer(i_kind),save,allocatable:: obscounts(:,:)
 character(len=*),parameter:: myname="obs_sensitivity"
 ! ------------------------------------------------------------------------------
 contains
-!>> object obsensCounts_:
+!>> object obsenscounts_:
 !>> this object was public obsmod::obscounts(:,:), but now private module
 !>> variable in this module.  It is accessed through following module procedures
 !>> []_alloc(), []_set() and []_dealloc().
 
-subroutine obsensCounts_realloc(ntype,nbin)
+subroutine obsenscounts_realloc(ntype,nbin)
 !>> was implemented in setuprhsall()
   implicit none
   integer(i_kind),intent(in):: ntype
   integer(i_kind),intent(in):: nbin
-  character(len=*),parameter:: myname_=myname//"::obsensCounts_realloc"
+  character(len=*),parameter:: myname_=myname//"::obsenscounts_realloc"
   if(allocated(obscounts)) deallocate(obscounts)
   allocate(obscounts(ntype,nbin))
-end subroutine obsensCounts_realloc
+end subroutine obsenscounts_realloc
 
-subroutine obsensCounts_set(iobsglb)
+subroutine obsenscounts_set(iobsglb)
 !>> was implemented in evaljo()
   implicit none
   integer(i_kind),dimension(:,:),intent(in):: iobsglb
-  character(len=*),parameter:: myname_=myname//"::obsensCounts_set"
+  character(len=*),parameter:: myname_=myname//"::obsenscounts_set"
   if(.not.allocated(obscounts)) then
-    call perr(myname_,'not allocated, obscounts')
-    call perr(myname_,'was evaljo() exception 125')
-    call  die(myname_)
+     call perr(myname_,'not allocated, obscounts')
+     call perr(myname_,'was evaljo() exception 125')
+     call  die(myname_)
   endif
   if(any(shape(obscounts)/=shape(iobsglb))) then
-    call perr(myname_,'mismatched, storage size(obscounts,1) =',size(obscounts,1))
-    call perr(myname_,'             argument size(iobsglb,1) =',size(iobsglb,1))
-    call perr(myname_,'            storage size(obscounts,2) =',size(obscounts,2))
-    call perr(myname_,'             argument size(iobsglb,2) =',size(iobsglb,2))
-    call  die(myname_)
+     call perr(myname_,'mismatched, storage size(obscounts,1) =',size(obscounts,1))
+     call perr(myname_,'             argument size(iobsglb,1) =',size(iobsglb,1))
+     call perr(myname_,'            storage size(obscounts,2) =',size(obscounts,2))
+     call perr(myname_,'             argument size(iobsglb,2) =',size(iobsglb,2))
+     call  die(myname_)
   endif
   obscounts(:,:)=iobsglb(:,:)
-end subroutine obsensCounts_set
+end subroutine obsenscounts_set
 
-subroutine obsensCounts_dealloc()
+subroutine obsenscounts_dealloc()
 !>> was a part of obsmod::destroyobs_().
   implicit none
-  character(len=*),parameter:: myname_=myname//"::obsensCounts_dealloc"
+  character(len=*),parameter:: myname_=myname//"::obsenscounts_dealloc"
   if(allocated(obscounts)) deallocate(obscounts)
-end subroutine obsensCounts_dealloc
+end subroutine obsenscounts_dealloc
 
 ! ------------------------------------------------------------------------------
 subroutine init_obsens
@@ -176,9 +176,9 @@ subroutine init_fc_sens
 ! program history log:
 !   2007-06-26  tremolet - initial code
 !   2009-08-07  lueken - added subprogram doc block
-!   2010-05-27  todling - gsi_4dcoupler; remove dependence on GMAO specifics
+!   2010-05-27  todling - gsi_4dcoupler; remove dependence on gmao specifics
 !   2012-05-22  todling - update interface to getpert
-!   2015-12-01  todling - add several obs-types that Pondeca forget to add here
+!   2015-12-01  todling - add several obs-types that pondeca forget to add here
 !
 !   input argument list:
 !
@@ -247,7 +247,7 @@ if (lobsensfc) then
             write(clfile(10:12),'(I3.3)') miter
             call read_cv(fcsens,clfile)
          else
-!           read and convert output of GCM adjoint
+!           read and convert output of gcm adjoint
             allocate(fname(nsubwin))
             fname='NULL'
             if (tau_fcst>0) then
@@ -297,7 +297,7 @@ if (lobsensfc) then
       else
 !        read gradient from outer loop jiter+1
          clfile='fgsens.ZZZ'
-         WRITE(clfile(8:10),'(I3.3)') jiter+1
+         write(clfile(8:10),'(I3.3)') jiter+1
          call read_cv(fcsens,clfile)
       endif
    endif
@@ -320,9 +320,9 @@ subroutine efsoi_o2_update(sval)
 ! program history log:
 !   2007-06-26  tremolet - initial code
 !   2009-08-07  lueken - added subprogram doc block
-!   2010-05-27  todling - gsi_4dcoupler; remove dependence on GMAO specifics
+!   2010-05-27  todling - gsi_4dcoupler; remove dependence on gmao specifics
 !   2012-05-22  todling - update interface to getpert
-!   2015-12-01  todling - add several obs-types that Pondeca forget to add here
+!   2015-12-01  todling - add several obs-types that pondeca forget to add here
 !
 !   input argument list:
 !
@@ -360,75 +360,75 @@ if (lobsensadj.and.lobsensmin) then
 end if
 
 ! Zero out whatever is in fcsens
- fcsens=zero
+fcsens=zero
 
-! read and convert output of GCM adjoint
- allocate(fname(nsubwin))
- fname='A'
- do ii=1,nsubwin
-    call allocate_state(fcgrad(ii))
- end do
- call allocate_preds(zbias)
- zbias=zero
- do ii=1,ntlevs_ens
-    call allocate_state(eval(ii))
- end do
- do ii=1,nsubwin
-    fcgrad(ii)=zero
- end do
- call gsi_4dcoupler_getpert(fcgrad,nsubwin,'adm',fname)
+! read and convert output of gcm adjoint
+allocate(fname(nsubwin))
+fname='A'
+do ii=1,nsubwin
+   call allocate_state(fcgrad(ii))
+end do
+call allocate_preds(zbias)
+zbias=zero
+do ii=1,ntlevs_ens
+   call allocate_state(eval(ii))
+end do
+do ii=1,nsubwin
+   fcgrad(ii)=zero
+end do
+call gsi_4dcoupler_getpert(fcgrad,nsubwin,'adm',fname)
 ! Wipe out loaded ensemble members to allow reloading ensemble of analysis
- call destroy_ensemble
+call destroy_ensemble
 ! Read in ens forecasts issues from "analysis" 
- efsoi_afcst=.true.
- call create_ensemble
- call load_ensemble
- do ii=1,ntlevs_ens
-    call allocate_state(eval(ii))
- end do
- eval(1)=fcgrad(1)
- fcgrad(1)=zero
- call ensctl2state_ad(eval,fcgrad(1),fcsens)
- call control2state_ad(fcgrad,zbias,fcsens)
- do ii=1,ntlevs_ens
-    call deallocate_state(eval(ii))
- end do
- do ii=1,nsubwin
-    call deallocate_state(fcgrad(ii))
- end do
- call deallocate_preds(zbias)
- deallocate(fname)
-! Wipe  outensemble from memory
- call destroy_ensemble
+efsoi_afcst=.true.
+call create_ensemble
+call load_ensemble
+do ii=1,ntlevs_ens
+   call allocate_state(eval(ii))
+end do
+eval(1)=fcgrad(1)
+fcgrad(1)=zero
+call ensctl2state_ad(eval,fcgrad(1),fcsens)
+call control2state_ad(fcgrad,zbias,fcsens)
+do ii=1,ntlevs_ens
+   call deallocate_state(eval(ii))
+end do
+do ii=1,nsubwin
+   call deallocate_state(fcgrad(ii))
+end do
+call deallocate_preds(zbias)
+deallocate(fname)
+! Wipe outensemble from memory
+call destroy_ensemble
 
 ! Report magnitude of input vector
- zjx=dot_product(fcsens,fcsens)
- if (mype==0) write(6,888)'order2_fc_sens: Norm fcsens=',sqrt(zjx)
+zjx=dot_product(fcsens,fcsens)
+if (mype==0) write(6,888)'order2_fc_sens: Norm fcsens=',sqrt(zjx)
 888 format(A,3(1X,ES25.18))
 
-! Read in ensemble of analysis (these are EnKF, not GSI, analyses obviously)
- efsoi_ana=.true.
- tau_fcst=-1
- call create_ensemble
- call load_ensemble
+! Read in ensemble of analysis (these are enkf, not gsi, analyses obviously)
+efsoi_ana=.true.
+tau_fcst=-1
+call create_ensemble
+call load_ensemble
 
 ! Allocate local variables
- do ii=1,nsubwin
-    call allocate_state(mval(ii))
- end do
- do ii=1,ntlevs_ens
-    call allocate_state(eval(ii))
- end do
- call allocate_preds(zbias)
+do ii=1,nsubwin
+   call allocate_state(mval(ii))
+end do
+do ii=1,ntlevs_ens
+   call allocate_state(eval(ii))
+end do
+call allocate_preds(zbias)
 
 ! Convert from control variable to state space
- call control2state(fcsens,mval,zbias)
+call control2state(fcsens,mval,zbias)
 
 ! Convert ensemble control variable to state space and update from previous value
- call ensctl2state(fcsens,mval(1),eval)
- do ii=1,ntlevs_ens
-    call self_add(sval(ii),eval(ii))
- end do
+call ensctl2state(fcsens,mval(1),eval)
+do ii=1,ntlevs_ens
+   call self_add(sval(ii),eval(ii))
+end do
 
 ! Release memory
 call deallocate_preds(zbias)
@@ -472,7 +472,7 @@ if (mype==0) then
 
 !  Full stats
    do jj=1,nobs_type
-      write(6,'(A,2X,I3,2X,A)')'Obs types:',jj,obOper_typeinfo(jj)
+      write(6,'(A,2X,I3,2X,A)')'Obs types:',jj,oboper_typeinfo(jj)
    enddo
    write(6,'(A,2X,I4)')'Obs bins:',nobs_bins
    write(6,*)'Obs Count Begin'
@@ -486,8 +486,8 @@ if (mype==0) then
    write(6,*)'Obs Count End'
 
    write(6,*)'Obs Impact Begin'
-   do kk=1,SIZE(sensincr,3)
-      if (SIZE(sensincr,3)==1) then
+   do kk=1,size(sensincr,3)
+      if (size(sensincr,3)==1) then
          write(6,'(A,I4)')'Obs Impact iteration= ',niter(jiter)
       else
          write(6,'(A,I4)')'Obs Impact iteration= ',kk
@@ -498,14 +498,14 @@ if (mype==0) then
    enddo
    write(6,*)'Obs Impact End'
 
-   kk=SIZE(sensincr,3)
+   kk=size(sensincr,3)
 !  Summary by obs type
    do jj=1,nobs_type
       zz=zero
       do ii=1,nobs_bins
          zz=zz+sensincr(ii,jj,kk)
       enddo
-      if (zz/=zero) write(6,'(A,2X,A3,2X,ES12.5)')'Obs Impact type',obOper_typeinfo(jj),zz
+      if (zz/=zero) write(6,'(A,2X,A3,2X,ES12.5)')'Obs Impact type',oboper_typeinfo(jj),zz
    enddo
 
 !  Summary by obs bins
@@ -548,7 +548,7 @@ real(r_kind) function dot_prod_obs()
 !   machine:
 !
 !$$$ end documentation block
-use m_obsdiagNode, only: obs_diag
+use m_obsdiagnode, only: obs_diag
 use m_obsdiags, only: obsdiags
 implicit none
 

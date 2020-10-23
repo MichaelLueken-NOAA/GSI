@@ -16,7 +16,7 @@ module ozinfo
 !   2005-09-28  derber  - Modify for new ozinfo file, add var qc parameters
 !   2006-02-03  derber  - modify for new obs control and obs count
 !   2007-06-29  Zhou    - change total number of ozone enteries (jpch_oz) from
-!                         53 (version 6 SBUV/2) to 67 (version 8 SBUV/2)
+!                         53 (version 6 sbuv/2) to 67 (version 8 sbuv/2)
 !
 ! Subroutines Included:
 !   sub init_oz       - set ozone related variables to defaults
@@ -28,10 +28,10 @@ module ozinfo
 !   def diag_ozone     - logical to turn off or on the diagnostic ozone file (true=on)
 !   def jpch_oz        - number of (levels+1) * number of satellites
 !   def mype_oz        - task id for writing out radiance diagnostics
-!   def pob_oz         - pressure level of observation (hPa)
+!   def pob_oz         - pressure level of observation (hpa)
 !   def gross_oz       - gross error limit
 !   def error_oz       - observation error
-!   def nusis_oz       - sensor/intrument/satellite id (14=NOAA-14, 15=NOAA-15, 16=NOAA-16, etc)
+!   def nusis_oz       - sensor/intrument/satellite id (14=noaa-14, 15=noaa-15, 16=noaa-16, etc)
 !   def nulev          - integer level of ozone observation
 !   def iuse_oz        - integer flag to control usage of ozone data (-1=don't use, 1=use)
 !
@@ -96,7 +96,7 @@ contains
     jpch_oz = 0                        ! number of enteries read from ozinfo
     diag_ozone = .true.                ! default is to generate ozone diagnostic file
     mype_oz     = max(0,npe-6)         ! mpi task to write ozone summary report
-    ihave_oz=(getindex(svars3d,'oz')>0)! .t. when OZ present in state-vector
+    ihave_oz=(getindex(svars3d,'oz')>0)! .t. when oz present in state-vector
 
   end subroutine init_oz
   
@@ -155,8 +155,8 @@ contains
     endif
     jpch_oz = j
     if(jpch_oz == 0)then
-      close(lunin)
-      return
+       close(lunin)
+       return
     end if
 
 !   Allocate arrays to hold ozone information

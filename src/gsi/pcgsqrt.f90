@@ -6,7 +6,7 @@ subroutine pcgsqrt(xhat,costf,gradx,itermax,nprt)
 !   prgmmr:      tremolet
 !
 ! abstract: solve inner loop of analysis equation using conjugate
-!           gradient preconditioned with sqrt(B).
+!           gradient preconditioned with sqrt(b).
 !
 ! program history log:
 !   2007-04-27  tremolet - initial code
@@ -107,7 +107,7 @@ inner_iteration: do iter=1,itermax
 !  Evaluate cost and gradient
    call evaljgrad(xtry,zfk,grtry,lsavinc,0,myname)
 
-!  Get A q_k
+!  Get a q_k
    do ii=1,grtry%lencv
       grtry%values(ii)=grtry%values(ii)-grad0%values(ii)
    end do
@@ -127,11 +127,11 @@ inner_iteration: do iter=1,itermax
    if(iorthomax>0) then 
       iortho=min(iter,iorthomax)
       do jj=iortho,1,-1
-        zdla = dot_product(gradx,cglwork(jj))
-        do ii=1,gradx%lencv
-           gradx%values(ii) = gradx%values(ii) - zdla*cglwork(jj)%values(ii)
-        enddo
-     enddo
+         zdla = dot_product(gradx,cglwork(jj))
+         do ii=1,gradx%lencv
+            gradx%values(ii) = gradx%values(ii) - zdla*cglwork(jj)%values(ii)
+         enddo
+      enddo
    end if 
 
 !  Save gradients for orthonormalization

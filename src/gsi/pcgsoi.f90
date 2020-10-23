@@ -14,7 +14,7 @@ module pcgsoimod
 !   2009-08-12  lueken  - update documentation
 !   2009-09-17  parrish - add bkerror_a_en and anbkerror_reg_a_en for hybrid ensemble control variable a_en
 !   2014-12-03  derber - thread dot products and modify so obsdiag can be turned off
-!   2018-08-10  guo     - removed m_obsHeadBundle references
+!   2018-08-10  guo     - removed m_obsheadbundle references
 !                       - replaced stpjo_setup() with a new stpjomod::stpjo_setup()
 !
 ! subroutines included:
@@ -30,8 +30,8 @@ module pcgsoimod
 
 implicit none
 
-PRIVATE
-PUBLIC pcgsoi
+private
+public pcgsoi
 
 contains
 
@@ -69,13 +69,13 @@ subroutine pcgsoi()
 !   2005-09-29  kleist,parrish - include _t (time derivatives) array
 !   2006-04-06  treadon - move bias cor. and tskin update into update_guess
 !   2006-04-16  derber - change call to stpcalc - move stepsize print to stpcalc
-!   2006-04-21  kleist - add calls to update Jc terms
+!   2006-04-21  kleist - add calls to update jc terms
 !   2006-05-26  derber - modify to improve convergence testing
 !   2006-07-28  derber - remove calls to makeobs
 !   2006-08-04  parrish - add changes for strong constraint option
 !   2007-03-09  su      - add option for observation perturbation
 !   2007-04-13  tremolet - use control vectors and state vectors                         
-!   2007-05-15  todling - add AGCM/TLM/ADM tester; fix one-ob case NaN's
+!   2007-05-15  todling - add agcm/tlm/adm tester; fix one-ob case nan's
 !   2007-07-05  todling - allow 4dvar to write out increment
 !   2007-09-30  todling - add timer
 !   2008-03-24  wu      - oberror tuning
@@ -97,14 +97,14 @@ subroutine pcgsoi()
 !   2011-04-25  el akkraoui - add option for re-orthogonalization.
 !   2011-07-10  todling - minor fixes for general precision handling. 
 !   2011-11-17  kleist - add handling for separate state vector for ensemble bits (hybrid ens/var)
-!   2013-01-26  parrish - WCOSS debug compile flags type mismatch for calls to ensctl2state_ad
+!   2013-01-26  parrish - wcoss debug compile flags type mismatch for calls to ensctl2state_ad
 !                          and ensctl2state.  I put in temporary fix to allow debug compile
 !                          by replacing mval with mval(1).  This is likely not
 !                          correct for multiple obs bins.
 !   2014-10-25  todling - reposition final clean to allow proper complition of 4dvar
 !   2014-12-22  Hu      -  add option i_gsdcldanal_type to control cloud analysis  
 !   2016-03-02  s.liu/carley  - remove use_reflectivity and use i_gsdcldanal_type 
-!   2016-03-25  todling - beta-mult param now within cov (following Dave Parrish corrections)
+!   2016-03-25  todling - beta-mult param now within cov (following dave parrish corrections)
 !   2016-05-13  parrish -  remove beta12mult.  Replace with sqrt_beta_s_mult, sqrt_beta_e_mult, inside
 !                          bkerror and bkerror_a_en.
 !
@@ -130,7 +130,7 @@ subroutine pcgsoi()
        iguess,read_guess_solution,diag_precon,step_start, &
        niter_no_qc,print_diag_pcg,lgschmidt
   use gsi_4dvar, only: nobs_bins, nsubwin, l4dvar, iwrtinc, ladtest, &
-                       iorthomax
+       iorthomax
   use gridmod, only: twodvar_regional
   use constants, only: zero,one,tiny_r_kind
   use anberror, only: anisotropic
@@ -149,7 +149,7 @@ subroutine pcgsoi()
   use xhat_vordivmod, only : xhat_vordiv_init, xhat_vordiv_calc, xhat_vordiv_clean
   use timermod, only: timer_ini,timer_fnl
   use projmethod_support, only: init_mgram_schmidt, &
-                                mgram_schmidt,destroy_mgram_schmidt
+       mgram_schmidt,destroy_mgram_schmidt
   use hybrid_ensemble_parameters,only : l_hyb_ens,aniso_a_en,ntlevs_ens
   use hybrid_ensemble_isotropic, only: bkerror_a_en
   use gsi_bundlemod, only : gsi_bundle
@@ -240,21 +240,21 @@ subroutine pcgsoi()
 
   if(iorthomax>0) then 
      allocate(cglwork(iorthomax+1))
-     DO ii=1,iorthomax+1
-        CALL allocate_cv(cglwork(ii))
+     do ii=1,iorthomax+1
+        call allocate_cv(cglwork(ii))
         cglwork(ii)=zero
-     ENDDO
+     enddo
      allocate(cglworkhat(iorthomax+1))
-     DO ii=1,iorthomax+1
-        CALL allocate_cv(cglworkhat(ii))
+     do ii=1,iorthomax+1
+        call allocate_cv(cglworkhat(ii))
         cglworkhat(ii)=zero
-     END DO
+     end do
   end if
 
 ! Perform inner iteration
   inner_iteration: do iter=0,niter(jiter)
 
-! Gradually turn on variational qc to avoid possible convergence problems
+!    Gradually turn on variational qc to avoid possible convergence problems
      if(vqc) then
         nlnqc_iter = iter >= niter_no_qc(jiter)
         if(jiter == jiterstart) then
@@ -280,10 +280,10 @@ subroutine pcgsoi()
            mval(1)=eval(1)
         end if
 
-!       Perform test of AGCM TLM and ADM
+!       Perform test of agcm tlm and adm
         call gsi_4dcoupler_grtests(mval,sval,nsubwin,nobs_bins)
 
-!       Run TL model to fill sval
+!       Run tl model to fill sval
         call model_tl(mval,sval,llprt)
      else
         if (l_hyb_ens) then
@@ -358,9 +358,9 @@ subroutine pcgsoi()
 !    Re-orthonormalization if requested
      if(iorthomax>0) then 
         iortho=min(iorthomax,iter) 
-        if(iter .ne. 0) then 
+        if(iter /= 0) then 
            do ii=iortho,1,-1
-              zdla = DOT_PRODUCT(gradx,cglworkhat(ii))
+              zdla = dot_product(gradx,cglworkhat(ii))
               do i=1,nclen
                  gradx%values(i) = gradx%values(i) - zdla*cglwork(ii)%values(i)
               end do
@@ -377,7 +377,7 @@ subroutine pcgsoi()
      end if
 
 !    If hybrid ensemble run, then multiply ensemble control variable a_en 
-!                                    by its localization correlation
+!    by its localization correlation
      if(l_hyb_ens) then
         if(aniso_a_en) then
     !      call anbkerror_a_en(gradx,grady)    !  not available yet
@@ -409,7 +409,7 @@ subroutine pcgsoi()
      dprod(1) = qdot_prod_sub(gradx,grady)
      if(diag_precon)then
         if (lanlerr) then
-! xdiff used as a temporary array
+!          xdiff used as a temporary array
            do i=1,nclen
               xdiff%values(i)=vprecond(i)*gradx%values(i)
            end do
@@ -424,7 +424,7 @@ subroutine pcgsoi()
            end do
            dprod(2) = qdot_prod_sub(xdiff,grady)
            dprod(3) = qdot_prod_sub(ydiff,gradx)
-! xdiff used as a temporary array
+!          xdiff used as a temporary array
            do i=1,nclen
               xdiff%values(i)=vprecond(i)*gradx%values(i)
            end do
@@ -471,7 +471,7 @@ subroutine pcgsoi()
 
 !    Calculate new search direction
      if (.not. restart) then
-       if(.not. lanlerr)then
+        if(.not. lanlerr)then
            do i=1,nclen
               xdiff%values(i)=gradx%values(i)
               ydiff%values(i)=grady%values(i)
@@ -489,7 +489,7 @@ subroutine pcgsoi()
            end do
         end if
      else
-!    If previous solution available, transfer into local arrays.
+!       If previous solution available, transfer into local arrays.
         if( .not. lanlerr)then
            xdiff=zero
            ydiff=zero
@@ -612,9 +612,9 @@ subroutine pcgsoi()
      pennorm=penx
 
   end do inner_iteration
-!  End of inner iteration
+! End of inner iteration
 
-!  Deallocate space for renormalization
+! Deallocate space for renormalization
   if(iorthomax>0) then 
      do ii=1,iorthomax+1
         call deallocate_cv(cglwork(ii))
@@ -656,83 +656,83 @@ subroutine pcgsoi()
   llprt=(mype==0)
   call control2state(xhat,mval,sbias)
   if (l4dvar) then
-    if (l_hyb_ens) then
-       call ensctl2state(xhat,mval(1),eval)
-       mval(1)=eval(1)
-    end if
-    call model_tl(mval,sval,llprt)
+     if (l_hyb_ens) then
+        call ensctl2state(xhat,mval(1),eval)
+        mval(1)=eval(1)
+     end if
+     call model_tl(mval,sval,llprt)
   else
-    if (l_hyb_ens) then
-       call ensctl2state(xhat,mval(1),eval)
-       do ii=1,nobs_bins
-          sval(ii)=eval(ii)
-       end do
-    else
-       do ii=1,nobs_bins
-          sval(ii)=mval(1)
-       end do
-    end if
+     if (l_hyb_ens) then
+        call ensctl2state(xhat,mval(1),eval)
+        do ii=1,nobs_bins
+           sval(ii)=eval(ii)
+        end do
+     else
+        do ii=1,nobs_bins
+           sval(ii)=mval(1)
+        end do
+     end if
   end if
 
   if(print_diag_pcg)then
 
-! Evaluate final cost function and gradient
+!    Evaluate final cost function and gradient
      if (mype==0) write(6,*)'Minimization final diagnostics'
 
      do ii=1,nobs_bins
-       rval(ii)=zero
+        rval(ii)=zero
      end do
      call intall(sval,sbias,rval,rbias)
      gradx=zero
      if (l4dvar) then
-       call model_ad(mval,rval,llprt)
-       if (l_hyb_ens) then
-          eval(1)=mval(1)
-          call ensctl2state_ad(eval,mval(1),gradx)
-       end if
+        call model_ad(mval,rval,llprt)
+        if (l_hyb_ens) then
+           eval(1)=mval(1)
+           call ensctl2state_ad(eval,mval(1),gradx)
+        end if
      else
-       if (l_hyb_ens) then
-          do ii=1,nobs_bins
-            eval(ii)=rval(ii)
-          end do
-          call ensctl2state_ad(eval,mval(1),gradx)
-       else
-          mval(1)=rval(1)
-          if (nobs_bins > 1 ) then
-             do ii=2,nobs_bins
-                call self_add(mval(1),rval(ii))
-             enddo
-          end if
-       end if
+        if (l_hyb_ens) then
+           do ii=1,nobs_bins
+              eval(ii)=rval(ii)
+           end do
+           call ensctl2state_ad(eval,mval(1),gradx)
+        else
+           mval(1)=rval(1)
+           if (nobs_bins > 1 ) then
+              do ii=2,nobs_bins
+                 call self_add(mval(1),rval(ii))
+              enddo
+           end if
+        end if
      end if
      call control2state_ad(mval,rbias,gradx)
   
 !    Add contribution from background term
      do i=1,nclen
-       gradx%values(i)=gradx%values(i)+yhatsave%values(i)
+        gradx%values(i)=gradx%values(i)+yhatsave%values(i)
      end do
   
 !    Multiply by background error
      if(anisotropic) then
-       call anbkerror(gradx,grady)
+        call anbkerror(gradx,grady)
      else
-       call bkerror(gradx,grady)
+        call bkerror(gradx,grady)
      end if
   
 !    If hybrid ensemble run, then multiply ensemble control variable a_en 
-!                                    by its localization correlation
+!    by its localization correlation
      if(l_hyb_ens) then
-       if(aniso_a_en) then
-    !     call anbkerror_a_en(gradx,grady)    !  not available yet
-          write(6,*)' ANBKERROR_A_EN not written yet, program stops'
-          stop
-       else
-          call bkerror_a_en(gradx,grady)
-       end if
+        if(aniso_a_en) then
+    !      call anbkerror_a_en(gradx,grady)    !  not available yet
+           write(6,*)' ANBKERROR_A_EN not written yet, program stops'
+           stop
+        else
+           call bkerror_a_en(gradx,grady)
+        end if
 
      end if
 
-! Print final Jo table
+!    Print final Jo table
      zgend=dot_product(gradx,grady,r_quad)
 !    nprt=2
 !    call evaljo(zjo,iobs,nprt,llouter)
@@ -740,7 +740,7 @@ subroutine pcgsoi()
 
      if(l_hyb_ens) then
 
-!       If hybrid ensemble run, compute contribution to Jb and Je separately
+!       If hybrid ensemble run, compute contribution to jb and je separately
 
         fjcost_e=   dot_product(xhatsave,yhatsave,r_quad,'cost_e')
 !       fjcost(1) = dot_product(xhatsave,yhatsave,r_quad,'cost_b')
@@ -755,7 +755,7 @@ subroutine pcgsoi()
      if (mype==0) then
         if(l_hyb_ens) then
 
-!          If hybrid ensemble run, print out contribution to Jb and Je separately
+!          If hybrid ensemble run, print out contribution to jb and je separately
 
            write(iout_iter,999)'costterms Jb,Je,Jo,Jc,Jl =',jiter,iter,fjcostnew(1)- fjcost_e, &
                fjcost_e,fjcostnew(2:4)
@@ -775,7 +775,7 @@ subroutine pcgsoi()
         endif
 
 
-!    Print final diagnostics
+!       Print final diagnostics
         write(6,888)'Final   cost function=',zfend
         write(6,888)'Final   gradient norm=',sqrt(zgend)
         if(zfini>tiny_r_kind) write(6,888)'Final/Initial cost function=',zfend/zfini
@@ -795,24 +795,24 @@ subroutine pcgsoi()
 ! cloud analysis  after iteration
 ! if(jiter == miter .and. i_gsdcldanal_type==1) then
   if(jiter == miter) then
-    if(i_gsdcldanal_type==2) then
-       call gsdcloudanalysis4nmmb(mype)
-    else if(i_gsdcldanal_type==1) then
-       call gsdcloudanalysis(mype)
-    else if(i_gsdcldanal_type==30) then
-       call gsdcloudanalysis4gfs(mype)
-    endif
+     if(i_gsdcldanal_type==2) then
+        call gsdcloudanalysis4nmmb(mype)
+     else if(i_gsdcldanal_type==1) then
+        call gsdcloudanalysis(mype)
+     else if(i_gsdcldanal_type==30) then
+        call gsdcloudanalysis4gfs(mype)
+     endif
   endif
 
 ! Write output analysis files
   if(.not.l4dvar) call prt_guess('analysis')
   call prt_state_norms(sval(1),'increment')
   if (twodvar_regional) then
-      call write_all(-1)
-    else
-      if(jiter == miter) then
-         call write_all(-1)
-      endif
+     call write_all(-1)
+  else
+     if(jiter == miter) then
+        call write_all(-1)
+     endif
   endif
 
 ! Overwrite guess with increment (4d-var only, for now)
@@ -821,9 +821,9 @@ subroutine pcgsoi()
      call inc2guess(sval)
      call write_all(iwrtinc)
      call prt_guess('increment')
-     ! NOTE: presently in 4dvar, we handle the biases in a slightly inconsistent way
+     ! Note: presently in 4dvar, we handle the biases in a slightly inconsistent way
      ! as when in 3dvar - that is, the state is not updated, but the biases are.
-     ! This assumes GSI handles a single iteration of the outer loop at a time
+     ! This assumes gsi handles a single iteration of the outer loop at a time
      ! when doing 4dvar (that is, multiple iterations require stop-and-go).
      call update_bias_preds(twodvar_regional,sbias)
   endif

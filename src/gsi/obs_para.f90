@@ -15,7 +15,7 @@ subroutine obs_para(ndata,mype)
 !   2004-07-28  treadon - add only to module use, add intent in/out
 !   2004-11-19  derber - modify to eliminate file and change to use logical 
 !                        rather than weights
-!   2005-06-14  wu      - add OMI total ozone
+!   2005-06-14  wu      - add omi total ozone
 !   2005-09-08  derber - simplify data set handling
 !   2005-10-17  treadon - fix bug in defnition of mype_diaghdr
 !   2006-02-03  derber  - modify for new obs control and obs count
@@ -25,7 +25,7 @@ subroutine obs_para(ndata,mype)
 !   2008-09-08  lueken  - merged ed's changes into q1fy09 code
 !   2009-04-21  derber  - reformulate to remove communication
 !   2008-05-10  meunier - handle for lagrangian data
-!   2013-01-26  parrish - attempt fix for bug flagged by WCOSS debug compiler.
+!   2013-01-26  parrish - attempt fix for bug flagged by wcoss debug compiler.
 !                            Replace 
 !                              "call dislag(.....,nobs_s)"
 !                            with
@@ -33,10 +33,10 @@ subroutine obs_para(ndata,mype)
 !                           nobs_s is an array in current subroutine, but is a
 !                           scalar inside subroutine dislag.
 !   2014-10-03  carley  - add creation mpi subcommunicator needed for 
-!                          buddy check QC to distinguish among pe subdomains 
+!                          buddy check qc to distinguish among pe subdomains 
 !                          with and without obs (only for t obs and twodvar_regional 
 !                          at the moment) 
-!   2015-10-28  guo     - added ioid_s(:) to support split-observer GSI with a
+!   2015-10-28  guo     - added ioid_s(:) to support split-observer gsi with a
 !                         control vector grid different from the guess state
 !                         grid.
 !
@@ -104,13 +104,13 @@ subroutine obs_para(ndata,mype)
         if (dtype(is)=='lag') then    ! lagrangian data
            call dislag(ndata(is,1),mm1,lunout,obsfile_all(is),dtype(is),&
                 nobs_s) 
-        nsat1(is)= nobs_sub(mm1,is)
+           nsat1(is)= nobs_sub(mm1,is)
         else 
            obproc:do ii=1,npe
-             if(nobs_sub(ii,is) > 0)then
-               mype_diaghdr(is) = ii-1
-               exit obproc
-             end if
+              if(nobs_sub(ii,is) > 0)then
+                 mype_diaghdr(is) = ii-1
+                 exit obproc
+              end if
            end do obproc
                 
            if(nobs_sub(mm1,is) > zero)then    ! classical observations
@@ -125,7 +125,7 @@ subroutine obs_para(ndata,mype)
         end if
 
         ! Simple logic to organize which tasks do and do not have obs. 
-        !  Needed for buddy check QC.   
+        !  Needed for buddy check qc.   
         if (twodvar_regional .and. dtype(is) == 't' .and.  buddycheck_t) then 
            ikey_yes=0 
            ikey_no=0 
@@ -142,13 +142,13 @@ subroutine obs_para(ndata,mype)
               end if 
            end do 
  
-           ! With organized colors and keys, now create the new MPI communicator 
+           ! With organized colors and keys, now create the new mpi communicator 
            !   which only talks to pe's who have obs on their subdomains.  This is 
-           !   needed for MPI communication within the setup* routines (e.g. a buddy check). 
+           !   needed for mpi communication within the setup* routines (e.g. a buddy check). 
                
            call mpi_comm_split(mpi_comm_world,icolor(mm1),ikey(mm1),obs_sub_comm(is),ierror)   
-           CALL MPI_COMM_SIZE(obs_sub_comm(is), newprocs, ierror) 
-           CALL MPI_COMM_RANK(obs_sub_comm(is), newrank, ierror) 
+           call mpi_comm_size(obs_sub_comm(is), newprocs, ierror) 
+           call mpi_comm_rank(obs_sub_comm(is), newrank, ierror) 
            if (buddydiag_save) write(6,'(A,I3,I10,A,I20,A,I3,A,I3)') 'obs_para: mype/myobs=',& 
                               mype,nobs_sub(mm1,is),'newcomm=',obs_sub_comm(is),'newprocs=', & 
                               newprocs,'newrank=',newrank            
@@ -226,9 +226,9 @@ subroutine disobs(ndata,nobs,mm1,lunout,obsfile,obstypeall)
   integer(i_kind),dimension(mm1):: ibe,ibw,ibn,ibs
   logical,allocatable,dimension(:):: luse_s
   integer(i_kind),allocatable,dimension(:):: ioid_s
-        ! IOID represents Initial-Obs-ID, which is the serial index of given
+        ! ioid represents initial-obs-id, which is the serial index of given
         ! observation record of a given observation source, before they are
-        ! distributed according to the guess-grid partition.  This ID is saved
+        ! distributed according to the guess-grid partition.  This id is saved
         ! for all future needs of obs. redistribution, such that the sorted
         ! sequences can be reproduced.
   real(r_kind),allocatable,dimension(:,:):: obs_data,data1_s
@@ -256,7 +256,7 @@ subroutine disobs(ndata,nobs,mm1,lunout,obsfile,obstypeall)
   nn_obs = nreal + nchanl
 
   allocate(obs_data(nn_obs,ndata))
-!  Read in all observations of a given type along with subdomain flags
+! Read in all observations of a given type along with subdomain flags
   read(lunin) obs_data
   close(lunin)
 
