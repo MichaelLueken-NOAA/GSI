@@ -18,7 +18,7 @@
      time_window,perturb_obs,perturb_fact,sfcmodel,destroy_obsmod_vars,dsis,&
      dtbduv_on,time_window_max,offtime_data,init_directories,oberror_tune,ext_sonde, &
      blacklst,init_obsmod_vars,lobsdiagsave,lobskeep,lobserver,hilbert_curve,&
-     lread_obs_save,lread_obs_skip,time_window_rad, &
+     lread_obs_save,lread_obs_skip,time_window_rad,tcp_posmatch,tcp_box, &
      neutral_stability_windfact_2dvar,use_similarity_2dvar
   use gsi_dbzOper, only: diag_radardbz
 
@@ -122,7 +122,7 @@
      nlayers,use_gfs_ozone,check_gfs_ozone_date,regional_ozone,jcap,jcap_b,vlevs,&
      use_gfs_nemsio,sfcnst_comb,use_readin_anl_sfcmask,use_sp_eqspace,final_grid_vars,&
      jcap_gfs,nlat_gfs,nlon_gfs,jcap_cut,wrf_mass_hybridcord,use_gfs_ncio,write_fv3_incr,&
-     use_fv3_aero
+     use_fv3_aero,grid_type_fv3_regional
   use guess_grids, only: ifact10,sfcmod_gfs,sfcmod_mm5,use_compress,nsig_ext,gpstop
   use gsi_io, only: init_io,lendian_in,verbose,print_obs_para
   use regional_io_mod, only: regional_io_class
@@ -439,6 +439,7 @@
 !                          model (e.g., HWRF) aircraft recon dynamic
 !                          observation error (DOE) specification to
 !                          GSI namelist level (beneath obsmod.F90).
+!  09-15-2020 Wu        Add option tcp_posmatch to mitigate possibility of erroneous TC initialization
 !
 !EOP
 !-------------------------------------------------------------------------
@@ -532,6 +533,10 @@
 !                        analysis fails if obs file ref time is different from analysis time.
 !
 !     perturb_obs - logical flag to perutrb observation (true=on)
+!     tcp_posmatch - integer =1 to move TC to guess position,
+!                            =2 set pges to the minimum Psfc 
+!     tcp_box      - integer to define the search box size in gridpoints, default =5 
+!                    used with option tcp_posmatch
 !     oberror_tune - logical flag to tune oberror table  (true=on)
 !     perturb_fact -  magnitude factor for observation perturbation
 !     crtm_coeffs_path - path of directory w/ CRTM coeffs files
@@ -661,7 +666,7 @@
        oneobtest,sfcmodel,dtbduv_on,ifact10,l_foto,offtime_data,&
        use_pbl,use_compress,nsig_ext,gpstop,&
        perturb_obs,perturb_fact,oberror_tune,preserve_restart_date, &
-       crtm_coeffs_path,berror_stats, &
+       crtm_coeffs_path,berror_stats,tcp_posmatch,tcp_box, &
        newpc4pred,adp_anglebc,angord,passive_bc,use_edges,emiss_bc,upd_pred,reset_bad_radbc,&
        ssmis_method, ssmis_precond, gmi_method, amsr2_method, bias_zero_start, &
        ec_amv_qc, lobsdiagsave, lobsdiag_forenkf, &
@@ -712,6 +717,7 @@
 !     grid_ratio_nmmb   - ratio of analysis grid to nmmb model grid in nmmb model grid units.
 !     grid_ratio_fv3_regional - ratio of analysis grid to fv3 grid in fv3 grid units.
 !     grid_ratio_wrfmass - ratio of analysis grid to wrf mass grid in wrf grid units.
+!     grid_type_fv3_regional - type of fv3 model grid (grid orientation).
 !     twodvar_regional  - logical for regional 2d-var analysis
 !     filled_grid       - logical to fill in puts on WRF-NMM E-grid
 !     half_grid         - logical to use every other row of WRF-NMM E-Grid
@@ -730,7 +736,7 @@
        diagnostic_reg,update_regsfc,netcdf,regional,wrf_nmm_regional,nems_nmmb_regional,fv3_regional,&
        wrf_mass_regional,twodvar_regional,filled_grid,half_grid,nvege_type,nlayers,cmaq_regional,&
        nmmb_reference_grid,grid_ratio_nmmb,grid_ratio_fv3_regional,grid_ratio_wrfmass,jcap_gfs,jcap_cut,&
-       wrf_mass_hybridcord
+       wrf_mass_hybridcord,grid_type_fv3_regional
 
 ! BKGERR (background error related variables):
 !     vs       - scale factor for vertical correlation lengths for background error
