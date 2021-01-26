@@ -9,6 +9,8 @@ set COMP_MPI mpiifort
 set C_COMP icc
 set C_COMP_MP mpcc
 
+setenv CRTM_FIX /scratch2/NCEPDEV/nwprod/NCEPLIBS/fix/crtm_v2.3.0
+
 # Known conflicts
 
 # Load hpc-stack
@@ -40,8 +42,3 @@ module load w3emc/2.7.3
 module load w3nco/2.4.1
 module load hdf5/1.10.6
 module load netcdf/4.7.4
-
-#Load NetCDF and HDF5 libraries
-#module use -a /scratch2/NCEPDEV/nwprod/NCEPLIBS/modulefiles
-#module load hdf5_parallel/1.10.6
-#module load netcdf_parallel/4.7.4
