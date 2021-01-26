@@ -107,6 +107,7 @@ project(GSI)
   endif(BUILD_REG_TESTING)
 
   cmake_policy(SET CMP0009 NEW)
+  cmake_policy(SET CMP0054 NEW)
   find_package(OpenMP)
   message("found openmp with flag ${OPENMP_Fortran_FLAGS}")
 
